@@ -4,10 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Meus Links - @luisinhohumor</title>
-    <!-- Carrega o Tailwind CSS para estilização moderna e responsiva -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-    <!-- Ícones Lucide (Gamepad adicionado) -->
     <script type="module">
         import { createIcons, Youtube, Instagram, Tiktok, Zap, Facebook, Share2, Gamepad } from 'https://unpkg.com/lucide@latest';
         createIcons({ icons: { Youtube, Instagram, Tiktok, Zap, Facebook, Share2, Gamepad } });
@@ -87,12 +85,9 @@
 </head>
 <body>
 
-    <!-- Container Principal do Link na Bio -->
     <div class="w-full max-w-lg mx-4">
 
-        <!-- Área do Perfil -->
         <header class="text-center mb-6">
-            <!-- Imagem de Perfil -->
             <img 
                 src="https://i.postimg.cc/qMdkDCvg/8a459470879a76c33cd97e60701600f6_tplv-tiktokx-cropcenter_1080_1080_(1).jpg" 
                 alt="Foto de Perfil" 
@@ -102,7 +97,6 @@
             <h1 class="text-3xl font-extrabold text-gray-800 mt-4">@luisinhohumor</h1>
             <p class="text-gray-600 mt-1 mb-4">Bem-vindo(a)! Clique nos links abaixo 👇</p>
             
-            <!-- Botão de Compartilhar Perfil -->
             <button
                 onclick="shareProfile()"
                 id="share-button"
@@ -114,7 +108,6 @@
             <div id="message-box" class="mt-2 text-sm font-medium h-4"></div>
         </header>
 
-        <!-- Botão Exclusivo da LIVE do TikTok (Interativo) -->
         <div class="mb-6">
             <button 
                 id="live-button"
@@ -122,7 +115,6 @@
                 class="link-card flex items-center justify-center w-full py-5 px-6 text-xl font-extrabold text-white rounded-xl shadow-2xl transition duration-300 ease-in-out active:scale-98 border-2 border-gray-400"
                 style="background: #3b82f6;" 
             >
-                <!-- O ícone e o texto serão atualizados pelo JS -->
                 <i data-lucide="zap" class="w-7 h-7 mr-3"></i>
                 <span id="live-text">LIVE NO TIKTOK (Offline)</span>
                 <span id="live-status-dot" class="ml-3 w-4 h-4 rounded-full bg-gray-700"></span>
@@ -130,19 +122,16 @@
             <p class="text-center text-xs text-gray-500 mt-2">Clique no botão acima para simular o status online/offline!</p>
         </div>
 
-        <!-- Seção de Links de Redes Sociais e Jogo -->
         <main class="space-y-4">
 
-            <!-- NOVO BOTÃO: Link para Jogo (Placeholder) -->
             <a 
-                href="#MEU_PRIMEIRO_JOGO.html" target="_blank"
+                href="jogo.html"
                 class="link-card flex items-center justify-center w-full py-5 px-6 bg-purple-600 text-white rounded-xl font-extrabold shadow-xl hover:bg-purple-700 active:scale-95 border-2 border-yellow-300"
             >
                 <i data-lucide="gamepad" class="w-6 h-6 mr-3 text-white"></i>
                 <span class="text-lg">🎮 JOGAR MEU PRIMEIRO GAME!</span>
             </a>
             
-            <!-- Link do TikTok Principal (Estilo: Preto Sólido, Bold) -->
             <a 
                 href="https://www.tiktok.com/@luisinhohumor" target="_blank"
                 class="link-card flex items-center justify-center w-full py-5 px-6 bg-black text-white rounded-xl font-extrabold shadow-xl hover:bg-gray-800 active:scale-95"
@@ -151,7 +140,6 @@
                 <span class="text-lg">Meu Perfil Principal no TikTok</span>
             </a>
 
-            <!-- Link do Instagram (Estilo: Gradiente Oficial, Bold) -->
             <a 
                 href="https://www.instagram.com/luisinhohumor/" target="_blank"
                 class="link-card flex items-center justify-center w-full py-5 px-6 instagram-gradient text-white rounded-xl font-extrabold shadow-xl hover:shadow-2xl active:scale-95"
@@ -160,7 +148,6 @@
                 <span class="text-lg">Instagram</span>
             </a>
 
-            <!-- Link do YouTube (Estilo: Vermelho Oficial, Bold) -->
             <a 
                 href="https://www.youtube.com/@luisinhumor" target="_blank"
                 class="link-card flex items-center justify-center w-full py-5 px-6 bg-red-600 text-white rounded-xl font-extrabold shadow-xl hover:bg-red-700 active:scale-95"
@@ -169,7 +156,6 @@
                 <span class="text-lg">YouTube</span>
             </a>
 
-            <!-- Link do Facebook (Estilo: Azul Oficial, Bold) -->
             <a 
                 href="https://www.facebook.com/luis.marquesfilho/?locale=pt_BR" target="_blank"
                 class="link-card flex items-center justify-center w-full py-5 px-6 bg-blue-700 text-white rounded-xl font-extrabold shadow-xl hover:bg-blue-800 active:scale-95"
@@ -180,13 +166,11 @@
 
         </main>
 
-        <!-- Link PIX da Live (LivePix) -->
         <footer class="mt-8">
             <div class="pix-section p-6 rounded-2xl text-center">
                 <p class="text-xl font-bold text-gray-800 mb-2">💚 Apoie a Live com LivePix!</p>
                 <p class="text-sm text-gray-600 mb-4">Clique no botão para fazer uma doação e aparecer na tela. Sua ajuda é vital!</p>
                 
-                <!-- O NOVO BOTÃO DE DOAÇÃO AGORA APONTA DIRETAMENTE PARA O LIVEPIX -->
                 <a 
                     href="https://livepix.gg/luisinhohumor" 
                     target="_blank"
@@ -196,13 +180,11 @@
                 </a>
             </div>
             
-            <!-- Assinatura/Rodapé -->
             <p class="text-center text-xs text-gray-500 mt-6">Criado com 💖</p>
         </footer>
 
     </div>
 
-    <!-- JavaScript para a Interatividade -->
     <script>
         // Variável de estado para simular o status da Live
         let isLive = false;
