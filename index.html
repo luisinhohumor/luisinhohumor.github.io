@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meus Links - @luisinhohumor</title>
+    <!-- Carrega o Tailwind CSS para estilização moderna e responsiva -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- Ícones Lucide (Gamepad adicionado) -->
+    <script type="module">
+        import { createIcons, Youtube, Instagram, Tiktok, Zap, Facebook, Share2, Gamepad } from 'https://unpkg.com/lucide@latest';
+        createIcons({ icons: { Youtube, Instagram, Tiktok, Zap, Facebook, Share2, Gamepad } });
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            /* CONFIGURAÇÃO DA IMAGEM DE FUNDO */
+            background-image: url('https://i.postimg.cc/CKdYnGmr/b7cfca_ecba34bc03024b7280cf546ab72057a3.jpg');
+            background-size: cover; /* Cobre toda a área */
+            background-position: center; /* Centraliza a imagem */
+            background-attachment: fixed; /* Mantém a imagem fixa ao rolar */
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding-top: 2rem;
+            padding-bottom: 4rem; /* Espaço para o rodapé em mobile */
+        }
+
+        /* SOBREPOSIÇÃO (OVERLAY) SEMI-TRANSPARENTE para garantir a legibilidade do texto */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            /* Fundo suave (f0f3f6) com 75% de opacidade */
+            background-color: rgba(240, 243, 246, 0.75);
+            z-index: -1;
+        }
+
+        .link-card {
+            transition: transform 0.1s ease, box-shadow 0.2s ease, filter 0.2s ease;
+        }
+        .link-card:hover {
+            transform: translateY(-3px); /* Movimento mais perceptível */
+            box-shadow: 0 15px 20px -5px rgba(0, 0, 0, 0.1), 0 6px 10px -3px rgba(0, 0, 0, 0.08);
+        }
+        /* Estilo para o botão do Instagram com gradiente */
+        .instagram-gradient {
+            /* Cores oficiais do gradiente do Instagram */
+            background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%);
+        }
+        .instagram-gradient:hover {
+            /* Leve aumento de brilho no hover */
+            filter: brightness(1.1);
+        }
+        
+        .online-blink {
+            animation: pulse-red 2s infinite;
+        }
+        @keyframes pulse-red {
+            0%, 100% {
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); /* Sombra pulsante */
+            }
+            50% {
+                box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+            }
+        }
+        /* Estilo para a bolinha de status da Live */
+        #live-status-dot.online-blink {
+            animation: dot-pulse 1.5s infinite;
+        }
+        @keyframes dot-pulse {
+            0% { transform: scale(0.9); opacity: 1; }
+            50% { transform: scale(1.3); opacity: 0.7; }
+            100% { transform: scale(0.9); opacity: 1; }
+        }
+        .pix-section {
+            background-color: #ffffff;
+            border: 2px solid #10b981; /* Borda verde suave para destaque de doação */
+            box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Container Principal do Link na Bio -->
+    <div class="w-full max-w-lg mx-4">
+
+        <!-- Área do Perfil -->
+        <header class="text-center mb-6">
+            <!-- Imagem de Perfil -->
+            <img 
+                src="https://i.postimg.cc/qMdkDCvg/8a459470879a76c33cd97e60701600f6_tplv-tiktokx-cropcenter_1080_1080_(1).jpg" 
+                alt="Foto de Perfil" 
+                class="w-32 h-32 rounded-full mx-auto border-4 border-white shadow-xl object-cover"
+                onerror="this.src='https://placehold.co/128x128/3b82f6/ffffff?text=Seu+Nome'"
+            >
+            <h1 class="text-3xl font-extrabold text-gray-800 mt-4">@luisinhohumor</h1>
+            <p class="text-gray-600 mt-1 mb-4">Bem-vindo(a)! Clique nos links abaixo 👇</p>
+            
+            <!-- Botão de Compartilhar Perfil -->
+            <button
+                onclick="shareProfile()"
+                id="share-button"
+                class="flex items-center mx-auto px-4 py-2 bg-blue-500 text-white text-sm font-semibold rounded-full shadow-md hover:bg-blue-600 transition duration-150 active:scale-95"
+            >
+                <i data-lucide="share-2" class="w-4 h-4 mr-2"></i>
+                <span id="share-text">Compartilhar Perfil</span>
+            </button>
+            <div id="message-box" class="mt-2 text-sm font-medium h-4"></div>
+        </header>
+
+        <!-- Botão Exclusivo da LIVE do TikTok (Interativo) -->
+        <div class="mb-6">
+            <button 
+                id="live-button"
+                onclick="toggleLiveStatus()"
+                class="link-card flex items-center justify-center w-full py-5 px-6 text-xl font-extrabold text-white rounded-xl shadow-2xl transition duration-300 ease-in-out active:scale-98 border-2 border-gray-400"
+                style="background: #3b82f6;" 
+            >
+                <!-- O ícone e o texto serão atualizados pelo JS -->
+                <i data-lucide="zap" class="w-7 h-7 mr-3"></i>
+                <span id="live-text">LIVE NO TIKTOK (Offline)</span>
+                <span id="live-status-dot" class="ml-3 w-4 h-4 rounded-full bg-gray-700"></span>
+            </button>
+            <p class="text-center text-xs text-gray-500 mt-2">Clique no botão acima para simular o status online/offline!</p>
+        </div>
+
+        <!-- Seção de Links de Redes Sociais e Jogo -->
+        <main class="space-y-4">
+
+            <!-- NOVO BOTÃO: Link para Jogo (Placeholder) -->
+            <a 
+                href="#MEU_PRIMEIRO_JOGO.html" target="_blank"
+                class="link-card flex items-center justify-center w-full py-5 px-6 bg-purple-600 text-white rounded-xl font-extrabold shadow-xl hover:bg-purple-700 active:scale-95 border-2 border-yellow-300"
+            >
+                <i data-lucide="gamepad" class="w-6 h-6 mr-3 text-white"></i>
+                <span class="text-lg">🎮 JOGAR MEU PRIMEIRO GAME!</span>
+            </a>
+            
+            <!-- Link do TikTok Principal (Estilo: Preto Sólido, Bold) -->
+            <a 
+                href="https://www.tiktok.com/@luisinhohumor" target="_blank"
+                class="link-card flex items-center justify-center w-full py-5 px-6 bg-black text-white rounded-xl font-extrabold shadow-xl hover:bg-gray-800 active:scale-95"
+            >
+                <i data-lucide="tiktok" class="w-6 h-6 mr-3 text-white"></i>
+                <span class="text-lg">Meu Perfil Principal no TikTok</span>
+            </a>
+
+            <!-- Link do Instagram (Estilo: Gradiente Oficial, Bold) -->
+            <a 
+                href="https://www.instagram.com/luisinhohumor/" target="_blank"
+                class="link-card flex items-center justify-center w-full py-5 px-6 instagram-gradient text-white rounded-xl font-extrabold shadow-xl hover:shadow-2xl active:scale-95"
+            >
+                <i data-lucide="instagram" class="w-6 h-6 mr-3 text-white"></i>
+                <span class="text-lg">Instagram</span>
+            </a>
+
+            <!-- Link do YouTube (Estilo: Vermelho Oficial, Bold) -->
+            <a 
+                href="https://www.youtube.com/@luisinhumor" target="_blank"
+                class="link-card flex items-center justify-center w-full py-5 px-6 bg-red-600 text-white rounded-xl font-extrabold shadow-xl hover:bg-red-700 active:scale-95"
+            >
+                <i data-lucide="youtube" class="w-6 h-6 mr-3 text-white"></i>
+                <span class="text-lg">YouTube</span>
+            </a>
+
+            <!-- Link do Facebook (Estilo: Azul Oficial, Bold) -->
+            <a 
+                href="https://www.facebook.com/luis.marquesfilho/?locale=pt_BR" target="_blank"
+                class="link-card flex items-center justify-center w-full py-5 px-6 bg-blue-700 text-white rounded-xl font-extrabold shadow-xl hover:bg-blue-800 active:scale-95"
+            >
+                <i data-lucide="facebook" class="w-6 h-6 mr-3 text-white"></i>
+                <span class="text-lg">Facebook</span>
+            </a>
+
+        </main>
+
+        <!-- Link PIX da Live (LivePix) -->
+        <footer class="mt-8">
+            <div class="pix-section p-6 rounded-2xl text-center">
+                <p class="text-xl font-bold text-gray-800 mb-2">💚 Apoie a Live com LivePix!</p>
+                <p class="text-sm text-gray-600 mb-4">Clique no botão para fazer uma doação e aparecer na tela. Sua ajuda é vital!</p>
+                
+                <!-- O NOVO BOTÃO DE DOAÇÃO AGORA APONTA DIRETAMENTE PARA O LIVEPIX -->
+                <a 
+                    href="https://livepix.gg/luisinhohumor" 
+                    target="_blank"
+                    class="mt-3 w-full py-3 bg-green-500 text-white font-extrabold rounded-xl shadow-lg hover:bg-green-600 transition duration-150 active:scale-95 inline-block text-lg uppercase tracking-wider"
+                >
+                    Fazer Doação LivePix
+                </a>
+            </div>
+            
+            <!-- Assinatura/Rodapé -->
+            <p class="text-center text-xs text-gray-500 mt-6">Criado com 💖</p>
+        </footer>
+
+    </div>
+
+    <!-- JavaScript para a Interatividade -->
+    <script>
+        // Variável de estado para simular o status da Live
+        let isLive = false;
+        
+        // O link da Live do TikTok foi preenchido com seu @ de usuário
+        const TIKTOK_LIVE_URL = "https://www.tiktok.com/@luisinhohumor/live"; 
+        
+        const liveButton = document.getElementById('live-button');
+        const liveText = document.getElementById('live-text');
+        const liveStatusDot = document.getElementById('live-status-dot');
+        const messageBox = document.getElementById('message-box');
+
+        /**
+         * Exibe uma mensagem temporária na tela (substituindo o alert).
+         * @param {string} message A mensagem a ser exibida.
+         * @param {string} color Cor do texto (Tailwind class, e.g., 'text-green-500').
+         */
+        function showMessage(message, color = 'text-green-500') {
+            messageBox.textContent = message;
+            messageBox.className = `mt-2 text-sm font-medium h-4 ${color}`;
+            setTimeout(() => {
+                messageBox.textContent = '';
+                messageBox.className = 'mt-2 text-sm font-medium h-4';
+            }, 3000);
+        }
+
+        /**
+         * Alterna o estado da Live (Online/Offline).
+         */
+        function toggleLiveStatus() {
+            isLive = !isLive;
+            updateLiveButton();
+        }
+
+        /**
+         * Atualiza o visual do botão baseado no estado 'isLive'.
+         */
+        function updateLiveButton() {
+            if (isLive) {
+                // Estado ONLINE (Vermelho e piscando)
+                liveButton.classList.remove('bg-gray-500', 'border-gray-400');
+                liveButton.style.background = 'linear-gradient(90deg, #ef4444, #dc2626)';
+                liveButton.classList.add('online-blink', 'shadow-red-500/50');
+                liveText.textContent = '🔥 AO VIVO AGORA! Clique e Assista!';
+                
+                liveStatusDot.classList.remove('bg-gray-700');
+                liveStatusDot.classList.add('bg-red-400', 'online-blink');
+                
+                // Redefine a ação do botão para ABRIR A LIVE
+                liveButton.onclick = () => {
+                    if (TIKTOK_LIVE_URL && TIKTOK_LIVE_URL.startsWith('http')) {
+                            window.open(TIKTOK_LIVE_URL, '_blank');
+                    } else {
+                        console.error('ERRO: O link da Live está configurado incorretamente.');
+                        showMessage('Erro no link da Live!', 'text-red-500');
+                        toggleLiveStatus(); 
+                    }
+                };
+
+            } else {
+                // Estado OFFLINE (Azul/Padrão)
+                liveButton.classList.remove('online-blink', 'shadow-red-500/50');
+                liveButton.style.background = '#3b82f6';
+                liveButton.classList.add('bg-gray-500', 'border-gray-400');
+                liveText.textContent = 'LIVE NO TIKTOK (Offline)';
+
+                liveStatusDot.classList.remove('bg-red-400', 'online-blink');
+                liveStatusDot.classList.add('bg-gray-700');
+
+                // Redefine a ação do botão para MUDAR O STATUS
+                liveButton.onclick = toggleLiveStatus;
+            }
+        }
+
+        /**
+         * Tenta usar a API Share ou copia para o clipboard como fallback.
+         */
+        function shareProfile() {
+            const shareData = {
+                title: document.title,
+                text: 'Confira os links do @luisinhohumor!',
+                url: window.location.href,
+            };
+
+            // 1. Tenta usar a Web Share API (para dispositivos móveis e navegadores compatíveis)
+            if (navigator.share) {
+                navigator.share(shareData)
+                    .then(() => {
+                        showMessage('Perfil compartilhado com sucesso!');
+                    })
+                    .catch((error) => {
+                        // Se o compartilhamento falhar ou for cancelado, tenta copiar
+                        fallbackCopy(shareData.url);
+                    });
+            } else {
+                // 2. Fallback: Copia o URL para o clipboard
+                fallbackCopy(shareData.url);
+            }
+        }
+
+        /**
+         * Função de fallback para copiar o texto.
+         * @param {string} text O texto/URL a ser copiado.
+         */
+        function fallbackCopy(text) {
+             // Usa o método antigo (e mais amplamente suportado em iFrames) para copiar
+             const tempInput = document.createElement('input');
+             tempInput.value = text;
+             document.body.appendChild(tempInput);
+             tempInput.select();
+             
+             try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    showMessage('Link copiado para o clipboard!', 'text-blue-600');
+                } else {
+                    showMessage('Não foi possível copiar o link.', 'text-red-500');
+                }
+             } catch (err) {
+                showMessage('Não foi possível copiar o link.', 'text-red-500');
+             }
+             
+             document.body.removeChild(tempInput);
+        }
+
+        // Inicializa o estado do botão ao carregar a página (Offline por padrão)
+        document.addEventListener('DOMContentLoaded', updateLiveButton);
+
+    </script>
+
+</body>
+</html>
