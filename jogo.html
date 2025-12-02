@@ -25,7 +25,6 @@
         .game-container {
             width: 100%;
             max-width: 1000px; 
-            /* background-color removido daqui pois será tratado no background-image */
             border-radius: 25px;
             box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
             padding: 25px;
@@ -34,13 +33,12 @@
             flex-direction: column;
             gap: 20px;
             
-            /* --- Nova Borda com Imagem --- */
-            border: 15px solid transparent; /* Espessura da borda */
-            /* A primeira imagem é o fundo branco (conteúdo), a segunda é a imagem da borda */
+            /* --- Borda com Imagem --- */
+            border: 15px solid transparent; 
             background-image: linear-gradient(#ffffff, #ffffff), url('https://i.postimg.cc/CKdYnGmr/b7cfca-ecba34bc03024b7280cf546ab72057a3.jpg');
             background-origin: padding-box, border-box;
             background-clip: padding-box, border-box;
-            background-size: cover; /* Ajusta a imagem para cobrir a borda */
+            background-size: cover; 
             /* --------------------------- */
         }
 
@@ -134,10 +132,9 @@
             position: relative;
             width: 100%;
             max-width: 500px; 
-            /* Usando Aspect Ratio Trick para garantir que a imagem de fundo não se distorça muito em diferentes tamanhos */
-            padding-top: 100%; /* Isso cria um quadrado. Ajuste se a proporção da sua imagem mudar. */
+            padding-top: 100%; 
             height: 0;
-            background-image: url('https://i.postimg.cc/rFZfc07P/ddddddd.jpg'); 
+            background-image: url('https://i.postimg.cc/Wb4BsmdQ/ddddddd.jpg'); 
             background-size: cover;
             background-position: center;
             border: 2px solid #a7ffeb;
@@ -177,7 +174,7 @@
             box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
         }
         
-        /* Estilos para os botões de ferramenta (Pincel/Borracha/Seleção) */
+        /* Estilos para os botões de ferramenta */
         .tool-btn {
             border: 2px solid transparent;
             color: #00796b;
@@ -192,8 +189,8 @@
         .tool-btn:hover:not(.active) {
             background-color: #e0f7fa;
         }
-        
-        /* --- NOVO ESTILO: CONTROLE ROTATÓRIO DO PINCEL --- */
+
+        /* --- ESTILO: CONTROLE ROTATÓRIO DO PINCEL --- */
         #brushKnobContainer {
             width: 48px;
             height: 48px;
@@ -225,8 +222,6 @@
             border-radius: 50%;
             box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
         }
-        /* --- FIM NOVO ESTILO --- */
-
 
         #accessoriesContainer {
             display: flex;
@@ -269,7 +264,7 @@
             border-color: #00bfa5;
         }
 
-        /* --- ESTILOS DO ACCESSORY WRAPPER (ARRASTAR/REDIMENSIONAR/ROTACIONAR) --- */
+        /* --- ESTILOS DO ACCESSORY WRAPPER --- */
         .accessory-wrapper {
             z-index: 10;
             position: absolute;
@@ -294,7 +289,6 @@
             object-fit: fill; 
         }
 
-        /* Estilos para os manipuladores de redimensionamento (AMARELOS) */
         .resize-handle {
             position: absolute;
             width: 30px; 
@@ -308,12 +302,35 @@
             transition: opacity 0.2s ease;
         }
         
+        /* NOVO ESTILO: Botão de Deletar (Substitui o resize NE) */
+        .delete-handle {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background-color: #ef4444; /* Vermelho */
+            border: 2px solid #ffffff;
+            border-radius: 50%;
+            z-index: 2001; /* Maior que resize */
+            box-sizing: border-box;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-family: sans-serif;
+            top: -15px;
+            right: -15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
         .handle-nw { top: -15px; left: -15px; cursor: nwse-resize; }
-        .handle-ne { top: -15px; right: -15px; cursor: nesw-resize; }
+        /* .handle-ne foi removido para dar lugar ao delete */
         .handle-sw { bottom: -15px; left: -15px; cursor: nesw-resize; }
         .handle-se { bottom: -15px; right: -15px; cursor: nwse-resize; }
 
-        /* Manipulador de Rotação (AZUL) */
         .rotate-handle {
             position: absolute;
             width: 30px;
@@ -332,8 +349,36 @@
         }
         
         .accessory-wrapper.active .resize-handle,
-        .accessory-wrapper.active .rotate-handle {
+        .accessory-wrapper.active .rotate-handle,
+        .accessory-wrapper.active .delete-handle {
             opacity: 1;
+        }
+
+        /* --- AJUSTES PARA CELULAR (RESPONSIVIDADE) --- */
+        @media (max-width: 640px) {
+            body {
+                padding: 10px; /* Menos margem no corpo */
+            }
+            .game-container {
+                padding: 10px; /* Menos padding interno */
+                border-width: 8px; /* Borda decorativa mais fina */
+                width: 100%;
+            }
+            .game-header {
+                font-size: 1.75rem; /* Título um pouco menor */
+                margin-bottom: 10px;
+            }
+            #accessoriesContainer {
+                gap: 8px;
+            }
+            .accessory-item {
+                width: 70px; /* Botões de acessório menores para caber mais */
+                height: 70px;
+            }
+            #drawingArea {
+                /* Garante que ocupe todo o espaço disponível */
+                width: 100%;
+            }
         }
     </style>
 </head>
@@ -353,11 +398,11 @@
             <!-- Conteúdo será injetado pelo JavaScript -->
         </div>
         
-        <!-- Modal de Confirmação Customizado (Para a remoção de acessórios no Customizador) -->
+        <!-- Modal de Confirmação Customizado -->
         <div id="removeConfirmModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 transition-opacity duration-300 opacity-0 pointer-events-none">
             <div class="bg-white p-6 rounded-xl shadow-2xl max-w-sm w-full transform scale-90 transition-transform duration-300">
-                <h3 class="text-xl font-bold text-teal-800 mb-4">Confirmar Remoção</h3>
-                <p class="text-gray-700 mb-6">Deseja remover este acessório? (Clique duas vezes ou use o botão direito para remover)</p>
+                <h3 class="text-xl font-bold text-teal-800 mb-4">Remover Acessório</h3>
+                <p class="text-gray-700 mb-6">Deseja remover este item da imagem?</p>
                 <div class="flex justify-end space-x-3">
                     <button id="cancelRemove" class="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-100 transition">Cancelar</button>
                     <button id="confirmRemove" class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition">Remover</button>
@@ -388,11 +433,11 @@
         let knobCenterX, knobCenterY;
         let initialKnobAngle = 0;
         let initialKnobBrushSize = 0;
-        let currentKnobRotation = 0; // Armazena a rotação visual (0 a 340 graus)
+        let currentKnobRotation = 0; 
         const MAX_BRUSH_SIZE = 20;
         const MIN_BRUSH_SIZE = 1;
-        const MAX_VISUAL_ROTATION = 340; // Rotação máxima em graus
-        const DEGREES_PER_UNIT = 18; // Quantos graus de giro para mudar o tamanho em 1 unidade
+        const MAX_VISUAL_ROTATION = 340; 
+        const DEGREES_PER_UNIT = 18;
 
 
         // --- Funções de Utilitário para TTS (Áudio) ---
@@ -561,13 +606,14 @@
         
         function updateConfettiGameLoop() {
             if (!isConfettiGameRunning || currentGame !== 'confetti') {
-                confettiGameInstance = requestAnimationFrame(updateConfettiGameLoop);
-                return;
+                confettiGameInstance = null; 
+                return; 
             }
             
             const canvas = document.getElementById('confettiCanvas');
             if (!canvas) {
                 isConfettiGameRunning = false;
+                confettiGameInstance = null;
                 return;
             }
 
@@ -689,7 +735,8 @@
                 }
             });
             
-            if (!confettiGameInstance) {
+            if (!confettiGameInstance && currentGame === 'confetti') {
+                 isConfettiGameRunning = true;
                  confettiGameInstance = requestAnimationFrame(updateConfettiGameLoop);
             } else if (currentGame === 'confetti') {
                  isConfettiGameRunning = true;
@@ -707,7 +754,7 @@
         let currentBrushSize = 5;
         let accessories = []; 
 
-        const FACE_IMAGE_URL = 'https://i.postimg.cc/rFZfc07P/ddddddd.jpg';
+        const FACE_IMAGE_URL = 'https://i.postimg.cc/Wb4BsmdQ/ddddddd.jpg';
         let faceImage = new Image();
         faceImage.src = FACE_IMAGE_URL;
         
@@ -718,14 +765,12 @@
             { name: "Bigode", src: "https://i.postimg.cc/m2j4BwSM/bigode.png", w: 80, h: 40 },
             { name: "Maquiagem", src: "https://i.postimg.cc/XY2nc8Gd/make.png", w: 180, h: 150 },
             { name: "Chapéu", src: "https://i.postimg.cc/MpjnsHR1/Captura-de-tela-2025-11-30-191447.png", w: 100, h: 80 },
-            // NOVOS ACESSÓRIOS
             { name: "Peruca Loira", src: "https://i.postimg.cc/N0w4gWkT/Captura-de-tela-2025-11-30-190254.png", w: 150, h: 150 },
             { name: "Boca", src: "https://i.postimg.cc/RZkLGqsZ/Captura-de-tela-2025-11-30-195023.png", w: 80, h: 40 },
             { name: "Cabelo", src: "https://i.postimg.cc/MGcKZpq9/a214595cb778d15d02a04495c94e14b3.png", w: 150, h: 150 },
             { name: "Maquiagem Olho", src: "https://i.postimg.cc/D058JpDM/ddddddd.png", w: 150, h: 80 }
         ];
         
-        // Função para calcular o ângulo em radianos entre o centro e um ponto
         function calculateAngle(cx, cy, px, py) {
             return Math.atan2(py - cy, px - cx);
         }
@@ -766,13 +811,21 @@
             if (target.tagName === 'INPUT' || target.tagName === 'LABEL' || (target.tagName === 'BUTTON' && target.id === 'clearDrawingBtn') || target.id === 'brushKnob' || target.id === 'knobHandle') {
                 return;
             }
+            
+            // Check if delete handle is clicked
+            if (target.classList.contains('delete-handle')) {
+                 if (activeAccessory) {
+                    showRemoveModal(activeAccessory);
+                 }
+                 e.preventDefault();
+                 return;
+            }
 
             if (currentTool !== 'select') {
                 setActiveAccessory(null); 
                 return;
             }
 
-            // 1. Clicou no handle de redimensionamento?
             if (target.classList.contains('resize-handle')) {
                 currentAction = target.classList.contains('handle-nw') ? 'resize-nw' :
                                 target.classList.contains('handle-ne') ? 'resize-ne' :
@@ -782,7 +835,6 @@
                 activeAccessory = target.parentElement; 
                 e.preventDefault();
 
-            // 2. Clicou no handle de rotação? 
             } else if (target.classList.contains('rotate-handle')) {
                 currentAction = 'rotate';
                 activeAccessory = target.parentElement;
@@ -793,7 +845,6 @@
                 initialRotation = parseFloat(activeAccessory.getAttribute('data-rotation') || 0);
                 e.preventDefault();
             
-            // 3. Clicou no acessório para arrastar?
             } else if (target.classList.contains('accessory-wrapper')) {
                 currentAction = 'drag';
                 setActiveAccessory(target); 
@@ -803,13 +854,11 @@
                 initialElementTop = parseFloat(target.style.top) || 0;
                 e.preventDefault();
             
-            // 4. Clicou em outro lugar, desativa a seleção
             } else if (target.id === 'drawingArea') {
                 setActiveAccessory(null);
             }
             
             if (activeAccessory && (currentAction === 'drag' || currentAction.startsWith('resize') || currentAction === 'rotate')) {
-                // Para arrastar e redimensionar, definimos o estado inicial aqui
                 initialMouseX = clientX;
                 initialMouseY = clientY;
                 initialWidth = activeAccessory.offsetWidth;
@@ -818,7 +867,6 @@
                 initialElementTop = parseFloat(activeAccessory.style.top) || 0;
             }
             
-            // Configurações do Pincel/Borracha
             if (currentTool === 'brush' || currentTool === 'eraser') {
                 isDrawing = true;
                 draw(clientX, clientY);
@@ -842,18 +890,11 @@
             
             if (!activeAccessory || !currentAction) return;
             e.preventDefault();
-
-            const drawingArea = document.getElementById('drawingArea');
-            const drawingAreaRect = drawingArea.getBoundingClientRect();
-
+            
             if (currentAction === 'drag') {
                 let newLeft = initialElementLeft + dx;
                 let newTop = initialElementTop + dy;
                 
-                // Garante que o acessório permaneça dentro da área de desenho
-                newLeft = Math.max(0, Math.min(newLeft, drawingAreaRect.width - activeAccessory.offsetWidth));
-                newTop = Math.max(0, Math.min(newTop, drawingAreaRect.height - activeAccessory.offsetHeight));
-
                 activeAccessory.style.left = `${newLeft}px`;
                 activeAccessory.style.top = `${newTop}px`;
             
@@ -886,12 +927,12 @@
                         break;
                 }
 
-                if (newWidth > MIN_ACCESSORY_SIZE && newLeft >= 0 && newLeft + newWidth <= drawingAreaRect.width) {
+                if (newWidth > MIN_ACCESSORY_SIZE) {
                     activeAccessory.style.width = `${newWidth}px`;
                     if (currentAction.includes('w')) activeAccessory.style.left = `${newLeft}px`;
                 }
 
-                if (newHeight > MIN_ACCESSORY_SIZE && newTop >= 0 && newTop + newHeight <= drawingAreaRect.height) {
+                if (newHeight > MIN_ACCESSORY_SIZE) {
                     activeAccessory.style.height = `${newHeight}px`;
                     if (currentAction.includes('n')) activeAccessory.style.top = `${newTop}px`;
                 }
@@ -950,7 +991,6 @@
             drawingCtx.beginPath();
             drawingCtx.moveTo(x, y);
 
-            // Adiciona os ouvintes de evento para continuar o desenho
             document.addEventListener('mousemove', moveAction);
             document.addEventListener('mouseup', stopAction);
             document.addEventListener('touchmove', moveAction, { passive: false });
@@ -964,9 +1004,8 @@
                 knob.style.transform = `rotate(${rotation}deg)`;
                 currentKnobRotation = rotation;
                 
-                // Calcula o novo tamanho do pincel baseado na rotação (0 a MAX_VISUAL_ROTATION)
                 const sizeRange = MAX_BRUSH_SIZE - MIN_BRUSH_SIZE;
-                const normalizedRotation = (rotation + 360) % 360; // Garante que esteja entre 0 e 360
+                const normalizedRotation = (rotation + 360) % 360; 
                 const sizeFraction = Math.min(1, normalizedRotation / MAX_VISUAL_ROTATION);
                 currentBrushSize = Math.round(MIN_BRUSH_SIZE + (sizeFraction * sizeRange));
                 document.getElementById('brushSizeLabel').textContent = `${currentBrushSize}px`;
@@ -1002,7 +1041,6 @@
             const angleDiff = currentAngle - initialKnobAngle;
             let newRotation = initialKnobRotation + (angleDiff * (180 / Math.PI));
             
-            // Limita a rotação entre 0 e MAX_VISUAL_ROTATION (340 graus)
             newRotation = Math.max(0, Math.min(newRotation, MAX_VISUAL_ROTATION));
             
             updateBrushKnob(newRotation);
@@ -1024,17 +1062,25 @@
             const drawingArea = document.getElementById('drawingArea');
             if (!drawingArea) return;
             
-            // CORREÇÃO: Usar offsetWidth para o cálculo de posicionamento vertical (top)
-            // já que a área de desenho está configurada com padding-top para ser um quadrado.
             const areaSize = drawingArea.offsetWidth;
             
+            // Lógica de Escala Responsiva
+            // O tamanho original dos acessórios foi pensado para uma tela de 500px de largura.
+            // Se a tela for menor (celular), escalamos o acessório para manter a proporção visual.
+            const REFERENCE_WIDTH = 500;
+            const scale = Math.min(1, areaSize / REFERENCE_WIDTH); // Não aumenta além do original, apenas reduz
+            
+            const scaledW = accessory.w * scale;
+            const scaledH = accessory.h * scale;
+
             const newElement = document.createElement('div');
             newElement.classList.add('accessory-wrapper');
-            newElement.style.width = `${accessory.w}px`;
-            newElement.style.height = `${accessory.h}px`;
-            // Centraliza o acessório usando a dimensão calculada (areaSize)
-            newElement.style.left = `${(areaSize / 2) - (accessory.w / 2)}px`;
-            newElement.style.top = `${(areaSize / 2) - (accessory.h / 2)}px`;
+            newElement.style.width = `${scaledW}px`;
+            newElement.style.height = `${scaledH}px`;
+            
+            // Centraliza o acessório usando a dimensão calculada
+            newElement.style.left = `${(areaSize / 2) - (scaledW / 2)}px`;
+            newElement.style.top = `${(areaSize / 2) - (scaledH / 2)}px`;
 
             newElement.style.transform = 'rotate(0deg)';
             newElement.setAttribute('data-rotation', '0');
@@ -1044,8 +1090,8 @@
             img.onerror = () => { img.src = `https://placehold.co/${accessory.w}x${accessory.h}/d32f2f/ffffff?text=Erro`; };
             newElement.appendChild(img);
 
-            // Adicionar manipuladores de redimensionamento
-            ['nw', 'ne', 'sw', 'se'].forEach(pos => {
+            // Adicionar manipuladores de redimensionamento (Exceto NE, que vira delete)
+            ['nw', 'sw', 'se'].forEach(pos => {
                 const handle = document.createElement('div');
                 handle.classList.add('resize-handle', `handle-${pos}`);
                 newElement.appendChild(handle);
@@ -1055,6 +1101,12 @@
             const rotateHandle = document.createElement('div');
             rotateHandle.classList.add('rotate-handle');
             newElement.appendChild(rotateHandle);
+            
+            // Adicionar botão de deletar (No lugar do NE)
+            const deleteHandle = document.createElement('div');
+            deleteHandle.classList.add('delete-handle');
+            deleteHandle.innerHTML = 'X';
+            newElement.appendChild(deleteHandle);
             
             newElement.addEventListener('dblclick', () => showRemoveModal(newElement));
             newElement.addEventListener('contextmenu', (e) => { e.preventDefault(); showRemoveModal(newElement); });
@@ -1083,6 +1135,7 @@
                 }
                 hideRemoveModal();
                 confirmBtn.removeEventListener('click', handler);
+                setActiveAccessory(null); // Clear selection
             };
 
             confirmBtn.addEventListener('click', handler);
@@ -1103,6 +1156,7 @@
                     <!-- Área de Desenho e Visualização -->
                     <div id="drawingArea">
                         <canvas id="drawingCanvas"></canvas>
+                        <!-- LIXEIRA REMOVIDA DAQUI -->
                     </div>
 
                     <!-- Controles de Desenho/Seleção -->
@@ -1116,6 +1170,8 @@
                         <button id="toolEraser" class="tool-btn btn-sm px-4 py-2 rounded-lg text-lg" title="Borracha">
                             <img src="https://i.postimg.cc/pdr2dXYQ/gggggggggggggg.png" alt="Borracha" class="w-6 h-6 object-contain">
                         </button>
+                        
+                        <!-- BOTÃO DE LIXEIRA REMOVIDO DA BARRA -->
 
                         <input type="color" id="brushColor" value="#000000" class="w-10 h-10 p-1 border-2 border-teal-500 rounded-lg cursor-pointer" title="Cor do Pincel">
                         
@@ -1140,29 +1196,33 @@
             `;
             
             drawingCanvas = document.getElementById('drawingCanvas');
-            // CORREÇÃO DE INICIALIZAÇÃO: Define drawingCtx apenas se o canvas existir
             if (drawingCanvas) {
                 drawingCtx = drawingCanvas.getContext('2d');
             } else {
                 drawingCtx = null;
             }
 
-            // Garante que o canvas seja redimensionado para preencher a div pai
             const resizeCanvas = () => {
                 if (drawingCanvas) {
+                    const tempCanvas = document.createElement('canvas');
+                    tempCanvas.width = drawingCanvas.width;
+                    tempCanvas.height = drawingCanvas.height;
+                    const tempCtx = tempCanvas.getContext('2d');
+                    tempCtx.drawImage(drawingCanvas, 0, 0);
+
                     drawingCanvas.width = drawingCanvas.parentElement.offsetWidth;
                     drawingCanvas.height = drawingCanvas.parentElement.offsetHeight;
+                    
                     if (drawingCtx) {
-                        // Mantém o desenho existente
                         drawingCtx.lineJoin = 'round';
                         drawingCtx.lineCap = 'round';
+                        drawingCtx.drawImage(tempCanvas, 0, 0);
                     }
                 }
             };
             
             const drawingArea = document.getElementById('drawingArea');
             
-            // Repopula os acessórios existentes e garante que o z-index esteja correto
             accessories.forEach(acc => {
                 drawingArea.appendChild(acc);
                 acc.style.zIndex = acc === activeAccessory ? 11 : 10;
@@ -1171,7 +1231,6 @@
             resizeCanvas();
             window.addEventListener('resize', resizeCanvas);
             
-            // Renderiza o menu de acessórios
             const accessoriesContainer = document.getElementById('accessoriesContainer');
             accessoriesContainer.innerHTML = defaultAccessories.map((acc, index) => `
                 <div class="accessory-item" data-index="${index}" title="${acc.name}">
@@ -1180,7 +1239,6 @@
                 </div>
             `).join('');
             
-            // Adiciona listeners aos itens de acessório
             document.querySelectorAll('.accessory-item').forEach(item => {
                 item.addEventListener('click', () => {
                     const index = parseInt(item.getAttribute('data-index'));
@@ -1188,7 +1246,6 @@
                 });
             });
 
-            // Controles de Ferramenta
             const setTool = (tool) => {
                 currentTool = tool;
                 document.querySelectorAll('.tool-btn').forEach(btn => btn.classList.remove('active'));
@@ -1205,28 +1262,24 @@
             document.getElementById('toolSelect').addEventListener('click', () => setTool('select'));
             document.getElementById('toolBrush').addEventListener('click', () => setTool('brush'));
             document.getElementById('toolEraser').addEventListener('click', () => setTool('eraser'));
+            
             document.getElementById('brushColor').addEventListener('input', (e) => { currentColor = e.target.value; });
             document.getElementById('clearDrawingBtn').addEventListener('click', () => { drawingCtx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height); });
 
-            // Configura listeners de desenho
             drawingCanvas.addEventListener('mousedown', handleDrawingStart);
             drawingCanvas.addEventListener('touchstart', handleDrawingStart, { passive: false });
             
-            // Configura listeners de arrastar/redimensionar/rotacionar
             drawingArea.addEventListener('mousedown', startAction);
             drawingArea.addEventListener('touchstart', startAction, { passive: false });
             
-            // Configura listeners do botão rotatório
             const knob = document.getElementById('brushKnob');
             if (knob) {
                 knob.addEventListener('mousedown', startBrushKnobRotation);
                 knob.addEventListener('touchstart', startBrushKnobRotation, { passive: false });
             }
             
-            // Configura modal
             document.getElementById('cancelRemove').addEventListener('click', hideRemoveModal);
 
-            // Garante que a ferramenta 'select' esteja ativa ao carregar
             setTool('select');
         }
         
@@ -1235,7 +1288,6 @@
         function switchGame(gameName) {
             currentGame = gameName;
             
-            // Atualiza botões de aba
             document.querySelectorAll('.tab-btn').forEach(btn => {
                 if (btn.getAttribute('data-game') === gameName) {
                     btn.classList.add('active');
@@ -1244,10 +1296,8 @@
                 }
             });
 
-            // Renderiza o conteúdo do jogo
             if (gameName === 'confetti') {
                 renderConfettiGameContent();
-                isConfettiGameRunning = true; // Reinicia o loop, se necessário
             } else if (gameName === 'faceCustomizer') {
                 isConfettiGameRunning = false;
                 renderFaceCustomizerContent();
@@ -1255,7 +1305,6 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            // Configura listeners de troca de abas
             document.getElementById('tabMenu').addEventListener('click', (e) => {
                 if (e.target.classList.contains('tab-btn')) {
                     const game = e.target.getAttribute('data-game');
@@ -1263,10 +1312,8 @@
                 }
             });
 
-            // Inicia o jogo padrão (Apanhador de Confete)
             switchGame('confetti');
 
-            // Inicializa o knob do pincel no tamanho mínimo
             updateBrushKnob(0);
         });
     </script>
