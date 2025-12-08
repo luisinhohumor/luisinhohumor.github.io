@@ -6,9 +6,13 @@
     <title>Meus Links - @luisinhohumor</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- Trocando para Font Awesome (Logos Oficiais) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Importando ícones Lucide apenas para os botões gerais (não redes sociais) -->
     <script type="module">
-        import { createIcons, Youtube, Instagram, Tiktok, Zap, Facebook, Share2, Gamepad, Gift } from 'https://unpkg.com/lucide@latest';
-        createIcons({ icons: { Youtube, Instagram, Tiktok, Zap, Facebook, Share2, Gamepad, Gift } });
+        import { createIcons, Share2, Gamepad, Gift, Coins, Newspaper } from 'https://unpkg.com/lucide@latest';
+        createIcons({ icons: { Share2, Gamepad, Gift, Coins, Newspaper } });
     </script>
     <style>
         body {
@@ -25,6 +29,14 @@
         .link-card { transition: transform 0.1s ease, box-shadow 0.2s ease; }
         .link-card:hover { transform: translateY(-3px); box-shadow: 0 15px 20px -5px rgba(0, 0, 0, 0.1); }
         .instagram-gradient { background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%); }
+        
+        /* Estilo para os botões redondos sociais */
+        .social-btn {
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .social-btn:hover {
+            transform: scale(1.15) rotate(5deg);
+        }
     </style>
 </head>
 <body>
@@ -35,44 +47,59 @@
             <img src="https://i.postimg.cc/qMdkDCvg/8a459470879a76c33cd97e60701600f6_tplv-tiktokx-cropcenter_1080_1080_(1).jpg" alt="Foto de Perfil" class="w-32 h-32 rounded-full mx-auto border-4 border-white shadow-xl object-cover">
             <h1 class="text-3xl font-extrabold text-gray-800 mt-4">@luisinhohumor</h1>
             <p class="text-gray-600 mt-1 mb-4">Bem-vindo(a)! Clique nos links abaixo 👇</p>
-            <button onclick="shareProfile()" class="flex items-center mx-auto px-4 py-2 bg-blue-500 text-white text-sm font-semibold rounded-full shadow-md hover:bg-blue-600 transition">
+            
+            <button onclick="shareProfile()" class="flex items-center mx-auto px-4 py-2 bg-blue-500 text-white text-sm font-semibold rounded-full shadow-md hover:bg-blue-600 transition mb-4">
                 <i data-lucide="share-2" class="w-4 h-4 mr-2"></i> <span>Compartilhar Perfil</span>
             </button>
+
+            <!-- NOVA ÁREA: Botões de Redes Sociais Redondos (Com logos oficiais agora) -->
+            <div class="flex justify-center gap-4 mb-2">
+                <!-- YouTube -->
+                <a href="https://www.youtube.com/@luisinhumor" target="_blank" class="social-btn w-12 h-12 bg-red-600 text-white rounded-full flex items-center justify-center shadow-lg hover:shadow-red-600/50">
+                    <i class="fab fa-youtube text-2xl"></i>
+                </a>
+                <!-- Instagram -->
+                <a href="https://www.instagram.com/luisinhohumor/" target="_blank" class="social-btn w-12 h-12 instagram-gradient text-white rounded-full flex items-center justify-center shadow-lg">
+                    <i class="fab fa-instagram text-2xl"></i>
+                </a>
+                <!-- TikTok -->
+                <a href="https://www.tiktok.com/@luisinhohumor" target="_blank" class="social-btn w-12 h-12 bg-black text-white rounded-full flex items-center justify-center shadow-lg hover:shadow-gray-800/50">
+                    <i class="fab fa-tiktok text-xl"></i>
+                </a>
+                <!-- Facebook -->
+                <a href="https://www.facebook.com/luis.marquesfilho/?locale=pt_BR" target="_blank" class="social-btn w-12 h-12 bg-blue-700 text-white rounded-full flex items-center justify-center shadow-lg hover:shadow-blue-700/50">
+                    <i class="fab fa-facebook-f text-xl"></i>
+                </a>
+            </div>
+
             <div id="message-box" class="mt-2 text-sm font-medium h-4"></div>
         </header>
 
-        <div class="mb-6">
+        <!-- Seção Principal de Links -->
+        <main class="space-y-4">
+            
+            <!-- Botão Live Pix (Destaque) -->
             <a href="https://livepix.gg/luisinhohumor" target="_blank" class="link-card flex items-center justify-center w-full py-6 px-6 bg-gradient-to-r from-green-500 to-emerald-700 text-white rounded-xl font-extrabold shadow-2xl hover:shadow-green-500/50 border-4 border-yellow-300 transform hover:scale-105 transition-all duration-300 relative overflow-hidden">
                 <i data-lucide="gift" class="w-8 h-8 mr-4 text-yellow-300 animate-bounce"></i>
-                <span class="text-2xl uppercase tracking-wider text-yellow-100 drop-shadow-lg">💸 Apoiar a Live! (PIX)</span>
+                <span class="text-2xl uppercase tracking-wider text-yellow-100 drop-shadow-lg">💸 Apoiar a Live!</span>
             </a>
-        </div>
 
-        <main class="space-y-4">
+            <!-- Botão Revista Connessione (Solicitado) -->
+            <a href="https://www.revistaconnessione.com" target="_blank" class="link-card flex items-center justify-center w-full py-5 px-6 bg-blue-600 text-white rounded-xl font-extrabold shadow-xl hover:bg-blue-700 border-2 border-white/20">
+                <i data-lucide="newspaper" class="w-6 h-6 mr-3 text-white"></i>
+                <span class="text-lg">Revista Connessione</span>
+            </a>
 
+            <!-- Botão Game -->
             <a href="jogo.html" class="link-card flex items-center justify-center w-full py-5 px-6 bg-purple-600 text-white rounded-xl font-extrabold shadow-xl hover:bg-purple-700 border-2 border-yellow-300">
                 <i data-lucide="gamepad" class="w-6 h-6 mr-3 text-white"></i>
                 <span class="text-lg">🎮 GAME!</span>
             </a>
-            
-            <a href="https://www.tiktok.com/@luisinhohumor" target="_blank" class="link-card flex items-center justify-center w-full py-5 px-6 bg-black text-white rounded-xl font-extrabold shadow-xl hover:bg-gray-800">
-                <i data-lucide="tiktok" class="w-6 h-6 mr-3 text-white"></i>
-                <span class="text-lg">Meu Perfil Principal TIKTOK </span>
-            </a>
 
-            <a href="https://www.instagram.com/luisinhohumor/" target="_blank" class="link-card flex items-center justify-center w-full py-5 px-6 instagram-gradient text-white rounded-xl font-extrabold shadow-xl">
-                <i data-lucide="instagram" class="w-6 h-6 mr-3 text-white"></i>
-                <span class="text-lg">Instagram</span>
-            </a>
-
-            <a href="https://www.youtube.com/@luisinhumor" target="_blank" class="link-card flex items-center justify-center w-full py-5 px-6 bg-red-600 text-white rounded-xl font-extrabold shadow-xl hover:bg-red-700">
-                <i data-lucide="youtube" class="w-6 h-6 mr-3 text-white"></i>
-                <span class="text-lg">YouTube</span>
-            </a>
-
-            <a href="https://www.facebook.com/luis.marquesfilho/?locale=pt_BR" target="_blank" class="link-card flex items-center justify-center w-full py-5 px-6 bg-blue-700 text-white rounded-xl font-extrabold shadow-xl hover:bg-blue-800">
-                <i data-lucide="facebook" class="w-6 h-6 mr-3 text-white"></i>
-                <span class="text-lg">Facebook</span>
+            <!-- Botão Moedas TikTok (Solicitado) -->
+            <a href="https://www.tiktok.com/coin?Lang=pt-BR" target="_blank" class="link-card flex items-center justify-center w-full py-5 px-6 bg-emerald-500 text-white rounded-xl font-extrabold shadow-xl hover:bg-emerald-600">
+                <i data-lucide="coins" class="w-6 h-6 mr-3 text-white"></i>
+                <span class="text-lg">Moedas TikTok</span>
             </a>
 
         </main>
@@ -103,4 +130,3 @@
 
 </body>
 </html>
-
