@@ -5,126 +5,373 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Meus Links - @luisinhohumor</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-    <!-- Trocando para Font Awesome (Logos Oficiais) -->
+    <!-- Fontes: Inter para o site e Mountains of Christmas para o Natal -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Mountains+of+Christmas:wght@700&display=swap" rel="stylesheet">
+    <!-- Font Awesome (Logos Oficiais) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
-    <!-- Importando ícones Lucide apenas para os botões gerais (não redes sociais) -->
-    <script type="module">
-        import { createIcons, Share2, Gamepad, Gift, Coins, Newspaper } from 'https://unpkg.com/lucide@latest';
-        createIcons({ icons: { Share2, Gamepad, Gift, Coins, Newspaper } });
-    </script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
     <style>
         body {
             font-family: 'Inter', sans-serif;
             background-image: url('https://i.postimg.cc/CKdYnGmr/b7cfca_ecba34bc03024b7280cf546ab72057a3.jpg');
             background-size: cover; background-position: center; background-attachment: fixed;
             min-height: 100vh; display: flex; justify-content: center; align-items: flex-start;
-            padding-top: 2rem; padding-bottom: 4rem;
+            padding-top: 1rem; padding-bottom: 4rem;
         }
         body::before {
             content: ''; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background-color: rgba(240, 243, 246, 0.75); z-index: -1;
         }
-        .link-card { transition: transform 0.1s ease, box-shadow 0.2s ease; }
-        .link-card:hover { transform: translateY(-3px); box-shadow: 0 15px 20px -5px rgba(0, 0, 0, 0.1); }
+
+        /* Estilo da Tela de Natal (Splash Screen) */
+        #christmas-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.98);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 1s ease, visibility 1s;
+            text-align: center;
+            padding: 1.5rem;
+        }
+
+        .christmas-title {
+            font-family: 'Mountains of Christmas', cursive;
+            font-size: clamp(1.8rem, 8vw, 3.5rem);
+            color: #d42426;
+            margin-bottom: 20px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+            line-height: 1.2;
+            font-weight: bold;
+        }
+
+        #christmas-img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 1.5rem;
+            filter: drop-shadow(0 10px 20px rgba(0,0,0,0.1));
+        }
+
+        /* Animação de Brilho (Somente Brilho, sem movimento) */
+        @keyframes entrance-shine {
+            0% { box-shadow: 0 0 0 rgba(255, 255, 255, 0); filter: brightness(1); }
+            50% { box-shadow: 0 0 25px rgba(255, 255, 255, 0.9); filter: brightness(1.2); }
+            100% { box-shadow: 0 0 0 rgba(255, 255, 255, 0); filter: brightness(1); }
+        }
+
+        .link-card-shine {
+            animation: entrance-shine 1s ease-in-out 3; /* Pisca 3 vezes e para */
+        }
+
+        /* Estilização Moderna dos Cartões */
+        .link-card { 
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        /* Efeito de hover mantido para interatividade */
+        .link-card:hover { 
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15);
+        }
+        .link-card:active { transform: scale(0.98); }
+
+        .icon-bubble {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(4px);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 44px;
+            height: 44px;
+            flex-shrink: 0;
+            margin-right: 0.75rem;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        @media (min-width: 640px) {
+            .icon-bubble { width: 48px; height: 48px; margin-right: 1rem; }
+        }
+
         .instagram-gradient { background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%); }
         
-        /* Estilo para os botões redondos sociais */
         .social-btn {
             transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
-        .social-btn:hover {
-            transform: scale(1.15) rotate(5deg);
+        .social-btn:hover { transform: scale(1.15) rotate(5deg); }
+
+        /* Galeria de Vídeos */
+        #video-gallery {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-in-out, opacity 0.3s ease;
+            opacity: 0;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+        }
+        #video-gallery.open {
+            max-height: 2000px;
+            opacity: 1;
+            margin-top: 1rem;
+            padding: 0.75rem;
+        }
+
+        .thumb-container {
+            position: relative;
+            width: 100%;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            background: #000;
+            aspect-ratio: 1/1; 
+        }
+        .thumb-container img { width: 100%; height: 100%; object-fit: cover; }
+
+        .play-overlay {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 0, 0, 0.9);
+            color: white;
+            width: 32px; height: 22px;
+            border-radius: 4px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.6rem;
+        }
+
+        /* Perfil Quadrado */
+        .profile-square {
+            margin: 0 auto; 
+            aspect-ratio: 1/1;
+            border-radius: 2rem;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 25px 30px -10px rgba(0, 0, 0, 0.2);
+            border: 4px solid white;
+            background: #000;
+        }
+        .profile-overlay {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.5) 60%, transparent 100%);
+            padding: 1.5rem 0.5rem 0.75rem;
+            text-align: center;
         }
     </style>
 </head>
 <body>
 
-    <div class="w-full max-w-lg mx-4">
+    <!-- TELA DE NATAL (SPLASH SCREEN) - AGORA 4 SEGUNDOS -->
+    <div id="christmas-overlay">
+        <h2 class="christmas-title">Feliz Natal e um Próspero Ano Novo!</h2>
+        <div class="max-w-[280px] sm:max-w-[350px]">
+            <img id="christmas-img" src="https://www.imagensanimadas.com/data/media/1080/natal-engracado-imagem-animada-0036.gif" alt="Gatinho de Natal">
+        </div>
+    </div>
 
-        <header class="text-center mb-6">
-            <img src="https://i.postimg.cc/qMdkDCvg/8a459470879a76c33cd97e60701600f6_tplv-tiktokx-cropcenter_1080_1080_(1).jpg" alt="Foto de Perfil" class="w-32 h-32 rounded-full mx-auto border-4 border-white shadow-xl object-cover">
-            <h1 class="text-3xl font-extrabold text-gray-800 mt-4">@luisinhohumor</h1>
-            <p class="text-gray-600 mt-1 mb-4">Bem-vindo(a)! Clique nos links abaixo 👇</p>
-            
-            <button onclick="shareProfile()" class="flex items-center mx-auto px-4 py-2 bg-blue-500 text-white text-sm font-semibold rounded-full shadow-md hover:bg-blue-600 transition mb-4">
-                <i data-lucide="share-2" class="w-4 h-4 mr-2"></i> <span>Compartilhar Perfil</span>
-            </button>
+    <div class="w-full max-w-lg px-4 sm:mx-4">
 
-            <!-- NOVA ÁREA: Botões de Redes Sociais Redondos (Com logos oficiais agora) -->
-            <div class="flex justify-center gap-4 mb-2">
-                <!-- YouTube -->
-                <a href="https://www.youtube.com/@luisinhumor" target="_blank" class="social-btn w-12 h-12 bg-red-600 text-white rounded-full flex items-center justify-center shadow-lg hover:shadow-red-600/50">
-                    <i class="fab fa-youtube text-2xl"></i>
-                </a>
-                <!-- Instagram -->
-                <a href="https://www.instagram.com/luisinhohumor/" target="_blank" class="social-btn w-12 h-12 instagram-gradient text-white rounded-full flex items-center justify-center shadow-lg">
-                    <i class="fab fa-instagram text-2xl"></i>
-                </a>
-                <!-- TikTok -->
-                <a href="https://www.tiktok.com/@luisinhohumor" target="_blank" class="social-btn w-12 h-12 bg-black text-white rounded-full flex items-center justify-center shadow-lg hover:shadow-gray-800/50">
-                    <i class="fab fa-tiktok text-xl"></i>
-                </a>
-                <!-- Facebook -->
-                <a href="https://www.facebook.com/luis.marquesfilho/?locale=pt_BR" target="_blank" class="social-btn w-12 h-12 bg-blue-700 text-white rounded-full flex items-center justify-center shadow-lg hover:shadow-blue-700/50">
-                    <i class="fab fa-facebook-f text-xl"></i>
-                </a>
+        <header class="mb-8 text-center">
+            <div class="profile-square w-64 sm:w-72 mb-6">
+                <img src="https://i.postimg.cc/4NqM5f6w/1209-(2)(1).gif" alt="Foto de Perfil" class="w-full h-full object-cover">
+                <div class="profile-overlay">
+                    <h1 class="text-xl sm:text-2xl font-black text-white tracking-tight">@luisinhohumor</h1>
+                </div>
             </div>
 
-            <div id="message-box" class="mt-2 text-sm font-medium h-4"></div>
+            <p class="text-gray-700 font-semibold mt-1 mb-6 text-sm sm:text-base px-2">Bem-vindo(a)! Entrem nos links abaixo 👇</p>
+            
+            <div class="flex flex-wrap justify-center items-center gap-3 sm:gap-4 mb-2">
+                <a href="https://www.youtube.com/@luisinhumor" target="_blank" class="social-btn w-10 h-10 sm:w-12 sm:h-12 bg-red-600 text-white rounded-full flex items-center justify-center shadow-lg">
+                    <i class="fab fa-youtube text-xl sm:text-2xl"></i>
+                </a>
+                <a href="https://www.instagram.com/luisinhohumor/" target="_blank" class="social-btn w-10 h-10 sm:w-12 sm:h-12 instagram-gradient text-white rounded-full flex items-center justify-center shadow-lg">
+                    <i class="fab fa-instagram text-xl sm:text-2xl"></i>
+                </a>
+                <a href="https://www.tiktok.com/@luisinhohumor" target="_blank" class="social-btn w-12 h-12 bg-black text-white rounded-full flex items-center justify-center shadow-lg">
+                    <i class="fab fa-tiktok text-lg sm:text-xl"></i>
+                </a>
+                <a href="https://www.facebook.com/luis.marquesfilho/?locale=pt_BR" target="_blank" class="social-btn w-10 h-10 sm:w-12 sm:h-12 bg-blue-700 text-white rounded-full flex items-center justify-center shadow-lg">
+                    <i class="fab fa-facebook-f text-lg sm:text-xl"></i>
+                </a>
+                <button onclick="shareProfile()" class="social-btn w-10 h-10 sm:w-12 sm:h-12 bg-gray-500 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-gray-600">
+                    <i data-lucide="share-2" class="w-5 h-5 sm:w-6 sm:h-6"></i>
+                </button>
+            </div>
+
+            <div id="message-box" class="mt-2 text-xs sm:text-sm font-medium h-4 text-center"></div>
         </header>
 
-        <!-- Seção Principal de Links -->
-        <main class="space-y-4">
+        <main class="space-y-4 sm:space-y-5">
             
-            <!-- Botão Live Pix (Destaque) -->
-            <a href="https://livepix.gg/luisinhohumor" target="_blank" class="link-card flex items-center justify-center w-full py-6 px-6 bg-gradient-to-r from-green-500 to-emerald-700 text-white rounded-xl font-extrabold shadow-2xl hover:shadow-green-500/50 border-4 border-yellow-300 transform hover:scale-105 transition-all duration-300 relative overflow-hidden">
-                <i data-lucide="gift" class="w-8 h-8 mr-4 text-yellow-300 animate-bounce"></i>
-                <span class="text-2xl uppercase tracking-wider text-yellow-100 drop-shadow-lg">💸 Apoiar a Live!</span>
+            <!-- Botões marcados para o brilho inicial -->
+            <a href="https://livepix.gg/luisinhohumor" target="_blank" class="link-card shine-target flex items-center w-full p-2 bg-gradient-to-r from-emerald-500 to-green-600 text-white rounded-2xl sm:rounded-3xl shadow-xl border-2 border-white/20">
+                <div class="icon-bubble">
+                    <i data-lucide="gift" class="w-6 h-6 sm:w-7 sm:h-7 text-yellow-300 animate-pulse"></i>
+                </div>
+                <div class="flex-1 pr-4">
+                    <span class="block text-lg sm:text-xl font-black uppercase tracking-wide">Apoiar a Live!</span>
+                    <span class="block text-[10px] sm:text-xs font-medium text-emerald-100">Ajude o canal com um Px 💸</span>
+                </div>
             </a>
 
-            <!-- Botão Revista Connessione (Solicitado) -->
-            <a href="https://www.revistaconnessione.com" target="_blank" class="link-card flex items-center justify-center w-full py-5 px-6 bg-blue-600 text-white rounded-xl font-extrabold shadow-xl hover:bg-blue-700 border-2 border-white/20">
-                <i data-lucide="newspaper" class="w-6 h-6 mr-3 text-white"></i>
-                <span class="text-lg">Revista Connessione</span>
+            <div class="w-full">
+                <button onclick="toggleVideos()" class="link-card shine-target flex items-center w-full p-2 bg-gradient-to-r from-red-500 to-rose-600 text-white rounded-2xl sm:rounded-3xl shadow-lg border-2 border-white/10">
+                    <div class="icon-bubble">
+                        <i data-lucide="video" class="w-5 h-5 sm:w-6 sm:h-6 text-white"></i>
+                    </div>
+                    <div class="flex-1 text-left">
+                        <span class="block text-base sm:text-lg font-bold uppercase">Vídeos</span>
+                        <span class="block text-[10px] sm:text-xs text-rose-100">Antigos</span>
+                    </div>
+                    <i id="chevron-icon" data-lucide="chevron-down" class="w-5 h-5 sm:w-6 sm:h-6 mr-2 sm:mr-4 transition-transform duration-300"></i>
+                </button>
+                
+                <div id="video-gallery" class="bg-white/40 backdrop-blur-md rounded-2xl sm:rounded-3xl border border-white/30">
+                    <div class="space-y-1">
+                        <a href="https://www.youtube.com/watch?v=DZjA5np_ry0" target="_blank" class="block">
+                            <div class="thumb-container shadow-lg">
+                                <img src="https://img.youtube.com/vi/DZjA5np_ry0/mqdefault.jpg" alt="Duelo de Titãs">
+                                <div class="play-overlay"><i class="fas fa-play"></i></div>
+                            </div>
+                        </a>
+                        <p class="text-center text-[9px] sm:text-[10px] font-bold text-gray-700 uppercase truncate px-1">Duelo de Titãs</p>
+                    </div>
+                    <div class="space-y-1">
+                        <a href="https://www.youtube.com/watch?v=_9HCvQBalMA" target="_blank" class="block">
+                            <div class="thumb-container shadow-lg">
+                                <img src="https://img.youtube.com/vi/_9HCvQBalMA/mqdefault.jpg" alt="Boneco de Posto">
+                                <div class="play-overlay"><i class="fas fa-play"></i></div>
+                            </div>
+                        </a>
+                        <p class="text-center text-[9px] sm:text-[10px] font-bold text-gray-700 uppercase truncate px-1">Boneco de Posto</p>
+                    </div>
+                    <div class="space-y-1">
+                        <a href="https://www.youtube.com/watch?v=KWYsFo8Uh8M" target="_blank" class="block">
+                            <div class="thumb-container shadow-lg">
+                                <img src="https://img.youtube.com/vi/KWYsFo8Uh8M/mqdefault.jpg" alt="Trabalho com Perfil">
+                                <div class="play-overlay"><i class="fas fa-play"></i></div>
+                            </div>
+                        </a>
+                        <p class="text-center text-[9px] sm:text-[10px] font-bold text-gray-700 uppercase truncate px-1">Trabalho com Perfil</p>
+                    </div>
+                    <div class="space-y-1">
+                        <a href="https://www.youtube.com/watch?v=J3Uki4OOVa4" target="_blank" class="block">
+                            <div class="thumb-container shadow-lg">
+                                <img src="https://img.youtube.com/vi/J3Uki4OOVa4/mqdefault.jpg" alt="Carnaval Tosco II">
+                                <div class="play-overlay"><i class="fas fa-play"></i></div>
+                            </div>
+                        </a>
+                        <p class="text-center text-[9px] sm:text-[10px] font-bold text-gray-700 uppercase truncate px-1">Carnaval Tosco II</p>
+                    </div>
+                </div>
+            </div>
+
+            <a href="https://www.revistaconnessione.com" target="_blank" class="link-card shine-target flex items-center w-full p-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-2xl sm:rounded-3xl shadow-lg border-2 border-white/10">
+                <div class="icon-bubble">
+                    <i data-lucide="newspaper" class="w-5 h-5 sm:w-6 sm:h-6 text-white"></i>
+                </div>
+                <div class="flex-1">
+                    <span class="block text-base sm:text-lg font-bold uppercase">Revista Connessione</span>
+                    <span class="block text-[10px] sm:text-xs text-blue-100">Fique por dentro</span>
+                </div>
             </a>
 
-            <!-- Botão Game -->
-            <a href="jogo.html" class="link-card flex items-center justify-center w-full py-5 px-6 bg-purple-600 text-white rounded-xl font-extrabold shadow-xl hover:bg-purple-700 border-2 border-yellow-300">
-                <i data-lucide="gamepad" class="w-6 h-6 mr-3 text-white"></i>
-                <span class="text-lg">🎮 GAME!</span>
+            <a href="jogo.html" class="link-card shine-target flex items-center w-full p-2 bg-gradient-to-r from-purple-500 to-violet-600 text-white rounded-2xl sm:rounded-3xl shadow-lg border-2 border-yellow-300/50">
+                <div class="icon-bubble">
+                    <i data-lucide="gamepad" class="w-5 h-5 sm:w-6 sm:h-6 text-white"></i>
+                </div>
+                <div class="flex-1">
+                    <span class="block text-base sm:text-lg font-bold uppercase">🎮 Jogar GAME!</span>
+                    <span class="block text-[10px] sm:text-xs text-purple-100">Desafie-se</span>
+                </div>
             </a>
 
-            <!-- Botão Moedas TikTok (Solicitado) -->
-            <a href="https://www.tiktok.com/coin?Lang=pt-BR" target="_blank" class="link-card flex items-center justify-center w-full py-5 px-6 bg-emerald-500 text-white rounded-xl font-extrabold shadow-xl hover:bg-emerald-600">
-                <i data-lucide="coins" class="w-6 h-6 mr-3 text-white"></i>
-                <span class="text-lg">Moedas TikTok</span>
+            <a href="https://www.tiktok.com/coin?Lang=pt-BR" target="_blank" class="link-card shine-target flex items-center w-full p-2 bg-gradient-to-r from-teal-400 to-emerald-500 text-white rounded-2xl sm:rounded-3xl shadow-lg border-2 border-white/10">
+                <div class="icon-bubble">
+                    <i data-lucide="coins" class="w-6 h-6 text-white"></i>
+                </div>
+                <div class="flex-1">
+                    <span class="block text-base sm:text-lg font-bold uppercase">Moedas TikTok</span>
+                    <span class="block text-[10px] sm:text-xs text-teal-100">Adquira moedas</span>
+                </div>
             </a>
 
         </main>
 
-        <footer class="mt-8">
-            <p class="text-center text-xs text-gray-500">Criado com 💖</p>
+        <footer class="mt-12 mb-8 text-center">
+            <p class="text-[10px] text-gray-500 font-black uppercase tracking-[0.2em] opacity-50">@luisinhohumor &bull; 2025</p>
+            <p class="text-xs text-gray-400 mt-2 italic">feito com ❤️</p>
         </footer>
 
     </div>
 
     <script>
+        lucide.createIcons();
+
+        // Lógica Automática para a Tela de Natal (4 segundos)
+        window.addEventListener('load', () => {
+            const overlay = document.getElementById('christmas-overlay');
+            if(overlay) {
+                // Timer alterado para 4 segundos conforme pedido
+                setTimeout(() => {
+                    overlay.style.opacity = '0';
+                    overlay.style.visibility = 'hidden';
+                    
+                    // Inicia o efeito de brilho nos botões assim que o overlay começa a sumir
+                    const targets = document.querySelectorAll('.shine-target');
+                    targets.forEach(el => {
+                        el.classList.add('link-card-shine');
+                    });
+
+                    // Remove completamente após o fade-out
+                    setTimeout(() => {
+                        overlay.remove();
+                    }, 1000);
+                }, 4000); 
+            }
+        });
+
         const messageBox = document.getElementById('message-box');
 
         function showMessage(message, color = 'text-green-500') {
             messageBox.textContent = message;
-            messageBox.className = `mt-2 text-sm font-medium h-4 ${color}`;
+            messageBox.className = `mt-2 text-xs sm:text-sm font-medium h-4 text-center ${color}`;
             setTimeout(() => { messageBox.textContent = ''; }, 3000);
         }
 
         function shareProfile() {
+            const url = window.location.href;
             if (navigator.share) {
-                navigator.share({ title: document.title, url: window.location.href }).then(() => showMessage('Compartilhado!'));
+                navigator.share({ title: document.title, url: url }).then(() => showMessage('Compartilhado!'));
             } else {
-                navigator.clipboard.writeText(window.location.href).then(() => showMessage('Link copiado!', 'text-blue-600'));
+                const dummy = document.createElement('input');
+                document.body.appendChild(dummy);
+                dummy.value = url;
+                dummy.select();
+                document.execCommand('copy');
+                document.body.removeChild(dummy);
+                showMessage('Link copiado!', 'text-blue-600');
             }
+        }
+
+        function toggleVideos() {
+            const gallery = document.getElementById('video-gallery');
+            const chevron = document.getElementById('chevron-icon');
+            gallery.classList.toggle('open');
+            chevron.style.transform = gallery.classList.contains('open') ? 'rotate(180deg)' : 'rotate(0deg)';
         }
     </script>
 
