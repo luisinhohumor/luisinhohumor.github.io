@@ -33,7 +33,9 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(255, 255, 255, 0.98);
+            background: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -44,12 +46,33 @@
             padding: 1.5rem;
         }
 
+        /* Botão X pequeno no canto */
+        .close-overlay {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 14px;
+            color: #666;
+            cursor: pointer;
+            font-weight: bold;
+            padding: 10px;
+            z-index: 10000;
+            transition: color 0.2s;
+        }
+        .close-overlay:hover { color: #d42426; }
+
         .christmas-title {
             font-family: 'Mountains of Christmas', cursive;
             font-size: clamp(1.8rem, 8vw, 3.5rem);
             color: #d42426;
             margin-bottom: 20px;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+            /* Adicionado traço branco ao redor das letras */
+            text-shadow: 
+                -2px -2px 0 #fff,  
+                 2px -2px 0 #fff,
+                -2px  2px 0 #fff,
+                 2px  2px 0 #fff,
+                 0px  4px 10px rgba(0,0,0,0.2);
             line-height: 1.2;
             font-weight: bold;
         }
@@ -61,7 +84,7 @@
             filter: drop-shadow(0 10px 20px rgba(0,0,0,0.1));
         }
 
-        /* Animação de Brilho (Somente Brilho, sem movimento) */
+        /* Animação de Brilho */
         @keyframes entrance-shine {
             0% { box-shadow: 0 0 0 rgba(255, 255, 255, 0); filter: brightness(1); }
             50% { box-shadow: 0 0 25px rgba(255, 255, 255, 0.9); filter: brightness(1.2); }
@@ -69,7 +92,7 @@
         }
 
         .link-card-shine {
-            animation: entrance-shine 1s ease-in-out 3; /* Pisca 3 vezes e para */
+            animation: entrance-shine 1s ease-in-out 3;
         }
 
         /* Estilização Moderna dos Cartões */
@@ -79,7 +102,6 @@
             position: relative;
             overflow: hidden;
         }
-        /* Efeito de hover mantido para interatividade */
         .link-card:hover { 
             transform: translateY(-5px);
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15);
@@ -173,8 +195,9 @@
 </head>
 <body>
 
-    <!-- TELA DE NATAL (SPLASH SCREEN) - AGORA 4 SEGUNDOS -->
+    <!-- TELA DE NATAL COM BOTÃO FECHAR E LETRAS COM CONTORNO BRANCO -->
     <div id="christmas-overlay">
+        <span class="close-overlay" onclick="closeChristmasOverlay()">x</span>
         <h2 class="christmas-title">Feliz Natal e um Próspero Ano Novo!</h2>
         <div class="max-w-[280px] sm:max-w-[350px]">
             <img id="christmas-img" src="https://www.imagensanimadas.com/data/media/1080/natal-engracado-imagem-animada-0036.gif" alt="Gatinho de Natal">
@@ -216,14 +239,13 @@
 
         <main class="space-y-4 sm:space-y-5">
             
-            <!-- Botões marcados para o brilho inicial -->
             <a href="https://livepix.gg/luisinhohumor" target="_blank" class="link-card shine-target flex items-center w-full p-2 bg-gradient-to-r from-emerald-500 to-green-600 text-white rounded-2xl sm:rounded-3xl shadow-xl border-2 border-white/20">
                 <div class="icon-bubble">
                     <i data-lucide="gift" class="w-6 h-6 sm:w-7 sm:h-7 text-yellow-300 animate-pulse"></i>
                 </div>
                 <div class="flex-1 pr-4">
                     <span class="block text-lg sm:text-xl font-black uppercase tracking-wide">Apoiar a Live!</span>
-                    <span class="block text-[10px] sm:text-xs font-medium text-emerald-100">Ajude o canal com um Px 💸</span>
+                    <span class="block text-[10px] sm:text-xs font-medium text-emerald-100">Ajude o canal com um Pix 💸</span>
                 </div>
             </a>
 
@@ -321,27 +343,30 @@
     <script>
         lucide.createIcons();
 
-        // Lógica Automática para a Tela de Natal (4 segundos)
-        window.addEventListener('load', () => {
+        let christmasTimer;
+
+        function closeChristmasOverlay() {
+            clearTimeout(christmasTimer);
             const overlay = document.getElementById('christmas-overlay');
             if(overlay) {
-                // Timer alterado para 4 segundos conforme pedido
-                setTimeout(() => {
-                    overlay.style.opacity = '0';
-                    overlay.style.visibility = 'hidden';
-                    
-                    // Inicia o efeito de brilho nos botões assim que o overlay começa a sumir
-                    const targets = document.querySelectorAll('.shine-target');
-                    targets.forEach(el => {
-                        el.classList.add('link-card-shine');
-                    });
+                overlay.style.opacity = '0';
+                overlay.style.visibility = 'hidden';
+                
+                // Ativa brilho nos botões
+                const targets = document.querySelectorAll('.shine-target');
+                targets.forEach(el => {
+                    el.classList.add('link-card-shine');
+                });
 
-                    // Remove completamente após o fade-out
-                    setTimeout(() => {
-                        overlay.remove();
-                    }, 1000);
-                }, 4000); 
+                // Remove do DOM após a transição
+                setTimeout(() => {
+                    overlay.remove();
+                }, 1000);
             }
+        }
+
+        window.addEventListener('load', () => {
+            christmasTimer = setTimeout(closeChristmasOverlay, 4000); 
         });
 
         const messageBox = document.getElementById('message-box');
@@ -377,4 +402,3 @@
 
 </body>
 </html>
-
