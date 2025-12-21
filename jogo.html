@@ -1,15 +1,20 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-pt">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Central de Jogos</title>
-    <!-- Inclui a biblioteca Tailwind CSS para estilização -->
+    <!-- Inclusão de scripts externos e fontes -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Fontes do Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    
+    <!-- SDKs do Firebase para persistência do Ranking -->
+    <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-auth-compat.js"></script>
+
     <style>
-        /* Estilos CSS personalizados */
+        /* Estilos base e animações */
         body {
             font-family: 'Inter', sans-serif;
             background: linear-gradient(135deg, #e0f7fa, #b2ebf2);
@@ -18,49 +23,46 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            padding: 20px;
+            padding: 10px;
+            overscroll-behavior-y: contain;
         }
 
-        /* Container principal - Centraliza e define tamanho */
         .game-container {
             width: 100%;
             max-width: 1000px; 
             border-radius: 25px;
             box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
-            padding: 25px;
+            padding: 15px;
             text-align: center;
             display: flex;
             flex-direction: column;
-            gap: 20px;
-            
-            /* --- Borda com Imagem --- */
-            border: 15px solid transparent; 
+            gap: 15px;
+            border: 10px solid transparent; 
             background-image: linear-gradient(#ffffff, #ffffff), url('https://i.postimg.cc/CKdYnGmr/b7cfca-ecba34bc03024b7280cf546ab72057a3.jpg');
             background-origin: padding-box, border-box;
             background-clip: padding-box, border-box;
             background-size: cover; 
-            /* --------------------------- */
         }
 
-        /* Título do jogo */
         .game-header {
-            font-size: 2.5rem;
+            font-size: 2rem;
             font-weight: 700;
             color: #00796b;
             text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
         }
 
-        /* Estilos para o menu de abas */
         .tab-menu {
             display: flex;
             justify-content: center;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
             border-bottom: 2px solid #b2ebf2;
+            flex-wrap: wrap;
+            gap: 5px;
         }
 
         .tab-btn {
-            padding: 10px 20px;
-            font-size: 1.1rem;
+            padding: 10px 15px;
+            font-size: 1rem;
             font-weight: 600;
             color: #00796b;
             background-color: transparent;
@@ -68,7 +70,6 @@
             cursor: pointer;
             transition: all 0.3s ease;
             border-radius: 10px 10px 0 0;
-            margin: 0 5px;
         }
 
         .tab-btn.active {
@@ -78,37 +79,10 @@
             box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.05);
         }
 
-        .tab-content {
-            padding: 15px;
-            border-radius: 0 0 20px 20px;
-        }
-
-        /* Estilo do botão padrão */
-        .btn {
-            padding: 12px 24px;
-            font-size: 1rem;
-            font-weight: 700;
-            border-radius: 12px;
-            border: none;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            background: linear-gradient(180deg, #00bfa5, #00897b);
-            color: #fff;
-            text-transform: uppercase;
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
-            background: linear-gradient(180deg, #00897b, #00695c);
-        }
-
-        /* --- Estilos Confetti Game --- */
         #confettiCanvas {
             width: 100%;
             height: auto;
-            min-height: 450px;
+            min-height: 350px;
             background-color: #f0fdfa;
             background-image: url('https://i.postimg.cc/wBvjgdWm/054d7f95-28c1-4cca-9f0a-6262b04f0bab.png'); 
             background-size: cover;
@@ -116,24 +90,16 @@
             background-repeat: no-repeat;
             border: 2px solid #b2ebf2;
             border-radius: 20px;
-            cursor: pointer;
+            touch-action: none;
         }
 
-        /* --- Estilos Customizador de Rosto --- */
-        #faceCustomizer {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 20px;
-            min-height: 500px;
-        }
+        #faceCustomizer { display: flex; flex-direction: column; align-items: center; gap: 12px; }
 
         #drawingArea {
             position: relative;
             width: 100%;
             max-width: 500px; 
-            padding-top: 100%; 
-            height: 0;
+            aspect-ratio: 1 / 1;
             background-image: url('https://i.postimg.cc/Wb4BsmdQ/ddddddd.jpg'); 
             background-size: cover;
             background-position: center;
@@ -141,1181 +107,519 @@
             border-radius: 15px;
             overflow: hidden; 
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-        
-        #drawingArea > * {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-        }
-
-        #drawingCanvas {
-            z-index: 100;
-            cursor: default; 
-            pointer-events: none;
-        }
-        
-        #drawingCanvas.drawing-active {
-            pointer-events: auto;
-        }
-
-        .drawing-controls {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 10px;
-            flex-wrap: wrap; 
-            justify-content: center;
-            align-items: center;
-            padding: 10px;
-            background-color: #f0f7f9;
-            border-radius: 10px;
-            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
-        }
-        
-        /* Estilos para os botões de ferramenta */
-        .tool-btn {
-            border: 2px solid transparent;
-            color: #00796b;
-            background-color: #f0f7f9;
-        }
-        .tool-btn.active {
-            border: 2px solid #00bfa5;
-            box-shadow: 0 0 5px rgba(0, 180, 150, 0.5);
-            color: #004d40;
-            background-color: #e0f7fa;
-        }
-        .tool-btn:hover:not(.active) {
-            background-color: #e0f7fa;
-        }
-
-        /* --- ESTILO: CONTROLE ROTATÓRIO DO PINCEL --- */
-        #brushKnobContainer {
-            width: 48px;
-            height: 48px;
-            position: relative;
-            user-select: none;
+            background-color: #eee;
             touch-action: none;
         }
-        #brushKnob {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            background: linear-gradient(145deg, #00bfa5, #004d40);
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), inset 0 2px 5px rgba(255, 255, 255, 0.5);
-            cursor: grab;
-            transition: box-shadow 0.1s;
-        }
-        #brushKnob.active {
-            cursor: grabbing;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3), inset 0 2px 5px rgba(255, 255, 255, 0.3);
-        }
-        #knobHandle {
-            position: absolute;
-            top: 5px; 
-            left: 50%;
-            transform: translateX(-50%);
-            width: 8px;
-            height: 8px;
-            background-color: #ffeb3b; 
-            border-radius: 50%;
-            box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
-        }
+        
+        #drawingArea > canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; pointer-events: none; }
+        #drawingArea > canvas.drawing-active { pointer-events: auto; }
 
-        #accessoriesContainer {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            justify-content: center;
-            padding: 15px;
-            background-color: #e0f2f7;
-            border-radius: 15px;
-            width: 100%;
-            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.05);
-        }
+        .accessory-wrapper { z-index: 10; position: absolute; cursor: grab; user-select: none; touch-action: none; }
+        .accessory-wrapper.active { border: 2px dashed #ff4081; z-index: 11; }
+        .accessory-wrapper img { width: 100%; height: 100%; pointer-events: none; display: block; }
 
-        .accessory-item {
-            width: 90px;
-            height: 90px;
-            background-color: #ffffff;
-            border: 2px solid #b2ebf2;
-            border-radius: 12px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer; 
-            transition: all 0.2s;
-            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
-            text-align: center;
-            font-size: 0.75rem;
-            color: #00796b;
-        }
-
-        .accessory-item img {
-            max-width: 90%;
-            max-height: 60%;
-            pointer-events: none; 
-        }
-
-        .accessory-item:hover {
-            transform: scale(1.05);
-            border-color: #00bfa5;
-        }
-
-        /* --- ESTILOS DO ACCESSORY WRAPPER --- */
-        .accessory-wrapper {
-            z-index: 10;
-            position: absolute;
-            cursor: grab;
-            user-select: none;
-            touch-action: none; 
-            line-height: 0; 
-            box-sizing: content-box; 
-        }
-
-        .accessory-wrapper.active {
-            border: 2px dashed #ff4081; 
-            box-shadow: 0 0 0 3px rgba(255, 64, 129, 0.5);
-            z-index: 11; 
-        }
-
-        .accessory-wrapper img {
-            pointer-events: none; 
-            display: block;
-            width: 100%;
-            height: 100%;
-            object-fit: fill; 
+        .delete-handle {
+            position: absolute; width: 32px; height: 32px; background: #ef4444; color: white; border-radius: 50%;
+            top: -16px; right: -16px; display: flex; align-items: center; justify-content: center;
+            font-size: 16px; font-weight: bold; cursor: pointer; opacity: 0; transition: opacity 0.2s; z-index: 20;
         }
 
         .resize-handle {
-            position: absolute;
-            width: 30px; 
-            height: 30px; 
-            background: #FFEB3B; 
-            border: 3px solid #673AB7; 
-            border-radius: 6px; 
-            z-index: 2000; 
-            box-sizing: border-box;
-            opacity: 0; 
-            transition: opacity 0.2s ease;
-        }
-        
-        /* NOVO ESTILO: Botão de Deletar (Substitui o resize NE) */
-        .delete-handle {
-            position: absolute;
-            width: 30px;
-            height: 30px;
-            background-color: #ef4444; /* Vermelho */
-            border: 2px solid #ffffff;
-            border-radius: 50%;
-            z-index: 2001; /* Maior que resize */
-            box-sizing: border-box;
-            opacity: 0;
-            transition: opacity 0.2s ease;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-            font-family: sans-serif;
-            top: -15px;
-            right: -15px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            position: absolute; width: 28px; height: 28px; background: #00bfa5; border: 3px solid white; border-radius: 50%;
+            bottom: -14px; right: -14px; cursor: nwse-resize; opacity: 0; transition: opacity 0.2s; z-index: 21;
         }
 
-        .handle-nw { top: -15px; left: -15px; cursor: nwse-resize; }
-        /* .handle-ne foi removido para dar lugar ao delete */
-        .handle-sw { bottom: -15px; left: -15px; cursor: nesw-resize; }
-        .handle-se { bottom: -15px; right: -15px; cursor: nwse-resize; }
+        .accessory-wrapper.active .delete-handle, .accessory-wrapper.active .resize-handle { opacity: 1; }
 
-        .rotate-handle {
-            position: absolute;
-            width: 30px;
-            height: 30px;
-            background: #2979FF; 
-            border: 3px solid #1A237E; 
-            border-radius: 50%; 
-            z-index: 2000;
-            cursor: grab; 
-            top: -45px; 
-            left: 50%;
-            transform: translateX(-50%);
-            opacity: 0; 
-            transition: opacity 0.2s ease;
-            box-sizing: border-box;
-        }
-        
-        .accessory-wrapper.active .resize-handle,
-        .accessory-wrapper.active .rotate-handle,
-        .accessory-wrapper.active .delete-handle {
-            opacity: 1;
+        #accessoriesContainer {
+            display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; padding: 10px;
+            background-color: #e0f2f7; border-radius: 15px; width: 100%; max-height: 200px; overflow-y: auto;
         }
 
-        /* --- AJUSTES PARA CELULAR (RESPONSIVIDADE) --- */
+        .accessory-item { width: 65px; height: 65px; background: white; border: 2px solid #b2ebf2; border-radius: 10px; padding: 5px; cursor: pointer; flex-shrink: 0; }
+        .accessory-item img { width: 100%; height: 100%; object-fit: contain; }
+
+        #rankingModal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.8); z-index: 1000; display: none;
+            align-items: center; justify-content: center; padding: 20px;
+        }
+
+        .ranking-content {
+            background: white; width: 100%; max-width: 400px; border-radius: 20px;
+            padding: 20px; text-align: center; max-height: 80vh; overflow-y: auto;
+        }
+
+        #gameOverOverlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.95); z-index: 100; display: none; flex-direction: column;
+            align-items: center; justify-content: center; border-radius: 20px;
+        }
+
         @media (max-width: 640px) {
-            body {
-                padding: 10px; /* Menos margem no corpo */
-            }
-            .game-container {
-                padding: 10px; /* Menos padding interno */
-                border-width: 8px; /* Borda decorativa mais fina */
-                width: 100%;
-            }
-            .game-header {
-                font-size: 1.75rem; /* Título um pouco menor */
-                margin-bottom: 10px;
-            }
-            #accessoriesContainer {
-                gap: 8px;
-            }
-            .accessory-item {
-                width: 70px; /* Botões de acessório menores para caber mais */
-                height: 70px;
-            }
-            #drawingArea {
-                /* Garante que ocupe todo o espaço disponível */
-                width: 100%;
-            }
+            .game-header { font-size: 1.5rem; }
+            #drawingArea { height: 350px; }
         }
     </style>
 </head>
-<body class="bg-gray-200 flex items-center justify-center p-4">
+<body>
 
     <div class="game-container">
         <h1 class="game-header">Central de Jogos</h1>
         
-        <!-- Menu de Abas -->
         <div class="tab-menu" id="tabMenu">
             <button class="tab-btn active" data-game="confetti">Confetche!</button>
             <button class="tab-btn" data-game="faceCustomizer">Me deixe bem bonito!</button>
+            <button class="tab-btn" data-game="oraculo">Que Luisinho vc é hoje</button>
         </div>
 
-        <!-- Conteúdo da Aba Ativa -->
-        <div id="gameContent" class="tab-content">
-            <!-- Conteúdo será injetado pelo JavaScript -->
+        <div id="gameContent" class="tab-content relative">
+            <!-- Conteúdo dinâmico -->
         </div>
-        
-        <!-- Modal de Confirmação Customizado -->
-        <div id="removeConfirmModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 transition-opacity duration-300 opacity-0 pointer-events-none">
-            <div class="bg-white p-6 rounded-xl shadow-2xl max-w-sm w-full transform scale-90 transition-transform duration-300">
-                <h3 class="text-xl font-bold text-teal-800 mb-4">Remover Acessório</h3>
-                <p class="text-gray-700 mb-6">Deseja remover este item da imagem?</p>
-                <div class="flex justify-end space-x-3">
-                    <button id="cancelRemove" class="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-100 transition">Cancelar</button>
-                    <button id="confirmRemove" class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition">Remover</button>
-                </div>
+    </div>
+
+    <!-- Modal Ranking Global -->
+    <div id="rankingModal">
+        <div class="ranking-content shadow-2xl border-4 border-teal-500">
+            <h2 class="text-2xl font-black text-teal-700 mb-4 uppercase">🏆 Ranking de Boloios</h2>
+            <div id="rankingList" class="space-y-2 mb-6">
+                <p class="text-gray-500 italic">A carregar recordes...</p>
             </div>
+            <button onclick="closeRanking()" class="bg-teal-600 text-white font-bold py-2 px-6 rounded-lg uppercase hover:bg-teal-700 transition">Fechar</button>
         </div>
-
     </div>
 
     <script>
-        // --- Variáveis Globais de Jogo e Estado ---
-        let currentGame = 'confetti'; 
-        let currentTool = 'select'; 
-        
-        // --- Variáveis de Estado do Customizador ---
-        let activeAccessory = null; 
-        let currentAction = null; 
-        let initialMouseX, initialMouseY; 
-        let initialWidth, initialHeight; 
-        let initialElementLeft, initialElementTop; 
-        let initialAngle = 0;
-        let initialRotation = 0;
+        // --- Configuração Firebase ---
+        const firebaseConfig = JSON.parse(__firebase_config);
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'central-luisinho';
 
-        const MIN_ACCESSORY_SIZE = 30; 
-        
-        // --- Variáveis do Controle Rotatório do Pincel ---
-        let isRotatingBrush = false;
-        let knobCenterX, knobCenterY;
-        let initialKnobAngle = 0;
-        let initialKnobBrushSize = 0;
-        let currentKnobRotation = 0; 
-        const MAX_BRUSH_SIZE = 20;
-        const MIN_BRUSH_SIZE = 1;
-        const MAX_VISUAL_ROTATION = 340; 
-        const DEGREES_PER_UNIT = 18;
+        let currentUser = null;
+        let userNick = ''; // Guarda o nick já salvo neste dispositivo
 
-
-        // --- Funções de Utilitário para TTS (Áudio) ---
-        function arrayBufferToBase64(buffer) {
-            let binary = '';
-            const bytes = new Uint8Array(buffer);
-            const len = bytes.byteLength;
-            for (let i = 0; i < len; i++) { binary += String.fromCharCode(bytes[i]); }
-            return window.btoa(binary);
-        }
-
-        function pcmToWav(pcmData, sampleRate) {
-            const numChannels = 1; const bitsPerSample = 16; const dataLength = pcmData.length * 2;
-            const buffer = new ArrayBuffer(44 + dataLength); const view = new DataView(buffer); let offset = 0;
-            function writeString(str, view, offset) { for (let i = 0; i < str.length; i++) { view.setUint8(offset + i, str.charCodeAt(i)); } }
-            writeString('RIFF', view, offset); offset += 4;
-            view.setUint32(offset, 36 + dataLength, true); offset += 4;
-            writeString('WAVE', view, offset); offset += 4;
-            view.setUint32(offset, 16, true); offset += 4;
-            view.setUint16(offset, 1, true); offset += 2;
-            view.setUint16(offset, numChannels, true); offset += 2;
-            view.setUint32(offset, sampleRate, true); offset += 4;
-            view.setUint32(offset, sampleRate * numChannels * (bitsPerSample / 8), true); offset += 4;
-            view.setUint16(offset, numChannels * (bitsPerSample / 8), true); offset += 2;
-            view.setUint16(offset, bitsPerSample, true); offset += 2;
-            writeString('data', view, offset); offset += 4;
-            view.setUint32(offset, dataLength, true); offset += 4;
-            for (let i = 0; i < pcmData.length; i++, offset += 2) { view.setInt16(offset, pcmData[i], true); }
-            return new Blob([view], { type: 'audio/wav' });
-        }
-
-        async function fetchWithBackoff(url, options, maxRetries = 5) {
-            for (let i = 0; i < maxRetries; i++) {
-                try {
-                    const response = await fetch(url, options);
-                    if (response.status !== 429 && response.ok) { return response; }
-                    if (response.status === 429 && i < maxRetries - 1) {
-                        const delay = Math.pow(2, i) * 1000 + Math.random() * 1000;
-                        await new Promise(resolve => setTimeout(resolve, delay));
-                        continue;
-                    }
-                    throw new Error(`API request failed with status ${response.status}`);
-                } catch (error) {
-                    if (i === maxRetries - 1) throw error;
-                    const delay = Math.pow(2, i) * 1000 + Math.random() * 1000;
-                    await new Promise(resolve => setTimeout(resolve, delay));
+        async function initAuth() {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    const result = await auth.signInWithCustomToken(__initial_auth_token);
+                    currentUser = result.user;
+                } else {
+                    const result = await auth.signInAnonymously();
+                    currentUser = result.user;
                 }
+                fetchUserNick(); // Tenta buscar o nick existente após o login
+            } catch (e) {
+                console.error("Erro na autenticação:", e);
             }
-            throw new Error("Maximum retries reached for API call.");
+        }
+        initAuth();
+
+        auth.onAuthStateChanged((user) => {
+            currentUser = user;
+        });
+
+        // Função para buscar o nick do dispositivo no Firebase
+        async function fetchUserNick() {
+            if (!currentUser) return;
+            const collectionRef = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('ranking');
+            const snapshot = await collectionRef.get();
+            snapshot.forEach(doc => {
+                if (doc.data().userId === currentUser.uid) {
+                    userNick = doc.data().nick;
+                }
+            });
         }
 
-        // --- Confetti Game Variables and Logic ---
-        let confettiGameInstance = null; 
-        let coughSound = null;
-        let isSoundLoading = false;
-        let confettiScore = 0; 
-        const MAX_CONF_SCORE = 50;
-        let showFinalMessage = false;
-        let messageStartTime = 0;
-        const MESSAGE_DURATION = 5000;
-        const BLINK_INTERVAL = 300;
-        let confettiParticles = []; 
-        let coughedConfetti = [];
-        let confettiMan = { x: 0, y: 0, width: 200, height: 240, dx: 3, dy: 0, mouthOpen: false }; 
-        let isConfettiGameRunning = false; 
-        let lastConfettiUpdateTime = 0; 
-        let mouthOpenInterval = 1200;
-        const mouthOpenDuration = 400;
-        
-        const manImages = { idle: new Image(), open: new Image(), cough: new Image(), cough2: new Image() };
+        // --- Estado Global ---
+        let currentGame = 'confetti';
+        let confettiScore = 0;
+        let confettiMisses = 0;
+        let confettiGameInstance = null;
+        let currentTool = 'select';
+
+        const manImages = { 
+            idle: new Image(), open: new Image(), cough: new Image(), cough2: new Image()
+        };
         manImages.idle.src = 'https://i.postimg.cc/XvhMHHx2/fechando.png';
         manImages.open.src = 'https://i.postimg.cc/kgTP8XSP/6a575d21-32c4-4876-abc2-99943e746c78.png';
         manImages.cough.src = 'https://i.postimg.cc/jS0bKFrB/tosse-esse-sim.png';
         manImages.cough2.src = 'https://i.postimg.cc/gjmgN39S/tosse-esse-sim2.png';
-        
-        const placeholderURL = (text) => `https://placehold.co/100x120/43a047/ffffff?text=${text}`;
-        manImages.idle.onerror = () => manImages.idle.src = placeholderURL('Idle');
-        manImages.open.onerror = () => manImages.open.src = placeholderURL('Open');
-        manImages.cough.onerror = () => manImages.cough.src = placeholderURL('Cough1');
-        manImages.cough2.onerror = () => manImages.cough2.src = placeholderURL('Cough2');
-        let currentManImage = manImages.idle;
 
-        async function loadCoughSound() {
-            if (coughSound || isSoundLoading) return;
-            isSoundLoading = true;
-            try {
-                const prompt = "Say with a raspy texture: cough";
-                const payload = {
-                    contents: [{ parts: [{ text: prompt }] }],
-                    generationConfig: {
-                        responseModalities: ["AUDIO"],
-                        speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: "Algieba" } } }
-                    },
-                    model: "gemini-2.5-flash-preview-tts"
-                };
-                const apiKey = "";
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
-                const response = await fetchWithBackoff(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-                const result = await response.json();
-                const part = result?.candidates?.[0]?.content?.parts?.[0];
-                const audioData = part?.inlineData?.data;
-                const mimeType = part?.inlineData?.mimeType;
-
-                if (audioData && mimeType && mimeType.startsWith("audio/")) {
-                    const sampleRateMatch = mimeType.match(/rate=(\d+)/);
-                    const sampleRate = sampleRateMatch ? parseInt(sampleRateMatch[1], 10) : 16000;
-                    const binaryString = atob(audioData); const len = binaryString.length; const bytes = new Uint8Array(len);
-                    for (let i = 0; i < len; i++) { bytes[i] = binaryString.charCodeAt(i); }
-                    const pcmData = new Int16Array(bytes.buffer);
-                    const wavBlob = pcmToWav(pcmData, sampleRate);
-                    const audioUrl = URL.createObjectURL(wavBlob);
-                    coughSound = new Audio(audioUrl);
-                    coughSound.volume = 0.5;
-                } else { console.error("Dados de áudio inválidos na resposta da API."); }
-            } catch (error) { console.error("Erro ao carregar o áudio:", error); } 
-            finally { isSoundLoading = false; }
-        }
-        
-        function resizeConfettiCanvas(canvas, manObj) { 
-            if (!canvas) return; 
-            canvas.width = canvas.offsetWidth;
-            canvas.height = canvas.offsetHeight;
-            manObj.x = canvas.width / 2 - manObj.width / 2;
-            manObj.y = canvas.height - manObj.height;
-        }
-
-        function drawConfettiMan(ctx) { ctx.drawImage(currentManImage, confettiMan.x, confettiMan.y, confettiMan.width, confettiMan.height); }
-        function drawConfettiParticles(ctx) {
-            confettiParticles.forEach(c => {
-                ctx.fillStyle = c.color; ctx.beginPath(); ctx.arc(c.x, c.y, c.radius, 0, Math.PI * 2); ctx.fill();
-            });
-        }
-        function drawCoughedConfettiParticles(ctx) {
-            coughedConfetti.forEach(c => {
-                ctx.fillStyle = c.color; ctx.beginPath(); ctx.arc(c.x, c.y, c.radius, 0, Math.PI * 2); ctx.fill();
-            });
-        }
-
-        function drawConfettiMessage(ctx, canvas) {
-            if (!showFinalMessage) return;
-            const timeElapsed = Date.now() - messageStartTime;
-            if (Math.floor(timeElapsed / BLINK_INTERVAL) % 2 === 0) {
-                ctx.font = 'bold 72px Inter, sans-serif'; ctx.fillStyle = 'red'; ctx.textAlign = 'center';
-                ctx.shadowColor = 'black'; ctx.shadowBlur = 15;
-                ctx.fillText("DEU CHEGA!", canvas.width / 2, canvas.height / 2);
-                ctx.shadowBlur = 0;
-            }
-        }
-
-        function coughConfettiAction() {
-            if (coughSound) { coughSound.currentTime = 0; coughSound.play().catch(e => console.log("Sound autoplay failed.")); }
-            const numParticles = Math.floor(Math.random() * 30) + 15;
-            const mouthX = confettiMan.x + confettiMan.width / 2; const mouthY = confettiMan.y + 50; 
-            for (let i = 0; i < numParticles; i++) {
-                const angle = Math.random() * Math.PI * 2;
-                coughedConfetti.push({
-                    x: mouthX, y: mouthY, radius: Math.random() * 6 + 3,
-                    color: `hsl(${Math.random() * 360}, 100%, 60%)`,
-                    dx: Math.cos(angle) * (Math.random() * 6 + 3), dy: Math.sin(angle) * (Math.random() * 6 + 3),
-                    life: 120
-                });
-            }
-            currentManImage = manImages.cough;
-            setTimeout(() => { currentManImage = manImages.cough2; setTimeout(() => { currentManImage = manImages.idle; }, 250); }, 250);
-        }
-        
-        function updateConfettiGameLoop() {
-            if (!isConfettiGameRunning || currentGame !== 'confetti') {
-                confettiGameInstance = null; 
-                return; 
-            }
-            
-            const canvas = document.getElementById('confettiCanvas');
-            if (!canvas) {
-                isConfettiGameRunning = false;
-                confettiGameInstance = null;
-                return;
-            }
-
-            const ctx = canvas.getContext('2d');
-            const scoreDisplay = document.getElementById('scoreDisplay');
-            
-            confettiMan.x += confettiMan.dx;
-            if (confettiMan.x + confettiMan.width > canvas.width || confettiMan.x < 0) { confettiMan.dx *= -1; }
-
-            const currentTime = Date.now();
-            if (currentTime - lastConfettiUpdateTime > mouthOpenInterval) {
-                confettiMan.mouthOpen = true; lastConfettiUpdateTime = currentTime; currentManImage = manImages.open;
-                setTimeout(() => { confettiMan.mouthOpen = false; currentManImage = manImages.idle; }, mouthOpenDuration);
-            }
-
-            confettiParticles.forEach((c, index) => {
-                c.y += c.speed; 
-                const mouthXMin = confettiMan.x + confettiMan.width / 2 - 50;
-                const mouthXMax = confettiMan.x + confettiMan.width / 2 + 50;
-                const mouthYMin = confettiMan.y;
-                const mouthYMax = confettiMan.y + 50;
-
-                if (confettiMan.mouthOpen && c.x >= mouthXMin && c.x <= mouthXMax && c.y >= mouthYMin && c.y <= mouthYMax) {
-                    if (confettiScore === MAX_CONF_SCORE && !showFinalMessage) { showFinalMessage = true; messageStartTime = Date.now(); }
-                    confettiScore++;
-                    mouthOpenInterval = Math.max(500, mouthOpenInterval * 0.95);
-                    if (scoreDisplay) scoreDisplay.textContent = confettiScore;
-                    confettiParticles.splice(index, 1);
-                    coughConfettiAction();
-                    lastConfettiUpdateTime = currentTime; confettiMan.mouthOpen = false;
-                }
-            });
-
-            coughedConfetti.forEach((c, index) => {
-                c.x += c.dx; c.y += c.dy; c.life--;
-                if (c.life <= 0) { coughedConfetti.splice(index, 1); }
-            });
-
-            confettiParticles = confettiParticles.filter(c => c.y - c.radius < canvas.height); 
-            
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            if (showFinalMessage && (Date.now() - messageStartTime) > MESSAGE_DURATION) { showFinalMessage = false; }
-
-            drawConfettiMan(ctx); drawConfettiParticles(ctx); drawCoughedConfettiParticles(ctx); drawConfettiMessage(ctx, canvas);
-            
-            confettiGameInstance = requestAnimationFrame(updateConfettiGameLoop);
-        }
-
-        function startConfettiGame() {
-            confettiScore = 0; showFinalMessage = false; 
-            const scoreDisplay = document.getElementById('scoreDisplay');
-            if (scoreDisplay) scoreDisplay.textContent = confettiScore;
-
-            confettiParticles = []; coughedConfetti = [];
-            const canvas = document.getElementById('confettiCanvas');
-            if (!canvas) return; 
-            
-            resizeConfettiCanvas(canvas, confettiMan); 
-            confettiMan.dx = 3; 
-            isConfettiGameRunning = true; 
-            lastConfettiUpdateTime = Date.now();
-            mouthOpenInterval = 1200;
-            
-            if (!confettiGameInstance) {
-                 confettiGameInstance = requestAnimationFrame(updateConfettiGameLoop);
-            }
-        }
-
-        function setupConfettiListeners(canvas) {
-            const handleConfettiClick = (e) => {
-                 if (isConfettiGameRunning && currentGame === 'confetti') {
-                    const rect = canvas.getBoundingClientRect();
-                    const x = e.clientX - rect.left;
-                    const y = e.clientY - rect.top;
-                    confettiParticles.push({
-                        x: x, y: y, radius: 6, color: `hsl(${Math.random() * 360}, 100%, 60%)`, speed: -6 
-                    });
-                }
-            };
-
-            const handleConfettiResize = () => {
-                if (canvas && currentGame === 'confetti') resizeConfettiCanvas(canvas, confettiMan);
-            };
-
-            canvas.removeEventListener('click', canvas.currentClickHandler);
-            window.removeEventListener('resize', window.currentConfettiResizeHandler);
-            
-            canvas.addEventListener('click', handleConfettiClick);
-            window.addEventListener('resize', handleConfettiResize);
-
-            canvas.currentClickHandler = handleConfettiClick;
-            window.currentConfettiResizeHandler = handleConfettiResize;
-        }
-
-        function renderConfettiGameContent() {
-            document.getElementById('gameContent').innerHTML = `
-                <h2 class="text-2xl font-bold text-teal-700">Vamos festejar!</h2>
-                <div class="game-info">
-                    Pontuação: <span id="scoreDisplay">${confettiScore}</span> 
-                </div>
-                <canvas id="confettiCanvas"></canvas>
-                <button id="startButton" class="btn">Começar Jogo</button>
-            `;
-            
-            const canvas = document.getElementById('confettiCanvas');
-            const startButton = document.getElementById('startButton');
-
-            setupConfettiListeners(canvas);
-            
-            startButton.addEventListener('click', async () => {
-                if (!isSoundLoading && !coughSound) {
-                    startButton.textContent = "Carregando som... (Aguarde)";
-                    await loadCoughSound();
-                }
-                if (!isSoundLoading) {
-                    startConfettiGame();
-                    startButton.textContent = "Reiniciar Jogo";
-                }
-            });
-            
-            if (!confettiGameInstance && currentGame === 'confetti') {
-                 isConfettiGameRunning = true;
-                 confettiGameInstance = requestAnimationFrame(updateConfettiGameLoop);
-            } else if (currentGame === 'confetti') {
-                 isConfettiGameRunning = true;
-            }
-            
-            manImages.idle.onload = () => { resizeConfettiCanvas(canvas, confettiMan); };
-            if (manImages.idle.complete) resizeConfettiCanvas(canvas, confettiMan);
-        }
-        
-        // --- Lógica do Customizador de Rosto ---
-        let drawingCanvas = null;
-        let drawingCtx = null;
-        let isDrawing = false;
-        let currentColor = '#000000';
-        let currentBrushSize = 5;
-        let accessories = []; 
-
-        const FACE_IMAGE_URL = 'https://i.postimg.cc/Wb4BsmdQ/ddddddd.jpg';
-        let faceImage = new Image();
-        faceImage.src = FACE_IMAGE_URL;
-        
-        const defaultAccessories = [
-            { name: "Peruca Curta", src: "https://i.postimg.cc/XvxPGjJw/perucawws.png", w: 150, h: 150 }, 
+        const ALL_ACCESSORIES = [
+            { name: "Peruca Curta", src: "https://i.postimg.cc/XvxPGjJw/perucawws.png", w: 150, h: 150 },
             { name: "Peruca Vermelha", src: "https://i.postimg.cc/XJJz9RGt/perucas.png", w: 150, h: 150 },
-            { name: "Casal da Live", src: "https://i.postimg.cc/kDrY3D1P/SACO-OVO.png", w: 180, h: 180 }, 
+            { name: "Peruca Loira", src: "https://i.postimg.cc/N0w4gWkT/Captura-de-tela-2025-11-30-190254.png", w: 150, h: 150 },
+            { name: "Cabelo Estiloso", src: "https://i.postimg.cc/MGcKZpq9/a214595cb778d15d02a04495c94e14b3.png", w: 150, h: 150 },
+            { name: "Saco Ovo", src: "https://i.postimg.cc/kDrY3D1P/SACO-OVO.png", w: 180, h: 180 },
             { name: "Bigode", src: "https://i.postimg.cc/m2j4BwSM/bigode.png", w: 80, h: 40 },
             { name: "Maquiagem", src: "https://i.postimg.cc/XY2nc8Gd/make.png", w: 180, h: 150 },
-            { name: "Chapéu", src: "https://i.postimg.cc/MpjnsHR1/Captura-de-tela-2025-11-30-191447.png", w: 100, h: 80 },
-            { name: "Peruca Loira", src: "https://i.postimg.cc/N0w4gWkT/Captura-de-tela-2025-11-30-190254.png", w: 150, h: 150 },
+            { name: "Maquiagem Olho", src: "https://i.postimg.cc/D058JpDM/ddddddd.png", w: 150, h: 80 },
             { name: "Boca", src: "https://i.postimg.cc/RZkLGqsZ/Captura-de-tela-2025-11-30-195023.png", w: 80, h: 40 },
-            { name: "Cabelo", src: "https://i.postimg.cc/MGcKZpq9/a214595cb778d15d02a04495c94e14b3.png", w: 150, h: 150 },
-            { name: "Maquiagem Olho", src: "https://i.postimg.cc/D058JpDM/ddddddd.png", w: 150, h: 80 }
+            { name: "Chapéu", src: "https://i.postimg.cc/MpjnsHR1/Captura-de-tela-2025-11-30-191447.png", w: 100, h: 80 }
         ];
-        
-        function calculateAngle(cx, cy, px, py) {
-            return Math.atan2(py - cy, px - cx);
-        }
 
-        // --- FUNÇÕES AUXILIARES DE ESTADO DO CUSTOMIZADOR ---
+        const MEMES_DATABASE = [
+            { text: "🦁 LUISINHO FULL PISTOLA: Hoje quem te der 'bom dia' vai levar um coice!", img: "https://i.postimg.cc/fLsbj21L/642e8812-6b1b-4da5-8654-43fed94f3ac5.jpg" },
+            { text: "🕺 LUISINHO INIMIGO DO FIM: Tomou 3 energéticos e vai dançar até no velório!", img: "https://i.postimg.cc/B6Cnh5GM/20250902-203254.jpg" },
+            { text: "💸 LUISINHO MAGNATA DO PIX: Caiu 2 reais na conta e já quer financiar uma Ferrari.", img: "https://i.postimg.cc/nV0LB1kw/Captura-de-tela-2025-12-09-153113.jpg" },
+            { text: "💅 LUISINHO BLOGUEIRINHA: Fazendo a pose pro print porque o deboche é meu sobrenome.", img: "https://i.postimg.cc/28WXPC6C/Captura-de-tela-2025-12-21-141211.png" },
+            { text: "🧐 LUISINHO ANALISTA: Te julgando silenciosamente por essa sua cara de sono.", img: "https://i.postimg.cc/pLNYMxFG/Captura-de-tela-2025-05-19-205622.png" },
+            { text: "🤡 LUISINHO CORINGOU: Rindo de nervoso porque o boleto venceu e você esqueceu.", img: "https://i.postimg.cc/Dz6qGXM2/Captura-de-tela-2025-06-11-233239.png" },
+            { text: "😲 LUISINHO PASSADO: Viu a fofoca e ficou em choque com o nível da audácia.", img: "https://i.postimg.cc/wjdJbVCW/Captura-de-tela-2025-12-20-172039.png" },
+            { text: "🤨 LUISINHO DESCONFIADO: Hummm, sei não hein... essa sua história tá mais mal contada que nota de 3 reais.", img: "https://i.postimg.cc/CxVD67yh/Captura-de-tela-2025-12-20-172050.jpg" },
+            { text: "🤫 LUISINHO SIGILO TOTAL: Guardando o segredo que vai destruir a reputação de alguém.", img: "https://i.postimg.cc/HLYMTLsJ/Captura-de-tela-2025-12-20-172912.jpg" },
+            { text: "💀 LUISINHO ALMA SAINDO: Quando a segunda-feira chega e você ainda não superou o sábado.", img: "https://i.postimg.cc/zB3RRPh8/Captura-de-tela-2025-12-20-172946.png" },
+            { text: "🥴 LUISINHO PÓS-LIVE: A cara de quem não dorme há 3 dias por causa de vício em jogo.", img: "https://i.postimg.cc/W3tJJfZ7/Captura-de-tela-2025-12-20-173450.png" },
+            { text: "😶 LUISINHO SEM PALAVRAS: A burrice alheia às vezes atinge níveis astronômicos.", img: "https://i.postimg.cc/RF8J1QQB/Captura-de-tela-2025-12-20-173530.png" },
+            { text: "🔥 LUISINHO MODE ON: Se me irritar hoje, o barraco vai ser transmitido via satélite.", img: "https://i.postimg.cc/vTVg0g3D/Captura-de-tela-2025-12-20-173556.png" },
+            { text: "🎭 LUISINHO DRAMÁTICO: Sofrendo mais que vilão de novela mexicana porque o Wi-Fi caiu!", img: "https://i.postimg.cc/0yxZFmFS/Captura-de-tela-2025-05-19-212628.png" },
+            { text: "😎 LUISINHO DONO DA RAZÃO: Eu não discuto, eu apenas explico por que você está errado.", img: "https://i.postimg.cc/CKx7L0FR/Captura-de-tela-2025-06-02-143116.png" },
+            { text: "😴 LUISINHO DERROTADO: A vida bateu tanto hoje que o plano é só virar um vegetal.", img: "https://i.postimg.cc/908F2W0H/Captura-de-tela-2025-12-09-152444.jpg" },
+            { text: "🌽 LUISINHO 'TÔ NEM AÍ': O mundo pode acabar em fogo, eu vou estar aqui com meu milho.", img: "https://i.postimg.cc/jqZjPhcR/Captura-de-tela-2025-12-09-153135.jpg" },
+            { text: "🤯 LUISINHO PANE NO SISTEMA: Viu o preço da carne e a alma saiu do corpo por 5 minutos.", img: "https://i.postimg.cc/GhtmQsgh/e1eef602-b7bb-42ee-bae8-f5f99b3ba7ec.jpg" },
+            { text: "🚀 LUISINHO ESTOURADO: Esquece, o pai tá viciado em vencer (ou em passar vergonha)!", img: "https://i.postimg.cc/L6W606GB/Gemini-Generated-Image-t1rwy1t1rwy1t1rw.jpg" }
+        ];
+
         function getCoords(e) {
             const clientX = e.touches ? e.touches[0].clientX : e.clientX;
             const clientY = e.touches ? e.touches[0].clientY : e.clientY;
             return { clientX, clientY };
         }
 
-        function setActiveAccessory(element) {
-            document.querySelectorAll('.accessory-wrapper').forEach(el => {
-                if (el !== element) {
-                    el.classList.remove('active');
-                    el.style.zIndex = 10;
+        // --- Lógica de Ranking com Trava por Dispositivo e Edição ---
+        async function saveScore(nick, score) {
+            if (!currentUser) { await initAuth(); }
+            if (!currentUser) return;
+            
+            const collectionRef = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('ranking');
+            
+            try {
+                const snapshot = await collectionRef.get();
+                let existingDocId = null;
+                let existingScore = 0;
+
+                snapshot.forEach(doc => {
+                    if (doc.data().userId === currentUser.uid) {
+                        existingDocId = doc.id;
+                        existingScore = doc.data().score;
+                    }
+                });
+
+                if (existingDocId) {
+                    // Atualiza o nick SEMPRE que salvar, e a pontuação apenas se for maior
+                    await collectionRef.doc(existingDocId).update({
+                        nick: nick || 'Anónimo',
+                        score: Math.max(score, existingScore),
+                        timestamp: Date.now()
+                    });
+                } else {
+                    await collectionRef.add({
+                        userId: currentUser.uid,
+                        nick: nick || 'Anónimo',
+                        score: score,
+                        timestamp: Date.now()
+                    });
                 }
+                userNick = nick; // Atualiza localmente o nick salvo
+                showRanking();
+            } catch (e) {
+                console.error("Erro ao salvar recorde:", e);
+            }
+        }
+
+        function showRanking() {
+            const modal = document.getElementById('rankingModal');
+            const list = document.getElementById('rankingList');
+            modal.style.display = 'flex';
+            list.innerHTML = '<p class="text-gray-500 italic uppercase">A atualizar...</p>';
+
+            const collectionRef = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('ranking');
+            
+            collectionRef.onSnapshot((snapshot) => {
+                const umMesEmMs = 30 * 24 * 60 * 60 * 1000;
+                const agora = Date.now();
+
+                let data = [];
+                snapshot.forEach(doc => {
+                    const item = doc.data();
+                    if (agora - item.timestamp < umMesEmMs) {
+                        data.push(item);
+                    }
+                });
+
+                data.sort((a, b) => b.score - a.score);
+
+                list.innerHTML = data.length ? '' : '<p class="text-gray-400 uppercase font-bold text-sm">Ninguém salvou ainda!</p>';
+                data.slice(0, 15).forEach((item, index) => {
+                    const isMe = currentUser && item.userId === currentUser.uid;
+                    list.innerHTML += `
+                        <div class="flex justify-between items-center bg-gray-100 p-2 rounded border-l-4 ${isMe ? 'border-indigo-600 bg-indigo-50' : (index === 0 ? 'border-yellow-400' : 'border-teal-500')} mb-1">
+                            <span class="font-bold text-gray-700 text-sm">${index + 1}º ${item.nick} ${isMe ? '(Tu)' : ''}</span>
+                            <span class="font-black text-teal-600 text-sm">${item.score} pts</span>
+                        </div>
+                    `;
+                });
+            }, (error) => {
+                list.innerHTML = '<p class="text-red-500 uppercase">Erro no servidor.</p>';
             });
-            
-            if (element) {
-                element.classList.add('active');
-                element.style.zIndex = 11; 
-                activeAccessory = element;
-            } else {
-                activeAccessory = null;
-            }
         }
 
-        // --- LÓGICA PRINCIPAL DE ARRASTO, REDIMENSIONAMENTO E ROTAÇÃO ---
+        window.closeRanking = () => document.getElementById('rankingModal').style.display = 'none';
 
-        function startAction(e) {
-            const drawingArea = document.getElementById('drawingArea');
-            if (!drawingArea) return;
-            
-            const target = e.target;
-            const { clientX, clientY } = getCoords(e);
-            
-            if (target.tagName === 'INPUT' || target.tagName === 'LABEL' || (target.tagName === 'BUTTON' && target.id === 'clearDrawingBtn') || target.id === 'brushKnob' || target.id === 'knobHandle') {
-                return;
-            }
-            
-            // Check if delete handle is clicked
-            if (target.classList.contains('delete-handle')) {
-                 if (activeAccessory) {
-                    showRemoveModal(activeAccessory);
-                 }
-                 e.preventDefault();
-                 return;
-            }
+        // --- Jogo do Confete ---
+        function renderConfetti() {
+            const content = document.getElementById('gameContent');
+            content.innerHTML = `
+                <div id="gameOverOverlay" class="p-6">
+                    <img src="https://i.postimg.cc/LsVbsvKL/luis-gifdedo.gif" class="max-w-[180px] mb-4 rounded-lg shadow-2xl border-4 border-red-500">
+                    <h2 class="text-2xl font-black text-red-600 uppercase mb-2 italic text-center">Perdeu seu Boloio</h2>
+                    <p class="text-[10px] text-gray-500 mb-4 font-bold uppercase text-center">(Podes editar o teu nome abaixo)</p>
+                    <input id="playerNick" type="text" value="${userNick}" placeholder="Teu Nick..." class="border-4 border-teal-500 p-3 rounded-xl mb-4 text-center outline-none w-full font-bold uppercase">
+                    <button id="saveBtn" class="w-full bg-teal-600 text-white font-black py-4 px-8 rounded-xl uppercase shadow-lg hover:bg-teal-700 transition active:scale-95">💾 Guardar Recorde</button>
+                    <button onclick="resetConfetti()" class="mt-6 text-sm text-gray-500 font-bold uppercase underline">Jogar de novo</button>
+                </div>
+                <h2 class="text-xl font-black text-teal-700 uppercase mb-2">Festa do Confete!</h2>
+                <div class="flex items-center justify-center gap-3 mb-2">
+                    <div class="font-bold text-lg text-teal-800">PONTOS: <span id="scoreDisplay">${confettiScore}</span></div>
+                    <button onclick="showRanking()" class="bg-teal-100 p-2 rounded-full border-2 border-teal-300 hover:bg-teal-200 transition shadow-sm" title="Ver Ranking">🏆</button>
+                    <div class="text-xs font-bold text-red-500">ERROS: <span id="missDisplay">${confettiMisses}</span>/10</div>
+                </div>
+                <canvas id="confettiCanvas"></canvas>
+            `;
 
-            if (currentTool !== 'select') {
-                setActiveAccessory(null); 
-                return;
-            }
+            const canvas = document.getElementById('confettiCanvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = canvas.offsetWidth; canvas.height = 450;
 
-            if (target.classList.contains('resize-handle')) {
-                currentAction = target.classList.contains('handle-nw') ? 'resize-nw' :
-                                target.classList.contains('handle-ne') ? 'resize-ne' :
-                                target.classList.contains('handle-sw') ? 'resize-sw' :
-                                'resize-se'; 
-                
-                activeAccessory = target.parentElement; 
-                e.preventDefault();
+            let particles = [];
+            let man = { x: canvas.width/2 - 100, y: canvas.height - 240, dx: 3, dy: 2, open: false, isCoughing: false, coughStage: 0 };
+            let lastUpdate = Date.now();
 
-            } else if (target.classList.contains('rotate-handle')) {
-                currentAction = 'rotate';
-                activeAccessory = target.parentElement;
-                const rect = activeAccessory.getBoundingClientRect();
-                knobCenterX = rect.left + rect.width / 2;
-                knobCenterY = rect.top + rect.height / 2;
-                initialAngle = calculateAngle(knobCenterX, knobCenterY, clientX, clientY);
-                initialRotation = parseFloat(activeAccessory.getAttribute('data-rotation') || 0);
-                e.preventDefault();
-            
-            } else if (target.classList.contains('accessory-wrapper')) {
-                currentAction = 'drag';
-                setActiveAccessory(target); 
-                initialMouseX = clientX;
-                initialMouseY = clientY;
-                initialElementLeft = parseFloat(target.style.left) || 0;
-                initialElementTop = parseFloat(target.style.top) || 0;
-                e.preventDefault();
-            
-            } else if (target.id === 'drawingArea') {
-                setActiveAccessory(null);
-            }
-            
-            if (activeAccessory && (currentAction === 'drag' || currentAction.startsWith('resize') || currentAction === 'rotate')) {
-                initialMouseX = clientX;
-                initialMouseY = clientY;
-                initialWidth = activeAccessory.offsetWidth;
-                initialHeight = activeAccessory.offsetHeight;
-                initialElementLeft = parseFloat(activeAccessory.style.left) || 0;
-                initialElementTop = parseFloat(activeAccessory.style.top) || 0;
-            }
-            
-            if (currentTool === 'brush' || currentTool === 'eraser') {
-                isDrawing = true;
-                draw(clientX, clientY);
-            }
-            
-            document.addEventListener('mousemove', moveAction);
-            document.addEventListener('mouseup', stopAction);
-            document.addEventListener('touchmove', moveAction, { passive: false });
-            document.addEventListener('touchend', stopAction);
-        }
-
-        function moveAction(e) {
-            const { clientX, clientY } = getCoords(e);
-            const dx = clientX - initialMouseX;
-            const dy = clientY - initialMouseY;
-            
-            if (currentTool === 'brush' || currentTool === 'eraser') {
-                if (isDrawing) { draw(clientX, clientY); }
-                return;
-            }
-            
-            if (!activeAccessory || !currentAction) return;
-            e.preventDefault();
-            
-            if (currentAction === 'drag') {
-                let newLeft = initialElementLeft + dx;
-                let newTop = initialElementTop + dy;
-                
-                activeAccessory.style.left = `${newLeft}px`;
-                activeAccessory.style.top = `${newTop}px`;
-            
-            } else if (currentAction.startsWith('resize')) {
-                let newWidth = initialWidth;
-                let newHeight = initialHeight;
-                let newLeft = initialElementLeft;
-                let newTop = initialElementTop;
-
-                switch (currentAction) {
-                    case 'resize-nw':
-                        newWidth = initialWidth - dx;
-                        newHeight = initialHeight - dy;
-                        newLeft = initialElementLeft + dx;
-                        newTop = initialElementTop + dy;
-                        break;
-                    case 'resize-ne':
-                        newWidth = initialWidth + dx;
-                        newHeight = initialHeight - dy;
-                        newTop = initialElementTop + dy;
-                        break;
-                    case 'resize-sw':
-                        newWidth = initialWidth - dx;
-                        newHeight = initialHeight + dy;
-                        newLeft = initialElementLeft + dx;
-                        break;
-                    case 'resize-se':
-                        newWidth = initialWidth + dx;
-                        newHeight = initialHeight + dy;
-                        break;
-                }
-
-                if (newWidth > MIN_ACCESSORY_SIZE) {
-                    activeAccessory.style.width = `${newWidth}px`;
-                    if (currentAction.includes('w')) activeAccessory.style.left = `${newLeft}px`;
-                }
-
-                if (newHeight > MIN_ACCESSORY_SIZE) {
-                    activeAccessory.style.height = `${newHeight}px`;
-                    if (currentAction.includes('n')) activeAccessory.style.top = `${newTop}px`;
-                }
-            
-            } else if (currentAction === 'rotate') {
-                const currentAngle = calculateAngle(knobCenterX, knobCenterY, clientX, clientY);
-                const angleDiff = currentAngle - initialAngle;
-                let newRotation = initialRotation + (angleDiff * (180 / Math.PI));
-                activeAccessory.style.transform = `rotate(${newRotation}deg)`;
-                activeAccessory.setAttribute('data-rotation', newRotation.toFixed(2));
-            }
-        }
-
-        function stopAction() {
-            isDrawing = false;
-            currentAction = null;
-            
-            document.removeEventListener('mousemove', moveAction);
-            document.removeEventListener('mouseup', stopAction);
-            document.removeEventListener('touchmove', moveAction);
-            document.removeEventListener('touchend', stopAction);
-        }
-
-        // Lógica de Desenho e Pincel/Borracha
-        function draw(clientX, clientY) {
-            if (!isDrawing || !drawingCtx || !drawingCanvas) return;
-            
-            const rect = drawingCanvas.getBoundingClientRect();
-            const x = clientX - rect.left;
-            const y = clientY - rect.top;
-
-            if (currentTool === 'eraser') {
-                drawingCtx.globalCompositeOperation = 'destination-out';
-            } else if (currentTool === 'brush') {
-                drawingCtx.globalCompositeOperation = 'source-over';
-                drawingCtx.strokeStyle = currentColor;
-            }
-
-            drawingCtx.lineWidth = currentBrushSize;
-            drawingCtx.lineCap = 'round';
-            drawingCtx.lineTo(x, y);
-            drawingCtx.stroke();
-            drawingCtx.beginPath();
-            drawingCtx.moveTo(x, y);
-        }
-        
-        function handleDrawingStart(e) {
-            if (currentTool !== 'brush' && currentTool !== 'eraser') return;
-            e.preventDefault();
-            const { clientX, clientY } = getCoords(e);
-            const rect = drawingCanvas.getBoundingClientRect();
-            const x = clientX - rect.left;
-            const y = clientY - rect.top;
-
-            isDrawing = true;
-            drawingCtx.beginPath();
-            drawingCtx.moveTo(x, y);
-
-            document.addEventListener('mousemove', moveAction);
-            document.addEventListener('mouseup', stopAction);
-            document.addEventListener('touchmove', moveAction, { passive: false });
-            document.addEventListener('touchend', stopAction);
-        }
-
-        // Lógica do Pincel Rotatório
-        function updateBrushKnob(rotation) {
-            const knob = document.getElementById('brushKnob');
-            if (knob) {
-                knob.style.transform = `rotate(${rotation}deg)`;
-                currentKnobRotation = rotation;
-                
-                const sizeRange = MAX_BRUSH_SIZE - MIN_BRUSH_SIZE;
-                const normalizedRotation = (rotation + 360) % 360; 
-                const sizeFraction = Math.min(1, normalizedRotation / MAX_VISUAL_ROTATION);
-                currentBrushSize = Math.round(MIN_BRUSH_SIZE + (sizeFraction * sizeRange));
-                document.getElementById('brushSizeLabel').textContent = `${currentBrushSize}px`;
-            }
-        }
-        
-        function startBrushKnobRotation(e) {
-            const knob = document.getElementById('brushKnob');
-            if (!knob) return;
-            const { clientX, clientY } = getCoords(e);
-            
-            const rect = knob.parentElement.getBoundingClientRect();
-            knobCenterX = rect.left + rect.width / 2;
-            knobCenterY = rect.top + rect.height / 2;
-            
-            isRotatingBrush = true;
-            knob.classList.add('active');
-            initialKnobAngle = calculateAngle(knobCenterX, knobCenterY, clientX, clientY);
-            initialKnobRotation = currentKnobRotation;
-            
-            document.addEventListener('mousemove', moveBrushKnob);
-            document.addEventListener('mouseup', stopBrushKnobRotation);
-            document.addEventListener('touchmove', moveBrushKnob, { passive: false });
-            document.addEventListener('touchend', stopBrushKnobRotation);
-        }
-
-        function moveBrushKnob(e) {
-            if (!isRotatingBrush) return;
-            e.preventDefault();
-            
-            const { clientX, clientY } = getCoords(e);
-            const currentAngle = calculateAngle(knobCenterX, knobCenterY, clientX, clientY);
-            const angleDiff = currentAngle - initialKnobAngle;
-            let newRotation = initialKnobRotation + (angleDiff * (180 / Math.PI));
-            
-            newRotation = Math.max(0, Math.min(newRotation, MAX_VISUAL_ROTATION));
-            
-            updateBrushKnob(newRotation);
-        }
-
-        function stopBrushKnobRotation() {
-            isRotatingBrush = false;
-            const knob = document.getElementById('brushKnob');
-            if (knob) knob.classList.remove('active');
-            
-            document.removeEventListener('mousemove', moveBrushKnob);
-            document.removeEventListener('mouseup', stopBrushKnobRotation);
-            document.removeEventListener('touchmove', moveBrushKnob);
-            document.removeEventListener('touchend', stopBrushKnobRotation);
-        }
-
-        // --- Função para adicionar Acessório ---
-        function addAccessory(accessory) {
-            const drawingArea = document.getElementById('drawingArea');
-            if (!drawingArea) return;
-            
-            const areaSize = drawingArea.offsetWidth;
-            
-            // Lógica de Escala Responsiva
-            // O tamanho original dos acessórios foi pensado para uma tela de 500px de largura.
-            // Se a tela for menor (celular), escalamos o acessório para manter a proporção visual.
-            const REFERENCE_WIDTH = 500;
-            const scale = Math.min(1, areaSize / REFERENCE_WIDTH); // Não aumenta além do original, apenas reduz
-            
-            const scaledW = accessory.w * scale;
-            const scaledH = accessory.h * scale;
-
-            const newElement = document.createElement('div');
-            newElement.classList.add('accessory-wrapper');
-            newElement.style.width = `${scaledW}px`;
-            newElement.style.height = `${scaledH}px`;
-            
-            // Centraliza o acessório usando a dimensão calculada
-            newElement.style.left = `${(areaSize / 2) - (scaledW / 2)}px`;
-            newElement.style.top = `${(areaSize / 2) - (scaledH / 2)}px`;
-
-            newElement.style.transform = 'rotate(0deg)';
-            newElement.setAttribute('data-rotation', '0');
-            
-            const img = document.createElement('img');
-            img.src = accessory.src;
-            img.onerror = () => { img.src = `https://placehold.co/${accessory.w}x${accessory.h}/d32f2f/ffffff?text=Erro`; };
-            newElement.appendChild(img);
-
-            // Adicionar manipuladores de redimensionamento (Exceto NE, que vira delete)
-            ['nw', 'sw', 'se'].forEach(pos => {
-                const handle = document.createElement('div');
-                handle.classList.add('resize-handle', `handle-${pos}`);
-                newElement.appendChild(handle);
-            });
-
-            // Adicionar manipulador de rotação
-            const rotateHandle = document.createElement('div');
-            rotateHandle.classList.add('rotate-handle');
-            newElement.appendChild(rotateHandle);
-            
-            // Adicionar botão de deletar (No lugar do NE)
-            const deleteHandle = document.createElement('div');
-            deleteHandle.classList.add('delete-handle');
-            deleteHandle.innerHTML = 'X';
-            newElement.appendChild(deleteHandle);
-            
-            newElement.addEventListener('dblclick', () => showRemoveModal(newElement));
-            newElement.addEventListener('contextmenu', (e) => { e.preventDefault(); showRemoveModal(newElement); });
-            newElement.addEventListener('mousedown', (e) => startAction(e));
-            newElement.addEventListener('touchstart', (e) => startAction(e), { passive: false });
-            newElement.querySelector('.rotate-handle').addEventListener('mousedown', (e) => startAction(e));
-            newElement.querySelector('.rotate-handle').addEventListener('touchstart', (e) => startAction(e), { passive: false });
-
-
-            drawingArea.appendChild(newElement);
-            setActiveAccessory(newElement);
-            accessories.push(newElement);
-        }
-        
-        function showRemoveModal(elementToRemove) {
-            const modal = document.getElementById('removeConfirmModal');
-            const confirmBtn = document.getElementById('confirmRemove');
-            
-            modal.classList.remove('opacity-0', 'pointer-events-none');
-            modal.querySelector('.scale-90').classList.remove('scale-90');
-
-            const handler = () => {
-                if (elementToRemove.parentElement) {
-                    elementToRemove.parentElement.removeChild(elementToRemove);
-                    accessories = accessories.filter(acc => acc !== elementToRemove);
-                }
-                hideRemoveModal();
-                confirmBtn.removeEventListener('click', handler);
-                setActiveAccessory(null); // Clear selection
+            const addParticle = (e) => {
+                if (currentGame !== 'confetti' || confettiMisses >= 10) return;
+                const rect = canvas.getBoundingClientRect();
+                const coords = getCoords(e);
+                particles.push({ x: coords.clientX - rect.left, y: coords.clientY - rect.top, speed: -5, color: `hsl(${Math.random()*360}, 100%, 50%)` });
             };
 
-            confirmBtn.addEventListener('click', handler);
+            canvas.onmousedown = addParticle;
+            canvas.ontouchstart = (e) => { e.preventDefault(); addParticle(e); };
+
+            function loop() {
+                if (currentGame !== 'confetti') return;
+                if (confettiMisses >= 10) {
+                    const overlay = document.getElementById('gameOverOverlay');
+                    if(overlay) overlay.style.display = 'flex';
+                    // Ao abrir o overlay, garante que o nick atual está lá
+                    const input = document.getElementById('playerNick');
+                    if(input) input.value = userNick;
+                    return;
+                }
+
+                ctx.clearRect(0,0,canvas.width, canvas.height);
+                man.x += man.dx;
+                if (man.x + 200 > canvas.width || man.x < 0) man.dx *= -1;
+                man.y += man.dy;
+                if (man.y + 240 > canvas.height || man.y < canvas.height / 4) man.dy *= -1;
+                
+                if (!man.isCoughing && Date.now() - lastUpdate > 1200) {
+                    man.open = !man.open; lastUpdate = Date.now();
+                }
+
+                let img = man.isCoughing ? (man.coughStage === 1 ? manImages.cough : manImages.cough2) : (man.open ? manImages.open : manImages.idle);
+                ctx.drawImage(img, man.x, man.y, 200, 240);
+                
+                particles.forEach((p, i) => {
+                    p.y += p.speed;
+                    ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, 6, 0, Math.PI*2); ctx.fill();
+                    
+                    const areaBocaX = man.x + 50;
+                    const areaBocaLargura = 100;
+                    const areaBocaY = man.y;
+                    const areaBocaAltura = 100;
+
+                    if (p.x > areaBocaX && p.x < areaBocaX + areaBocaLargura && p.y > areaBocaY && p.y < areaBocaY + areaBocaAltura) {
+                        confettiScore++; 
+                        const sd = document.getElementById('scoreDisplay');
+                        if(sd) sd.innerText = confettiScore;
+                        particles.splice(i, 1);
+                        man.isCoughing = true; man.coughStage = 1;
+                        setTimeout(() => man.coughStage = 2, 200);
+                        setTimeout(() => { man.isCoughing = false; lastUpdate = Date.now(); }, 400);
+                    } else if (p.y < 0) {
+                        confettiMisses++;
+                        const md = document.getElementById('missDisplay');
+                        if(md) md.innerText = confettiMisses;
+                        particles.splice(i, 1);
+                    }
+                });
+                confettiGameInstance = requestAnimationFrame(loop);
+            }
+            loop();
+
+            const saveBtn = document.getElementById('saveBtn');
+            if(saveBtn) {
+                saveBtn.onclick = () => {
+                    const nick = document.getElementById('playerNick').value;
+                    saveScore(nick, confettiScore);
+                    resetConfetti();
+                };
+            }
         }
 
-        function hideRemoveModal() {
-            const modal = document.getElementById('removeConfirmModal');
-            modal.classList.add('opacity-0', 'pointer-events-none');
-            modal.querySelector('.scale-90').classList.add('scale-90');
-            document.getElementById('confirmRemove').replaceWith(document.getElementById('confirmRemove').cloneNode(true)); // Limpa listener
-            document.getElementById('cancelRemove').removeEventListener('click', hideRemoveModal);
-        }
+        window.resetConfetti = () => {
+            confettiScore = 0;
+            confettiMisses = 0;
+            renderConfetti();
+        };
 
-        // --- Renderização do Customizador ---
-        function renderFaceCustomizerContent() {
-            document.getElementById('gameContent').innerHTML = `
+        // --- Customizador de Rosto ---
+        function renderFaceCustomizer() {
+            const content = document.getElementById('gameContent');
+            content.innerHTML = `
                 <div id="faceCustomizer">
-                    <!-- Área de Desenho e Visualização -->
-                    <div id="drawingArea">
-                        <canvas id="drawingCanvas"></canvas>
-                        <!-- LIXEIRA REMOVIDA DAQUI -->
-                    </div>
-
-                    <!-- Controles de Desenho/Seleção -->
                     <div class="drawing-controls">
-                        <button id="toolSelect" class="tool-btn btn-sm px-4 py-2 rounded-lg text-lg active" title="Selecionar Acessórios">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6"><path d="M15 3l4 4L8 19l-4 4L3 20l4-4 11-11z"/></svg>
-                        </button>
-                        <button id="toolBrush" class="tool-btn btn-sm px-4 py-2 rounded-lg text-lg" title="Pincel">
-                            <img src="https://i.postimg.cc/52x4ZmXT/hhhhhhhhhhhh.png" alt="Pincel" class="w-6 h-6 object-contain">
-                        </button>
-                        <button id="toolEraser" class="tool-btn btn-sm px-4 py-2 rounded-lg text-lg" title="Borracha">
-                            <img src="https://i.postimg.cc/pdr2dXYQ/gggggggggggggg.png" alt="Borracha" class="w-6 h-6 object-contain">
-                        </button>
-                        
-                        <!-- BOTÃO DE LIXEIRA REMOVIDO DA BARRA -->
-
-                        <input type="color" id="brushColor" value="#000000" class="w-10 h-10 p-1 border-2 border-teal-500 rounded-lg cursor-pointer" title="Cor do Pincel">
-                        
-                        <!-- Controle Rotatório para Tamanho do Pincel -->
-                        <div class="flex items-center space-x-2">
-                            <label id="brushSizeLabel" class="text-sm font-semibold text-teal-700 w-10 text-right">5px</label>
-                            <div id="brushKnobContainer" title="Gire para ajustar o tamanho do pincel">
-                                <div id="brushKnob" class="relative">
-                                    <div id="knobHandle"></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <button id="clearDrawingBtn" class="btn bg-red-500 hover:bg-red-600 px-4 py-2 text-sm">Limpar Desenho</button>
+                        <button id="toolSelect" class="tool-btn active uppercase">👆 MOVER</button>
+                        <button id="toolBrush" class="tool-btn uppercase">🖌️ PINCEL</button>
+                        <button id="toolEraser" class="tool-btn uppercase">🧽 APAGAR</button>
+                        <input type="color" id="brushColor" value="#000000" class="h-8 w-8 cursor-pointer border-none p-0">
+                        <button id="clearBtn" class="bg-red-500 text-white px-3 py-2 rounded shadow text-xs font-bold uppercase hover:bg-red-600 transition">Limpar</button>
                     </div>
-
-                    <!-- Container dos Acessórios -->
-                    <div id="accessoriesContainer">
-                        <!-- Itens de Acessório serão inseridos aqui pelo JS -->
-                    </div>
+                    <div id="drawingArea"><canvas id="drawingCanvas"></canvas></div>
+                    <div id="accessoriesContainer"></div>
                 </div>
             `;
-            
-            drawingCanvas = document.getElementById('drawingCanvas');
-            if (drawingCanvas) {
-                drawingCtx = drawingCanvas.getContext('2d');
-            } else {
-                drawingCtx = null;
-            }
+            const area = document.getElementById('drawingArea');
+            const canvas = document.getElementById('drawingCanvas');
+            const ctx = canvas.getContext('2d');
+            let isDrawing = false;
 
-            const resizeCanvas = () => {
-                if (drawingCanvas) {
-                    const tempCanvas = document.createElement('canvas');
-                    tempCanvas.width = drawingCanvas.width;
-                    tempCanvas.height = drawingCanvas.height;
-                    const tempCtx = tempCanvas.getContext('2d');
-                    tempCtx.drawImage(drawingCanvas, 0, 0);
+            setTimeout(() => {
+                canvas.width = area.offsetWidth; canvas.height = area.offsetHeight;
+                const setTool = (tool) => {
+                    currentTool = tool;
+                    document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+                    const el = document.getElementById('tool' + tool.charAt(0).toUpperCase() + tool.slice(1));
+                    if (el) el.classList.add('active');
+                    canvas.classList.toggle('drawing-active', tool !== 'select');
+                };
+                document.getElementById('toolSelect').onclick = () => setTool('select');
+                document.getElementById('toolBrush').onclick = () => setTool('brush');
+                document.getElementById('toolEraser').onclick = () => setTool('eraser');
+                document.getElementById('clearBtn').onclick = () => {
+                    ctx.clearRect(0,0,canvas.width, canvas.height);
+                    document.querySelectorAll('.accessory-wrapper').forEach(w => w.remove());
+                };
+                const startDraw = (e) => {
+                    if(currentTool === 'select') return;
+                    isDrawing = true;
+                    const rect = canvas.getBoundingClientRect();
+                    const c = getCoords(e);
+                    ctx.beginPath();
+                    ctx.moveTo(c.clientX - rect.left, c.clientY - rect.top);
+                };
+                const drawMove = (e) => {
+                    if(!isDrawing) return;
+                    const rect = canvas.getBoundingClientRect();
+                    const c = getCoords(e);
+                    ctx.lineWidth = 5; ctx.lineCap = 'round';
+                    ctx.strokeStyle = document.getElementById('brushColor').value;
+                    ctx.globalCompositeOperation = currentTool === 'eraser' ? 'destination-out' : 'source-over';
+                    ctx.lineTo(c.clientX - rect.left, c.clientY - rect.top);
+                    ctx.stroke();
+                };
+                canvas.onmousedown = startDraw;
+                canvas.ontouchstart = (e) => { e.preventDefault(); startDraw(e); };
+                canvas.onmousemove = drawMove;
+                canvas.ontouchmove = (e) => { e.preventDefault(); drawMove(e); };
+                window.onmouseup = window.ontouchend = () => isDrawing = false;
 
-                    drawingCanvas.width = drawingCanvas.parentElement.offsetWidth;
-                    drawingCanvas.height = drawingCanvas.parentElement.offsetHeight;
-                    
-                    if (drawingCtx) {
-                        drawingCtx.lineJoin = 'round';
-                        drawingCtx.lineCap = 'round';
-                        drawingCtx.drawImage(tempCanvas, 0, 0);
-                    }
-                }
-            };
-            
-            const drawingArea = document.getElementById('drawingArea');
-            
-            accessories.forEach(acc => {
-                drawingArea.appendChild(acc);
-                acc.style.zIndex = acc === activeAccessory ? 11 : 10;
-            });
-            
-            resizeCanvas();
-            window.addEventListener('resize', resizeCanvas);
-            
-            const accessoriesContainer = document.getElementById('accessoriesContainer');
-            accessoriesContainer.innerHTML = defaultAccessories.map((acc, index) => `
-                <div class="accessory-item" data-index="${index}" title="${acc.name}">
-                    <img src="${acc.src}" alt="${acc.name}" onerror="this.onerror=null; this.src='https://placehold.co/80x50/37474f/ffffff?text=${acc.name.substring(0, 10)}'">
-                    <span>${acc.name}</span>
-                </div>
-            `).join('');
-            
-            document.querySelectorAll('.accessory-item').forEach(item => {
-                item.addEventListener('click', () => {
-                    const index = parseInt(item.getAttribute('data-index'));
-                    addAccessory(defaultAccessories[index]);
+                const container = document.getElementById('accessoriesContainer');
+                ALL_ACCESSORIES.forEach(acc => {
+                    const div = document.createElement('div');
+                    div.className = 'accessory-item shadow-sm hover:scale-105 transition';
+                    div.innerHTML = `<img src="${acc.src}">`;
+                    div.onclick = () => {
+                        const wrap = document.createElement('div');
+                        wrap.className = 'accessory-wrapper';
+                        wrap.style.width = '100px'; wrap.style.height = '100px';
+                        wrap.style.left = '50px'; wrap.style.top = '50px';
+                        wrap.innerHTML = `<img src="${acc.src}"><div class="delete-handle" onclick="this.parentElement.remove()">X</div><div class="resize-handle"></div>`;
+                        let isDragging = false, isResizing = false, startX, startY, startWidth, startHeight;
+                        const onStart = (e) => {
+                            if(currentTool !== 'select') return;
+                            document.querySelectorAll('.accessory-wrapper').forEach(w => w.classList.remove('active'));
+                            wrap.classList.add('active');
+                            const coords = getCoords(e);
+                            startX = coords.clientX; startY = coords.clientY;
+                            startWidth = wrap.offsetWidth; startHeight = wrap.offsetHeight;
+                            if (e.target.classList.contains('delete-handle')) { wrap.remove(); return; }
+                            if (e.target.classList.contains('resize-handle')) { isResizing = true; isDragging = false; }
+                            else { isResizing = false; isDragging = true; wrap.dataset.offsetX = coords.clientX - wrap.offsetLeft; wrap.dataset.offsetY = coords.clientY - wrap.offsetTop; }
+                            const onMove = (me) => {
+                                const mc = getCoords(me);
+                                if (isDragging) { wrap.style.left = (mc.clientX - wrap.dataset.offsetX) + 'px'; wrap.style.top = (mc.clientY - wrap.dataset.offsetY) + 'px'; }
+                                else if (isResizing) { wrap.style.width = Math.max(30, startWidth + (mc.clientX - startX)) + 'px'; wrap.style.height = Math.max(30, startHeight + (mc.clientY - startY)) + 'px'; }
+                            };
+                            const onEnd = () => { isDragging = isResizing = false; document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onEnd); document.removeEventListener('touchmove', onMove); document.removeEventListener('touchend', onEnd); };
+                            document.addEventListener('mousemove', onMove); document.addEventListener('mouseup', onEnd); document.addEventListener('touchmove', onMove, {passive: false}); document.addEventListener('touchend', onEnd);
+                        };
+                        wrap.onmousedown = onStart;
+                        wrap.ontouchstart = (e) => { e.preventDefault(); onStart(e); };
+                        area.appendChild(wrap);
+                    };
+                    container.appendChild(div);
                 });
-            });
-
-            const setTool = (tool) => {
-                currentTool = tool;
-                document.querySelectorAll('.tool-btn').forEach(btn => btn.classList.remove('active'));
-                document.getElementById(`tool${tool.charAt(0).toUpperCase() + tool.slice(1)}`).classList.add('active');
-                
-                if (tool === 'brush' || tool === 'eraser') {
-                    drawingCanvas.classList.add('drawing-active');
-                    setActiveAccessory(null);
-                } else {
-                    drawingCanvas.classList.remove('drawing-active');
-                }
-            };
-
-            document.getElementById('toolSelect').addEventListener('click', () => setTool('select'));
-            document.getElementById('toolBrush').addEventListener('click', () => setTool('brush'));
-            document.getElementById('toolEraser').addEventListener('click', () => setTool('eraser'));
-            
-            document.getElementById('brushColor').addEventListener('input', (e) => { currentColor = e.target.value; });
-            document.getElementById('clearDrawingBtn').addEventListener('click', () => { drawingCtx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height); });
-
-            drawingCanvas.addEventListener('mousedown', handleDrawingStart);
-            drawingCanvas.addEventListener('touchstart', handleDrawingStart, { passive: false });
-            
-            drawingArea.addEventListener('mousedown', startAction);
-            drawingArea.addEventListener('touchstart', startAction, { passive: false });
-            
-            const knob = document.getElementById('brushKnob');
-            if (knob) {
-                knob.addEventListener('mousedown', startBrushKnobRotation);
-                knob.addEventListener('touchstart', startBrushKnobRotation, { passive: false });
-            }
-            
-            document.getElementById('cancelRemove').addEventListener('click', hideRemoveModal);
-
-            setTool('select');
-        }
-        
-        // --- Lógica de Inicialização e Troca de Abas ---
-
-        function switchGame(gameName) {
-            currentGame = gameName;
-            
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                if (btn.getAttribute('data-game') === gameName) {
-                    btn.classList.add('active');
-                } else {
-                    btn.classList.remove('active');
-                }
-            });
-
-            if (gameName === 'confetti') {
-                renderConfettiGameContent();
-            } else if (gameName === 'faceCustomizer') {
-                isConfettiGameRunning = false;
-                renderFaceCustomizerContent();
-            }
+            }, 100);
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('tabMenu').addEventListener('click', (e) => {
-                if (e.target.classList.contains('tab-btn')) {
-                    const game = e.target.getAttribute('data-game');
-                    switchGame(game);
-                }
-            });
+        // --- Oráculo ---
+        window.sortearMeme = function() {
+            const txt = document.getElementById('meme-txt');
+            const img = document.getElementById('meme-img');
+            txt.innerText = "🧿 A ANALISAR O TEU NÍVEL DE CAOS...";
+            img.style.display = 'none';
+            setTimeout(() => {
+                const item = MEMES_DATABASE[Math.floor(Math.random() * MEMES_DATABASE.length)];
+                txt.innerText = item.text; img.src = item.img; img.style.display = 'block';
+                const display = document.getElementById('display-meme');
+                display.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
+                setTimeout(() => display.style.backgroundColor = 'rgba(30, 27, 75, 0.5)', 200);
+            }, 1000);
+        };
 
-            switchGame('confetti');
+        function renderOraculo() {
+            document.getElementById('gameContent').innerHTML = `
+                <div class="bg-indigo-900 p-6 rounded-2xl text-white text-center shadow-xl border-4 border-purple-500">
+                    <h2 class="text-xl font-black mb-4 uppercase">🔮 QUE LUISINHO VC É HOJE?</h2>
+                    <div id="display-meme" class="min-h-[350px] flex flex-col items-center justify-center bg-indigo-950/50 rounded-lg p-4 mb-4 border border-indigo-400/30 transition-all">
+                        <p id="meme-txt" class="text-yellow-300 font-bold mb-4 text-md uppercase font-black italic px-2 text-center">VAMOS VER O QUÃO ESTRAGADO TU ESTÁS HOJE!</p>
+                        <img id="meme-img" src="" class="max-h-[250px] rounded-lg hidden shadow-2xl border-2 border-white object-contain">
+                    </div>
+                    <button onclick="sortearMeme()" class="w-full py-5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 font-black rounded-xl active:scale-95 transition shadow-lg text-lg uppercase">
+                        🔥 REVELAR O MEU ESTADO!
+                    </button>
+                </div>
+            `;
+        }
 
-            updateBrushKnob(0);
-        });
+        // Navegação
+        function switchGame(name) {
+            currentGame = name;
+            cancelAnimationFrame(confettiGameInstance);
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.game === name));
+            if (name === 'confetti') renderConfetti();
+            else if (name === 'faceCustomizer') renderFaceCustomizer();
+            else if (name === 'oraculo') renderOraculo();
+        }
+
+        document.getElementById('tabMenu').onclick = (e) => {
+            if (e.target.dataset.game) switchGame(e.target.dataset.game);
+        };
+
+        window.onload = () => switchGame('confetti');
     </script>
 </body>
 </html>
