@@ -190,49 +190,50 @@
     </div>
 
     <script>
-        // --- Configuração Firebase ---
-        const firebaseConfig = JSON.parse(__firebase_config);
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-        const auth = firebase.auth();
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'central-luisinho';
+        // --- Inicialização Protegida do Firebase ---
+        let db, auth, appId, currentUser = null, userNick = '';
 
-        let currentUser = null;
-        let userNick = ''; // Guarda o nick já salvo neste dispositivo
-
-        async function initAuth() {
+        async function initFirebase() {
             try {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    const result = await auth.signInWithCustomToken(__initial_auth_token);
-                    currentUser = result.user;
-                } else {
-                    const result = await auth.signInAnonymously();
-                    currentUser = result.user;
+                if (typeof __firebase_config !== 'undefined') {
+                    const config = JSON.parse(__firebase_config);
+                    firebase.initializeApp(config);
+                    db = firebase.firestore();
+                    auth = firebase.auth();
+                    appId = typeof __app_id !== 'undefined' ? __app_id : 'central-luisinho';
+
+                    // Autenticação Silenciosa
+                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                        const res = await auth.signInWithCustomToken(__initial_auth_token);
+                        currentUser = res.user;
+                    } else {
+                        const res = await auth.signInAnonymously();
+                        currentUser = res.user;
+                    }
+                    
+                    if (currentUser) {
+                        fetchUserNick();
+                    }
                 }
-                fetchUserNick(); // Tenta buscar o nick existente após o login
             } catch (e) {
-                console.error("Erro na autenticação:", e);
+                console.error("Firebase não disponível:", e);
             }
         }
-        initAuth();
 
-        auth.onAuthStateChanged((user) => {
-            currentUser = user;
-        });
-
-        // Função para buscar o nick do dispositivo no Firebase
         async function fetchUserNick() {
-            if (!currentUser) return;
-            const collectionRef = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('ranking');
-            const snapshot = await collectionRef.get();
-            snapshot.forEach(doc => {
-                if (doc.data().userId === currentUser.uid) {
-                    userNick = doc.data().nick;
-                }
-            });
+            if (!currentUser || !db) return;
+            try {
+                const collectionRef = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('ranking');
+                const snapshot = await collectionRef.get();
+                snapshot.forEach(doc => {
+                    if (doc.data().userId === currentUser.uid) {
+                        userNick = doc.data().nick;
+                    }
+                });
+            } catch (e) { console.log("Erro ao buscar nick inicial"); }
         }
 
-        // --- Estado Global ---
+        // --- Estado Global dos Jogos ---
         let currentGame = 'confetti';
         let confettiScore = 0;
         let confettiMisses = 0;
@@ -288,18 +289,14 @@
             return { clientX, clientY };
         }
 
-        // --- Lógica de Ranking com Trava por Dispositivo e Edição ---
+        // --- Lógica de Ranking ---
         async function saveScore(nick, score) {
-            if (!currentUser) { await initAuth(); }
-            if (!currentUser) return;
-            
+            if (!currentUser || !db) return;
             const collectionRef = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('ranking');
-            
             try {
                 const snapshot = await collectionRef.get();
                 let existingDocId = null;
                 let existingScore = 0;
-
                 snapshot.forEach(doc => {
                     if (doc.data().userId === currentUser.uid) {
                         existingDocId = doc.id;
@@ -308,7 +305,6 @@
                 });
 
                 if (existingDocId) {
-                    // Atualiza o nick SEMPRE que salvar, e a pontuação apenas se for maior
                     await collectionRef.doc(existingDocId).update({
                         nick: nick || 'Anónimo',
                         score: Math.max(score, existingScore),
@@ -322,35 +318,28 @@
                         timestamp: Date.now()
                     });
                 }
-                userNick = nick; // Atualiza localmente o nick salvo
+                userNick = nick;
                 showRanking();
-            } catch (e) {
-                console.error("Erro ao salvar recorde:", e);
-            }
+            } catch (e) { console.error("Erro ao salvar:", e); }
         }
 
         function showRanking() {
+            if (!db) return;
             const modal = document.getElementById('rankingModal');
             const list = document.getElementById('rankingList');
             modal.style.display = 'flex';
             list.innerHTML = '<p class="text-gray-500 italic uppercase">A atualizar...</p>';
 
             const collectionRef = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('ranking');
-            
             collectionRef.onSnapshot((snapshot) => {
                 const umMesEmMs = 30 * 24 * 60 * 60 * 1000;
                 const agora = Date.now();
-
                 let data = [];
                 snapshot.forEach(doc => {
                     const item = doc.data();
-                    if (agora - item.timestamp < umMesEmMs) {
-                        data.push(item);
-                    }
+                    if (agora - item.timestamp < umMesEmMs) data.push(item);
                 });
-
                 data.sort((a, b) => b.score - a.score);
-
                 list.innerHTML = data.length ? '' : '<p class="text-gray-400 uppercase font-bold text-sm">Ninguém salvou ainda!</p>';
                 data.slice(0, 15).forEach((item, index) => {
                     const isMe = currentUser && item.userId === currentUser.uid;
@@ -361,14 +350,12 @@
                         </div>
                     `;
                 });
-            }, (error) => {
-                list.innerHTML = '<p class="text-red-500 uppercase">Erro no servidor.</p>';
             });
         }
 
         window.closeRanking = () => document.getElementById('rankingModal').style.display = 'none';
 
-        // --- Jogo do Confete ---
+        // --- Render: Jogo do Confete ---
         function renderConfetti() {
             const content = document.getElementById('gameContent');
             content.innerHTML = `
@@ -412,7 +399,6 @@
                 if (confettiMisses >= 10) {
                     const overlay = document.getElementById('gameOverOverlay');
                     if(overlay) overlay.style.display = 'flex';
-                    // Ao abrir o overlay, garante que o nick atual está lá
                     const input = document.getElementById('playerNick');
                     if(input) input.value = userNick;
                     return;
@@ -434,24 +420,17 @@
                 particles.forEach((p, i) => {
                     p.y += p.speed;
                     ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, 6, 0, Math.PI*2); ctx.fill();
-                    
-                    const areaBocaX = man.x + 50;
-                    const areaBocaLargura = 100;
-                    const areaBocaY = man.y;
-                    const areaBocaAltura = 100;
-
+                    const areaBocaX = man.x + 50, areaBocaLargura = 100, areaBocaY = man.y, areaBocaAltura = 100;
                     if (p.x > areaBocaX && p.x < areaBocaX + areaBocaLargura && p.y > areaBocaY && p.y < areaBocaY + areaBocaAltura) {
                         confettiScore++; 
-                        const sd = document.getElementById('scoreDisplay');
-                        if(sd) sd.innerText = confettiScore;
+                        document.getElementById('scoreDisplay').innerText = confettiScore;
                         particles.splice(i, 1);
                         man.isCoughing = true; man.coughStage = 1;
                         setTimeout(() => man.coughStage = 2, 200);
                         setTimeout(() => { man.isCoughing = false; lastUpdate = Date.now(); }, 400);
                     } else if (p.y < 0) {
                         confettiMisses++;
-                        const md = document.getElementById('missDisplay');
-                        if(md) md.innerText = confettiMisses;
+                        document.getElementById('missDisplay').innerText = confettiMisses;
                         particles.splice(i, 1);
                     }
                 });
@@ -470,8 +449,7 @@
         }
 
         window.resetConfetti = () => {
-            confettiScore = 0;
-            confettiMisses = 0;
+            confettiScore = 0; confettiMisses = 0;
             renderConfetti();
         };
 
@@ -517,23 +495,19 @@
                     isDrawing = true;
                     const rect = canvas.getBoundingClientRect();
                     const c = getCoords(e);
-                    ctx.beginPath();
-                    ctx.moveTo(c.clientX - rect.left, c.clientY - rect.top);
+                    ctx.beginPath(); ctx.moveTo(c.clientX - rect.left, c.clientY - rect.top);
                 };
                 const drawMove = (e) => {
                     if(!isDrawing) return;
-                    const rect = canvas.getBoundingClientRect();
-                    const c = getCoords(e);
+                    const rect = canvas.getBoundingClientRect(), c = getCoords(e);
                     ctx.lineWidth = 5; ctx.lineCap = 'round';
                     ctx.strokeStyle = document.getElementById('brushColor').value;
                     ctx.globalCompositeOperation = currentTool === 'eraser' ? 'destination-out' : 'source-over';
                     ctx.lineTo(c.clientX - rect.left, c.clientY - rect.top);
                     ctx.stroke();
                 };
-                canvas.onmousedown = startDraw;
-                canvas.ontouchstart = (e) => { e.preventDefault(); startDraw(e); };
-                canvas.onmousemove = drawMove;
-                canvas.ontouchmove = (e) => { e.preventDefault(); drawMove(e); };
+                canvas.onmousedown = startDraw; canvas.ontouchstart = (e) => { e.preventDefault(); startDraw(e); };
+                canvas.onmousemove = drawMove; canvas.ontouchmove = (e) => { e.preventDefault(); drawMove(e); };
                 window.onmouseup = window.ontouchend = () => isDrawing = false;
 
                 const container = document.getElementById('accessoriesContainer');
@@ -566,8 +540,7 @@
                             const onEnd = () => { isDragging = isResizing = false; document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onEnd); document.removeEventListener('touchmove', onMove); document.removeEventListener('touchend', onEnd); };
                             document.addEventListener('mousemove', onMove); document.addEventListener('mouseup', onEnd); document.addEventListener('touchmove', onMove, {passive: false}); document.addEventListener('touchend', onEnd);
                         };
-                        wrap.onmousedown = onStart;
-                        wrap.ontouchstart = (e) => { e.preventDefault(); onStart(e); };
+                        wrap.onmousedown = onStart; wrap.ontouchstart = (e) => { e.preventDefault(); onStart(e); };
                         area.appendChild(wrap);
                     };
                     container.appendChild(div);
@@ -605,7 +578,7 @@
             `;
         }
 
-        // Navegação
+        // --- Navegação Principal ---
         function switchGame(name) {
             currentGame = name;
             cancelAnimationFrame(confettiGameInstance);
@@ -619,7 +592,11 @@
             if (e.target.dataset.game) switchGame(e.target.dataset.game);
         };
 
-        window.onload = () => switchGame('confetti');
+        // Início da aplicação
+        window.onload = async () => {
+            await initFirebase();
+            switchGame('confetti');
+        };
     </script>
 </body>
 </html>
