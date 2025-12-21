@@ -9,9 +9,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     
     <!-- SDKs do Firebase para persistência do Ranking -->
-    <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-auth-compat.js"></script>
 
     <style>
         /* Estilos base e animações */
@@ -244,7 +244,7 @@
                 snapshot.forEach(doc => {
                     const data = doc.data();
                     if (data.userId === currentUser.uid) {
-                        userNick = data.nick;
+                        userNick = data.nick || '';
                     }
                 });
             } catch (e) { console.log("Erro no nick"); }
@@ -297,7 +297,7 @@
             { text: "😴 LUISINHO DERROTADO: A vida bateu tanto hoje que o plano é só virar um vegetal.", img: "https://i.postimg.cc/908F2W0H/Captura-de-tela-2025-12-09-152444.jpg" },
             { text: "🌽 LUISINHO 'TÔ NEM AÍ': O mundo pode acabar em fogo, eu vou estar aqui com meu milho.", img: "https://i.postimg.cc/jqZjPhcR/Captura-de-tela-2025-12-09-153135.jpg" },
             { text: "🤯 LUISINHO PANE NO SISTEMA: Viu o preço da carne e a alma saiu do corpo!", img: "https://i.postimg.cc/GhtmQsgh/e1eef602-b7bb-42ee-bae8-f5f99b3ba7ec.jpg" },
-            { text: "🚀 LUISINHO ESTOURADO: Esquece, o pai tá viciado em vencer (ou em passar vergonha)!", img: "https://i.postimg.cc/L6W606GB/Gemini-Generated-Image-t1rwy1t1rwy1t1rw.jpg" }
+            { text: "🚀 LUISINHO ESTOURADO: Esquece, o pai tá viciado em vencer !", img: "https://i.postimg.cc/L6W606GB/Gemini-Generated-Image-t1rwy1t1rwy1t1rw.jpg" }
         ];
 
         function getCoords(e) {
@@ -314,25 +314,31 @@
                 const snapshot = await collectionRef.get();
                 let existingDocId = null;
                 let oldScore = 0;
+                
                 snapshot.forEach(doc => {
                     if (doc.data().userId === currentUser.uid) {
                         existingDocId = doc.id;
-                        oldScore = doc.data().score;
+                        oldScore = doc.data().score || 0;
                     }
                 });
 
+                const finalNick = nick.trim() || 'Anónimo';
+                userNick = finalNick; // Atualiza globalmente
+
                 if (existingDocId) {
                     await collectionRef.doc(existingDocId).update({
-                        nick: nick || 'Anónimo',
+                        nick: finalNick,
                         score: Math.max(score, oldScore),
                         timestamp: Date.now()
                     });
                 } else {
                     await collectionRef.add({
-                        userId: currentUser.uid, nick: nick || 'Anónimo', score: score, timestamp: Date.now()
+                        userId: currentUser.uid, 
+                        nick: finalNick, 
+                        score: score, 
+                        timestamp: Date.now()
                     });
                 }
-                userNick = nick;
                 showRanking();
             } catch (e) { console.error("Falha ao salvar", e); }
         }
@@ -359,12 +365,12 @@
                     const isMe = currentUser && item.userId === currentUser.uid;
                     list.innerHTML += `
                         <div class="flex justify-between items-center bg-gray-100 p-2 rounded border-l-4 ${isMe ? 'border-indigo-600 bg-indigo-50' : (index === 0 ? 'border-yellow-400' : 'border-teal-500')} mb-1 shadow-sm">
-                            <span class="font-bold text-gray-700 text-sm">${index + 1}º ${item.nick} ${isMe ? '(Tu)' : ''}</span>
+                            <span class="font-bold text-gray-700 text-sm truncate max-w-[150px]">${index + 1}º ${item.nick || 'Anónimo'} ${isMe ? '(Tu)' : ''}</span>
                             <span class="font-black text-teal-600 text-sm">${item.score} pts</span>
                         </div>
                     `;
                 });
-            });
+            }, (error) => console.log("Erro no ranking:", error));
         }
 
         window.closeRanking = () => { document.getElementById('rankingModal').style.display = 'none'; };
@@ -428,24 +434,28 @@
             }
             loop();
             const saveBtn = document.getElementById('saveBtn');
-            if(saveBtn) saveBtn.onclick = () => { saveScore(document.getElementById('playerNick').value, confettiScore); resetConfetti(); };
+            if(saveBtn) saveBtn.onclick = async () => { 
+                const nickInput = document.getElementById('playerNick').value;
+                saveBtn.innerText = "⌛ A GUARDAR...";
+                saveBtn.disabled = true;
+                await saveScore(nickInput, confettiScore); 
+                resetConfetti(); 
+            };
         }
 
         window.resetConfetti = () => { confettiScore = 0; confettiMisses = 0; renderConfetti(); };
 
-        // --- Customizador de Rosto (Com indicação de botão ativo) ---
+        // --- Customizador de Rosto ---
         function renderFaceCustomizer() {
             const content = document.getElementById('gameContent');
-            
-            // Função para verificar se a ferramenta está ativa e retornar a classe
-            const getToolClass = (t) => currentTool === t ? 'tool-btn active' : 'tool-btn';
+            currentTool = 'select';
 
             content.innerHTML = `
                 <div id="faceCustomizer">
                     <div class="drawing-controls">
-                        <button id="toolSelect" class="${getToolClass('select')} uppercase">👆 MOVER</button>
-                        <button id="toolBrush" class="${getToolClass('brush')} uppercase">🖌️ PINCEL</button>
-                        <button id="toolEraser" class="${getToolClass('eraser')} uppercase">🧽 APAGAR</button>
+                        <button id="toolSelect" class="tool-btn active uppercase">👆 MOVER</button>
+                        <button id="toolBrush" class="tool-btn uppercase">🖌️ PINCEL</button>
+                        <button id="toolEraser" class="tool-btn uppercase">🧽 APAGAR</button>
                         <input type="color" id="brushColor" value="#000000" class="h-8 w-8 cursor-pointer border-none p-0">
                         <button id="clearBtn" class="bg-red-500 text-white px-3 py-2 rounded shadow text-xs font-bold uppercase hover:bg-red-600 transition">Limpar</button>
                     </div>
@@ -461,7 +471,8 @@
             };
 
             setTimeout(() => {
-                canvas.width = area.offsetWidth; canvas.height = area.offsetHeight;
+                canvas.width = area.offsetWidth; 
+                canvas.height = area.offsetHeight;
                 
                 area.onclick = (e) => {
                     if (e.target === area || e.target === canvas) deselectAll();
@@ -470,7 +481,8 @@
                 const setT = (t) => { 
                     currentTool = t; 
                     document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active')); 
-                    const btn = document.getElementById('tool' + t.charAt(0).toUpperCase() + t.slice(1));
+                    const btnId = 'tool' + t.charAt(0).toUpperCase() + t.slice(1);
+                    const btn = document.getElementById(btnId);
                     if(btn) btn.classList.add('active'); 
                     canvas.classList.toggle('drawing-active', t !== 'select'); 
                     if(t !== 'select') deselectAll();
@@ -500,8 +512,10 @@
                     ctx.lineTo(c.clientX - rect.left, c.clientY - rect.top); ctx.stroke(); 
                 };
 
-                canvas.onmousedown = sD; canvas.ontouchstart = (e) => { e.preventDefault(); sD(e); }; 
-                canvas.onmousemove = dM; canvas.ontouchmove = (e) => { e.preventDefault(); dM(e); }; 
+                canvas.onmousedown = sD; 
+                canvas.ontouchstart = (e) => { if(currentTool !== 'select') e.preventDefault(); sD(e); }; 
+                canvas.onmousemove = dM; 
+                canvas.ontouchmove = (e) => { if(currentTool !== 'select') e.preventDefault(); dM(e); }; 
                 window.onmouseup = window.ontouchend = () => drawing = false;
 
                 const cont = document.getElementById('accessoriesContainer');
@@ -530,19 +544,22 @@
                                 wrap.dataset.oY = co.clientY - wrap.offsetTop; 
                             }
                             const onM = (me) => {
+                                if(me.touches) me.preventDefault(); 
                                 const mc = getCoords(me);
                                 if (drag) { wrap.style.left = (mc.clientX - wrap.dataset.oX) + 'px'; wrap.style.top = (mc.clientY - wrap.dataset.oY) + 'px'; }
                                 else if (resiz) { wrap.style.width = Math.max(30, sW + (mc.clientX - sX)) + 'px'; wrap.style.height = Math.max(30, sH + (mc.clientY - sY)) + 'px'; }
                             };
                             const onE = () => { drag = resiz = false; document.removeEventListener('mousemove', onM); document.removeEventListener('mouseup', onE); document.removeEventListener('touchmove', onM); document.removeEventListener('touchend', onE); };
-                            document.addEventListener('mousemove', onM); document.addEventListener('mouseup', onE); document.addEventListener('touchmove', onM, {passive: false}); document.addEventListener('touchend', onE);
+                            document.addEventListener('mousemove', onM); document.addEventListener('mouseup', onE); 
+                            document.addEventListener('touchmove', onM, {passive: false}); document.addEventListener('touchend', onE);
                         };
-                        wrap.onmousedown = onS; wrap.ontouchstart = (e) => { e.preventDefault(); onS(e); }; 
+                        wrap.onmousedown = onS; 
+                        wrap.ontouchstart = (e) => { if(currentTool === 'select') { e.preventDefault(); onS(e); } }; 
                         area.appendChild(wrap);
                     }; 
                     cont.appendChild(div);
                 });
-            }, 100);
+            }, 150);
         }
 
         window.sortearMeme = function() {
