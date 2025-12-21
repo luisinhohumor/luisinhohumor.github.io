@@ -139,15 +139,36 @@
         .accessory-item { width: 65px; height: 65px; background: white; border: 2px solid #b2ebf2; border-radius: 10px; padding: 5px; cursor: pointer; flex-shrink: 0; }
         .accessory-item img { width: 100%; height: 100%; object-fit: contain; }
 
+        /* Estilo para Botões Ativos na Customização */
+        .tool-btn {
+            padding: 10px 15px;
+            border: 2px solid #b2ebf2;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+            font-size: 0.8rem;
+            box-shadow: 0 2px 0 #b2ebf2;
+        }
+        .tool-btn.active {
+            background: #00bfa5;
+            color: white;
+            border-color: #00897b;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+            transform: translateY(1px);
+        }
+
         #rankingModal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(0,0,0,0.8); z-index: 1000; display: none;
+            background: rgba(0,0,0,0.8); z-index: 3000; display: none;
             align-items: center; justify-content: center; padding: 20px;
         }
 
         .ranking-content {
             background: white; width: 100%; max-width: 400px; border-radius: 20px;
             padding: 20px; text-align: center; max-height: 80vh; overflow-y: auto;
+            position: relative; border: 4px solid #00bfa5;
         }
 
         #gameOverOverlay {
@@ -179,13 +200,13 @@
     </div>
 
     <!-- Modal Ranking Global -->
-    <div id="rankingModal">
-        <div class="ranking-content shadow-2xl border-4 border-teal-500">
-            <h2 class="text-2xl font-black text-teal-700 mb-4 uppercase">🏆 Ranking de Boloios</h2>
+    <div id="rankingModal" onclick="if(event.target === this) closeRanking()">
+        <div class="ranking-content shadow-2xl">
+            <h2 class="text-2xl font-black text-teal-700 mb-4 uppercase italic">🏆 Ranking de Boloios</h2>
             <div id="rankingList" class="space-y-2 mb-6">
                 <p class="text-gray-500 italic">A carregar recordes...</p>
             </div>
-            <button onclick="closeRanking()" class="bg-teal-600 text-white font-bold py-2 px-6 rounded-lg uppercase hover:bg-teal-700 transition">Fechar</button>
+            <button onclick="closeRanking()" class="w-full bg-teal-600 text-white font-bold py-3 rounded-lg uppercase hover:bg-teal-700 transition active:scale-95">Fechar Placar</button>
         </div>
     </div>
 
@@ -202,7 +223,6 @@
                     auth = firebase.auth();
                     appId = typeof __app_id !== 'undefined' ? __app_id : 'central-luisinho';
 
-                    // Autenticação Silenciosa
                     if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                         const res = await auth.signInWithCustomToken(__initial_auth_token);
                         currentUser = res.user;
@@ -211,13 +231,9 @@
                         currentUser = res.user;
                     }
                     
-                    if (currentUser) {
-                        fetchUserNick();
-                    }
+                    if (currentUser) fetchUserNick();
                 }
-            } catch (e) {
-                console.error("Firebase não disponível:", e);
-            }
+            } catch (e) { console.error("Firebase falhou", e); }
         }
 
         async function fetchUserNick() {
@@ -226,19 +242,20 @@
                 const collectionRef = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('ranking');
                 const snapshot = await collectionRef.get();
                 snapshot.forEach(doc => {
-                    if (doc.data().userId === currentUser.uid) {
-                        userNick = doc.data().nick;
+                    const data = doc.data();
+                    if (data.userId === currentUser.uid) {
+                        userNick = data.nick;
                     }
                 });
-            } catch (e) { console.log("Erro ao buscar nick inicial"); }
+            } catch (e) { console.log("Erro no nick"); }
         }
 
-        // --- Estado Global dos Jogos ---
+        // --- Estado Global ---
         let currentGame = 'confetti';
         let confettiScore = 0;
         let confettiMisses = 0;
         let confettiGameInstance = null;
-        let currentTool = 'select';
+        let currentTool = 'select'; // select, brush, eraser
 
         const manImages = { 
             idle: new Image(), open: new Image(), cough: new Image(), cough2: new Image()
@@ -269,7 +286,7 @@
             { text: "🧐 LUISINHO ANALISTA: Te julgando silenciosamente por essa sua cara de sono.", img: "https://i.postimg.cc/pLNYMxFG/Captura-de-tela-2025-05-19-205622.png" },
             { text: "🤡 LUISINHO CORINGOU: Rindo de nervoso porque o boleto venceu e você esqueceu.", img: "https://i.postimg.cc/Dz6qGXM2/Captura-de-tela-2025-06-11-233239.png" },
             { text: "😲 LUISINHO PASSADO: Viu a fofoca e ficou em choque com o nível da audácia.", img: "https://i.postimg.cc/wjdJbVCW/Captura-de-tela-2025-12-20-172039.png" },
-            { text: "🤨 LUISINHO DESCONFIADO: Hummm, sei não hein... essa sua história tá mais mal contada que nota de 3 reais.", img: "https://i.postimg.cc/CxVD67yh/Captura-de-tela-2025-12-20-172050.jpg" },
+            { text: "🤨 LUISINHO DESCONFIADO: Hummm, sei não hein... essa sua história tá mais mal contada!", img: "https://i.postimg.cc/CxVD67yh/Captura-de-tela-2025-12-20-172050.jpg" },
             { text: "🤫 LUISINHO SIGILO TOTAL: Guardando o segredo que vai destruir a reputação de alguém.", img: "https://i.postimg.cc/HLYMTLsJ/Captura-de-tela-2025-12-20-172912.jpg" },
             { text: "💀 LUISINHO ALMA SAINDO: Quando a segunda-feira chega e você ainda não superou o sábado.", img: "https://i.postimg.cc/zB3RRPh8/Captura-de-tela-2025-12-20-172946.png" },
             { text: "🥴 LUISINHO PÓS-LIVE: A cara de quem não dorme há 3 dias por causa de vício em jogo.", img: "https://i.postimg.cc/W3tJJfZ7/Captura-de-tela-2025-12-20-173450.png" },
@@ -279,7 +296,7 @@
             { text: "😎 LUISINHO DONO DA RAZÃO: Eu não discuto, eu apenas explico por que você está errado.", img: "https://i.postimg.cc/CKx7L0FR/Captura-de-tela-2025-06-02-143116.png" },
             { text: "😴 LUISINHO DERROTADO: A vida bateu tanto hoje que o plano é só virar um vegetal.", img: "https://i.postimg.cc/908F2W0H/Captura-de-tela-2025-12-09-152444.jpg" },
             { text: "🌽 LUISINHO 'TÔ NEM AÍ': O mundo pode acabar em fogo, eu vou estar aqui com meu milho.", img: "https://i.postimg.cc/jqZjPhcR/Captura-de-tela-2025-12-09-153135.jpg" },
-            { text: "🤯 LUISINHO PANE NO SISTEMA: Viu o preço da carne e a alma saiu do corpo por 5 minutos.", img: "https://i.postimg.cc/GhtmQsgh/e1eef602-b7bb-42ee-bae8-f5f99b3ba7ec.jpg" },
+            { text: "🤯 LUISINHO PANE NO SISTEMA: Viu o preço da carne e a alma saiu do corpo!", img: "https://i.postimg.cc/GhtmQsgh/e1eef602-b7bb-42ee-bae8-f5f99b3ba7ec.jpg" },
             { text: "🚀 LUISINHO ESTOURADO: Esquece, o pai tá viciado em vencer (ou em passar vergonha)!", img: "https://i.postimg.cc/L6W606GB/Gemini-Generated-Image-t1rwy1t1rwy1t1rw.jpg" }
         ];
 
@@ -289,62 +306,59 @@
             return { clientX, clientY };
         }
 
-        // --- Lógica de Ranking ---
+        // --- Ranking Logic ---
         async function saveScore(nick, score) {
             if (!currentUser || !db) return;
             const collectionRef = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('ranking');
             try {
                 const snapshot = await collectionRef.get();
                 let existingDocId = null;
-                let existingScore = 0;
+                let oldScore = 0;
                 snapshot.forEach(doc => {
                     if (doc.data().userId === currentUser.uid) {
                         existingDocId = doc.id;
-                        existingScore = doc.data().score;
+                        oldScore = doc.data().score;
                     }
                 });
 
                 if (existingDocId) {
                     await collectionRef.doc(existingDocId).update({
                         nick: nick || 'Anónimo',
-                        score: Math.max(score, existingScore),
+                        score: Math.max(score, oldScore),
                         timestamp: Date.now()
                     });
                 } else {
                     await collectionRef.add({
-                        userId: currentUser.uid,
-                        nick: nick || 'Anónimo',
-                        score: score,
-                        timestamp: Date.now()
+                        userId: currentUser.uid, nick: nick || 'Anónimo', score: score, timestamp: Date.now()
                     });
                 }
                 userNick = nick;
                 showRanking();
-            } catch (e) { console.error("Erro ao salvar:", e); }
+            } catch (e) { console.error("Falha ao salvar", e); }
         }
 
         function showRanking() {
-            if (!db) return;
             const modal = document.getElementById('rankingModal');
             const list = document.getElementById('rankingList');
+            if (!modal || !list) return;
             modal.style.display = 'flex';
-            list.innerHTML = '<p class="text-gray-500 italic uppercase">A atualizar...</p>';
+            list.innerHTML = '<p class="text-gray-500 italic uppercase py-4">A carregar recordes...</p>';
+            if (!db) return;
 
             const collectionRef = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('ranking');
             collectionRef.onSnapshot((snapshot) => {
-                const umMesEmMs = 30 * 24 * 60 * 60 * 1000;
-                const agora = Date.now();
+                const umMesMs = 30 * 24 * 60 * 60 * 1000, agora = Date.now();
                 let data = [];
                 snapshot.forEach(doc => {
                     const item = doc.data();
-                    if (agora - item.timestamp < umMesEmMs) data.push(item);
+                    if (agora - item.timestamp < umMesMs) data.push(item);
                 });
                 data.sort((a, b) => b.score - a.score);
-                list.innerHTML = data.length ? '' : '<p class="text-gray-400 uppercase font-bold text-sm">Ninguém salvou ainda!</p>';
+                list.innerHTML = data.length ? '' : '<p class="text-gray-400 uppercase font-bold py-4">Ranking Vazio!</p>';
                 data.slice(0, 15).forEach((item, index) => {
                     const isMe = currentUser && item.userId === currentUser.uid;
                     list.innerHTML += `
-                        <div class="flex justify-between items-center bg-gray-100 p-2 rounded border-l-4 ${isMe ? 'border-indigo-600 bg-indigo-50' : (index === 0 ? 'border-yellow-400' : 'border-teal-500')} mb-1">
+                        <div class="flex justify-between items-center bg-gray-100 p-2 rounded border-l-4 ${isMe ? 'border-indigo-600 bg-indigo-50' : (index === 0 ? 'border-yellow-400' : 'border-teal-500')} mb-1 shadow-sm">
                             <span class="font-bold text-gray-700 text-sm">${index + 1}º ${item.nick} ${isMe ? '(Tu)' : ''}</span>
                             <span class="font-black text-teal-600 text-sm">${item.score} pts</span>
                         </div>
@@ -353,115 +367,85 @@
             });
         }
 
-        window.closeRanking = () => document.getElementById('rankingModal').style.display = 'none';
+        window.closeRanking = () => { document.getElementById('rankingModal').style.display = 'none'; };
 
-        // --- Render: Jogo do Confete ---
+        // --- Render: Confetche ---
         function renderConfetti() {
             const content = document.getElementById('gameContent');
             content.innerHTML = `
                 <div id="gameOverOverlay" class="p-6">
                     <img src="https://i.postimg.cc/LsVbsvKL/luis-gifdedo.gif" class="max-w-[180px] mb-4 rounded-lg shadow-2xl border-4 border-red-500">
                     <h2 class="text-2xl font-black text-red-600 uppercase mb-2 italic text-center">Perdeu seu Boloio</h2>
-                    <p class="text-[10px] text-gray-500 mb-4 font-bold uppercase text-center">(Podes editar o teu nome abaixo)</p>
-                    <input id="playerNick" type="text" value="${userNick}" placeholder="Teu Nick..." class="border-4 border-teal-500 p-3 rounded-xl mb-4 text-center outline-none w-full font-bold uppercase">
-                    <button id="saveBtn" class="w-full bg-teal-600 text-white font-black py-4 px-8 rounded-xl uppercase shadow-lg hover:bg-teal-700 transition active:scale-95">💾 Guardar Recorde</button>
+                    <input id="playerNick" type="text" value="${userNick}" placeholder="Teu Nick..." class="border-4 border-teal-500 p-3 rounded-xl mb-4 text-center outline-none w-full font-bold uppercase shadow-inner">
+                    <button id="saveBtn" class="w-full bg-teal-600 text-white font-black py-4 px-8 rounded-xl uppercase shadow-lg hover:bg-teal-700 transition active:scale-95">💾 Salvar Nick e Pontos</button>
                     <button onclick="resetConfetti()" class="mt-6 text-sm text-gray-500 font-bold uppercase underline">Jogar de novo</button>
                 </div>
                 <h2 class="text-xl font-black text-teal-700 uppercase mb-2">Festa do Confete!</h2>
                 <div class="flex items-center justify-center gap-3 mb-2">
                     <div class="font-bold text-lg text-teal-800">PONTOS: <span id="scoreDisplay">${confettiScore}</span></div>
-                    <button onclick="showRanking()" class="bg-teal-100 p-2 rounded-full border-2 border-teal-300 hover:bg-teal-200 transition shadow-sm" title="Ver Ranking">🏆</button>
+                    <button onclick="showRanking()" class="bg-teal-100 p-2 rounded-full border-2 border-teal-300 hover:bg-teal-200 transition shadow-sm active:scale-90" title="Ver Ranking">🏆</button>
                     <div class="text-xs font-bold text-red-500">ERROS: <span id="missDisplay">${confettiMisses}</span>/10</div>
                 </div>
                 <canvas id="confettiCanvas"></canvas>
             `;
-
             const canvas = document.getElementById('confettiCanvas');
             const ctx = canvas.getContext('2d');
             canvas.width = canvas.offsetWidth; canvas.height = 450;
-
             let particles = [];
             let man = { x: canvas.width/2 - 100, y: canvas.height - 240, dx: 3, dy: 2, open: false, isCoughing: false, coughStage: 0 };
             let lastUpdate = Date.now();
-
-            const addParticle = (e) => {
+            const addP = (e) => {
                 if (currentGame !== 'confetti' || confettiMisses >= 10) return;
-                const rect = canvas.getBoundingClientRect();
-                const coords = getCoords(e);
-                particles.push({ x: coords.clientX - rect.left, y: coords.clientY - rect.top, speed: -5, color: `hsl(${Math.random()*360}, 100%, 50%)` });
+                const r = canvas.getBoundingClientRect(), c = getCoords(e);
+                particles.push({ x: c.clientX - r.left, y: c.clientY - r.top, speed: -5, color: `hsl(${Math.random()*360}, 100%, 50%)` });
             };
-
-            canvas.onmousedown = addParticle;
-            canvas.ontouchstart = (e) => { e.preventDefault(); addParticle(e); };
-
+            canvas.onmousedown = addP; canvas.ontouchstart = (e) => { e.preventDefault(); addP(e); };
             function loop() {
                 if (currentGame !== 'confetti') return;
                 if (confettiMisses >= 10) {
-                    const overlay = document.getElementById('gameOverOverlay');
-                    if(overlay) overlay.style.display = 'flex';
-                    const input = document.getElementById('playerNick');
-                    if(input) input.value = userNick;
+                    const ov = document.getElementById('gameOverOverlay'); if(ov) ov.style.display = 'flex';
+                    const inp = document.getElementById('playerNick'); if(inp) inp.value = userNick;
                     return;
                 }
-
                 ctx.clearRect(0,0,canvas.width, canvas.height);
-                man.x += man.dx;
-                if (man.x + 200 > canvas.width || man.x < 0) man.dx *= -1;
-                man.y += man.dy;
-                if (man.y + 240 > canvas.height || man.y < canvas.height / 4) man.dy *= -1;
-                
-                if (!man.isCoughing && Date.now() - lastUpdate > 1200) {
-                    man.open = !man.open; lastUpdate = Date.now();
-                }
-
+                man.x += man.dx; if (man.x + 200 > canvas.width || man.x < 0) man.dx *= -1;
+                man.y += man.dy; if (man.y + 240 > canvas.height || man.y < canvas.height/4) man.dy *= -1;
+                if (!man.isCoughing && Date.now() - lastUpdate > 1200) { man.open = !man.open; lastUpdate = Date.now(); }
                 let img = man.isCoughing ? (man.coughStage === 1 ? manImages.cough : manImages.cough2) : (man.open ? manImages.open : manImages.idle);
                 ctx.drawImage(img, man.x, man.y, 200, 240);
-                
                 particles.forEach((p, i) => {
-                    p.y += p.speed;
-                    ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, 6, 0, Math.PI*2); ctx.fill();
-                    const areaBocaX = man.x + 50, areaBocaLargura = 100, areaBocaY = man.y, areaBocaAltura = 100;
-                    if (p.x > areaBocaX && p.x < areaBocaX + areaBocaLargura && p.y > areaBocaY && p.y < areaBocaY + areaBocaAltura) {
-                        confettiScore++; 
-                        document.getElementById('scoreDisplay').innerText = confettiScore;
-                        particles.splice(i, 1);
-                        man.isCoughing = true; man.coughStage = 1;
-                        setTimeout(() => man.coughStage = 2, 200);
-                        setTimeout(() => { man.isCoughing = false; lastUpdate = Date.now(); }, 400);
+                    p.y += p.speed; ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, 6, 0, Math.PI*2); ctx.fill();
+                    const bx = man.x + 50, bw = 100, by = man.y, bh = 100;
+                    if (p.x > bx && p.x < bx + bw && p.y > by && p.y < by + bh) {
+                        confettiScore++; document.getElementById('scoreDisplay').innerText = confettiScore;
+                        particles.splice(i, 1); man.isCoughing = true; man.coughStage = 1;
+                        setTimeout(() => man.coughStage = 2, 200); setTimeout(() => { man.isCoughing = false; lastUpdate = Date.now(); }, 400);
                     } else if (p.y < 0) {
-                        confettiMisses++;
-                        document.getElementById('missDisplay').innerText = confettiMisses;
-                        particles.splice(i, 1);
+                        confettiMisses++; document.getElementById('missDisplay').innerText = confettiMisses; particles.splice(i, 1);
                     }
                 });
                 confettiGameInstance = requestAnimationFrame(loop);
             }
             loop();
-
             const saveBtn = document.getElementById('saveBtn');
-            if(saveBtn) {
-                saveBtn.onclick = () => {
-                    const nick = document.getElementById('playerNick').value;
-                    saveScore(nick, confettiScore);
-                    resetConfetti();
-                };
-            }
+            if(saveBtn) saveBtn.onclick = () => { saveScore(document.getElementById('playerNick').value, confettiScore); resetConfetti(); };
         }
 
-        window.resetConfetti = () => {
-            confettiScore = 0; confettiMisses = 0;
-            renderConfetti();
-        };
+        window.resetConfetti = () => { confettiScore = 0; confettiMisses = 0; renderConfetti(); };
 
-        // --- Customizador de Rosto ---
+        // --- Customizador de Rosto (Com indicação de botão ativo) ---
         function renderFaceCustomizer() {
             const content = document.getElementById('gameContent');
+            
+            // Função para verificar se a ferramenta está ativa e retornar a classe
+            const getToolClass = (t) => currentTool === t ? 'tool-btn active' : 'tool-btn';
+
             content.innerHTML = `
                 <div id="faceCustomizer">
                     <div class="drawing-controls">
-                        <button id="toolSelect" class="tool-btn active uppercase">👆 MOVER</button>
-                        <button id="toolBrush" class="tool-btn uppercase">🖌️ PINCEL</button>
-                        <button id="toolEraser" class="tool-btn uppercase">🧽 APAGAR</button>
+                        <button id="toolSelect" class="${getToolClass('select')} uppercase">👆 MOVER</button>
+                        <button id="toolBrush" class="${getToolClass('brush')} uppercase">🖌️ PINCEL</button>
+                        <button id="toolEraser" class="${getToolClass('eraser')} uppercase">🧽 APAGAR</button>
                         <input type="color" id="brushColor" value="#000000" class="h-8 w-8 cursor-pointer border-none p-0">
                         <button id="clearBtn" class="bg-red-500 text-white px-3 py-2 rounded shadow text-xs font-bold uppercase hover:bg-red-600 transition">Limpar</button>
                     </div>
@@ -469,97 +453,106 @@
                     <div id="accessoriesContainer"></div>
                 </div>
             `;
-            const area = document.getElementById('drawingArea');
-            const canvas = document.getElementById('drawingCanvas');
-            const ctx = canvas.getContext('2d');
-            let isDrawing = false;
+            const area = document.getElementById('drawingArea'), canvas = document.getElementById('drawingCanvas'), ctx = canvas.getContext('2d');
+            let drawing = false;
+
+            const deselectAll = () => {
+                document.querySelectorAll('.accessory-wrapper').forEach(w => w.classList.remove('active'));
+            };
 
             setTimeout(() => {
                 canvas.width = area.offsetWidth; canvas.height = area.offsetHeight;
-                const setTool = (tool) => {
-                    currentTool = tool;
-                    document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
-                    const el = document.getElementById('tool' + tool.charAt(0).toUpperCase() + tool.slice(1));
-                    if (el) el.classList.add('active');
-                    canvas.classList.toggle('drawing-active', tool !== 'select');
+                
+                area.onclick = (e) => {
+                    if (e.target === area || e.target === canvas) deselectAll();
                 };
-                document.getElementById('toolSelect').onclick = () => setTool('select');
-                document.getElementById('toolBrush').onclick = () => setTool('brush');
-                document.getElementById('toolEraser').onclick = () => setTool('eraser');
-                document.getElementById('clearBtn').onclick = () => {
-                    ctx.clearRect(0,0,canvas.width, canvas.height);
-                    document.querySelectorAll('.accessory-wrapper').forEach(w => w.remove());
-                };
-                const startDraw = (e) => {
-                    if(currentTool === 'select') return;
-                    isDrawing = true;
-                    const rect = canvas.getBoundingClientRect();
-                    const c = getCoords(e);
-                    ctx.beginPath(); ctx.moveTo(c.clientX - rect.left, c.clientY - rect.top);
-                };
-                const drawMove = (e) => {
-                    if(!isDrawing) return;
-                    const rect = canvas.getBoundingClientRect(), c = getCoords(e);
-                    ctx.lineWidth = 5; ctx.lineCap = 'round';
-                    ctx.strokeStyle = document.getElementById('brushColor').value;
-                    ctx.globalCompositeOperation = currentTool === 'eraser' ? 'destination-out' : 'source-over';
-                    ctx.lineTo(c.clientX - rect.left, c.clientY - rect.top);
-                    ctx.stroke();
-                };
-                canvas.onmousedown = startDraw; canvas.ontouchstart = (e) => { e.preventDefault(); startDraw(e); };
-                canvas.onmousemove = drawMove; canvas.ontouchmove = (e) => { e.preventDefault(); drawMove(e); };
-                window.onmouseup = window.ontouchend = () => isDrawing = false;
 
-                const container = document.getElementById('accessoriesContainer');
+                const setT = (t) => { 
+                    currentTool = t; 
+                    document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active')); 
+                    const btn = document.getElementById('tool' + t.charAt(0).toUpperCase() + t.slice(1));
+                    if(btn) btn.classList.add('active'); 
+                    canvas.classList.toggle('drawing-active', t !== 'select'); 
+                    if(t !== 'select') deselectAll();
+                };
+
+                document.getElementById('toolSelect').onclick = () => setT('select'); 
+                document.getElementById('toolBrush').onclick = () => setT('brush'); 
+                document.getElementById('toolEraser').onclick = () => setT('eraser');
+                
+                document.getElementById('clearBtn').onclick = () => { 
+                    ctx.clearRect(0,0,canvas.width, canvas.height); 
+                    document.querySelectorAll('.accessory-wrapper').forEach(w => w.remove()); 
+                };
+
+                const sD = (e) => { 
+                    if(currentTool === 'select') return; 
+                    drawing = true; 
+                    const rect = canvas.getBoundingClientRect(), c = getCoords(e); 
+                    ctx.beginPath(); ctx.moveTo(c.clientX - rect.left, c.clientY - rect.top); 
+                };
+                
+                const dM = (e) => { 
+                    if(!drawing) return; 
+                    const rect = canvas.getBoundingClientRect(), c = getCoords(e); 
+                    ctx.lineWidth = 5; ctx.lineCap = 'round'; ctx.strokeStyle = document.getElementById('brushColor').value; 
+                    ctx.globalCompositeOperation = currentTool === 'eraser' ? 'destination-out' : 'source-over'; 
+                    ctx.lineTo(c.clientX - rect.left, c.clientY - rect.top); ctx.stroke(); 
+                };
+
+                canvas.onmousedown = sD; canvas.ontouchstart = (e) => { e.preventDefault(); sD(e); }; 
+                canvas.onmousemove = dM; canvas.ontouchmove = (e) => { e.preventDefault(); dM(e); }; 
+                window.onmouseup = window.ontouchend = () => drawing = false;
+
+                const cont = document.getElementById('accessoriesContainer');
                 ALL_ACCESSORIES.forEach(acc => {
-                    const div = document.createElement('div');
-                    div.className = 'accessory-item shadow-sm hover:scale-105 transition';
-                    div.innerHTML = `<img src="${acc.src}">`;
+                    const div = document.createElement('div'); div.className = 'accessory-item shadow-sm hover:scale-105 transition'; div.innerHTML = `<img src="${acc.src}">`;
                     div.onclick = () => {
-                        const wrap = document.createElement('div');
-                        wrap.className = 'accessory-wrapper';
-                        wrap.style.width = '100px'; wrap.style.height = '100px';
+                        const wrap = document.createElement('div'); 
+                        wrap.className = 'accessory-wrapper'; 
+                        wrap.style.width = '120px'; wrap.style.height = '120px'; 
                         wrap.style.left = '50px'; wrap.style.top = '50px';
-                        wrap.innerHTML = `<img src="${acc.src}"><div class="delete-handle" onclick="this.parentElement.remove()">X</div><div class="resize-handle"></div>`;
-                        let isDragging = false, isResizing = false, startX, startY, startWidth, startHeight;
-                        const onStart = (e) => {
+                        wrap.innerHTML = `<img src="${acc.src}"><div class="delete-handle">X</div><div class="resize-handle"></div>`;
+                        
+                        let drag = false, resiz = false, sX, sY, sW, sH;
+
+                        const onS = (e) => {
                             if(currentTool !== 'select') return;
-                            document.querySelectorAll('.accessory-wrapper').forEach(w => w.classList.remove('active'));
+                            e.stopPropagation(); 
+                            deselectAll();
                             wrap.classList.add('active');
-                            const coords = getCoords(e);
-                            startX = coords.clientX; startY = coords.clientY;
-                            startWidth = wrap.offsetWidth; startHeight = wrap.offsetHeight;
+                            const co = getCoords(e); sX = co.clientX; sY = co.clientY; sW = wrap.offsetWidth; sH = wrap.offsetHeight;
                             if (e.target.classList.contains('delete-handle')) { wrap.remove(); return; }
-                            if (e.target.classList.contains('resize-handle')) { isResizing = true; isDragging = false; }
-                            else { isResizing = false; isDragging = true; wrap.dataset.offsetX = coords.clientX - wrap.offsetLeft; wrap.dataset.offsetY = coords.clientY - wrap.offsetTop; }
-                            const onMove = (me) => {
+                            if (e.target.classList.contains('resize-handle')) { resiz = true; drag = false; }
+                            else { 
+                                drag = true; resiz = false; 
+                                wrap.dataset.oX = co.clientX - wrap.offsetLeft; 
+                                wrap.dataset.oY = co.clientY - wrap.offsetTop; 
+                            }
+                            const onM = (me) => {
                                 const mc = getCoords(me);
-                                if (isDragging) { wrap.style.left = (mc.clientX - wrap.dataset.offsetX) + 'px'; wrap.style.top = (mc.clientY - wrap.dataset.offsetY) + 'px'; }
-                                else if (isResizing) { wrap.style.width = Math.max(30, startWidth + (mc.clientX - startX)) + 'px'; wrap.style.height = Math.max(30, startHeight + (mc.clientY - startY)) + 'px'; }
+                                if (drag) { wrap.style.left = (mc.clientX - wrap.dataset.oX) + 'px'; wrap.style.top = (mc.clientY - wrap.dataset.oY) + 'px'; }
+                                else if (resiz) { wrap.style.width = Math.max(30, sW + (mc.clientX - sX)) + 'px'; wrap.style.height = Math.max(30, sH + (mc.clientY - sY)) + 'px'; }
                             };
-                            const onEnd = () => { isDragging = isResizing = false; document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onEnd); document.removeEventListener('touchmove', onMove); document.removeEventListener('touchend', onEnd); };
-                            document.addEventListener('mousemove', onMove); document.addEventListener('mouseup', onEnd); document.addEventListener('touchmove', onMove, {passive: false}); document.addEventListener('touchend', onEnd);
+                            const onE = () => { drag = resiz = false; document.removeEventListener('mousemove', onM); document.removeEventListener('mouseup', onE); document.removeEventListener('touchmove', onM); document.removeEventListener('touchend', onE); };
+                            document.addEventListener('mousemove', onM); document.addEventListener('mouseup', onE); document.addEventListener('touchmove', onM, {passive: false}); document.addEventListener('touchend', onE);
                         };
-                        wrap.onmousedown = onStart; wrap.ontouchstart = (e) => { e.preventDefault(); onStart(e); };
+                        wrap.onmousedown = onS; wrap.ontouchstart = (e) => { e.preventDefault(); onS(e); }; 
                         area.appendChild(wrap);
-                    };
-                    container.appendChild(div);
+                    }; 
+                    cont.appendChild(div);
                 });
             }, 100);
         }
 
-        // --- Oráculo ---
         window.sortearMeme = function() {
-            const txt = document.getElementById('meme-txt');
-            const img = document.getElementById('meme-img');
-            txt.innerText = "🧿 A ANALISAR O TEU NÍVEL DE CAOS...";
-            img.style.display = 'none';
+            const txt = document.getElementById('meme-txt'), img = document.getElementById('meme-img');
+            txt.innerText = "🧿 A ANALISAR O TEU NÍVEL DE CAOS..."; img.style.display = 'none';
             setTimeout(() => {
                 const item = MEMES_DATABASE[Math.floor(Math.random() * MEMES_DATABASE.length)];
                 txt.innerText = item.text; img.src = item.img; img.style.display = 'block';
-                const display = document.getElementById('display-meme');
-                display.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
-                setTimeout(() => display.style.backgroundColor = 'rgba(30, 27, 75, 0.5)', 200);
+                const d = document.getElementById('display-meme'); d.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
+                setTimeout(() => d.style.backgroundColor = 'rgba(30, 27, 75, 0.5)', 200);
             }, 1000);
         };
 
@@ -571,32 +564,24 @@
                         <p id="meme-txt" class="text-yellow-300 font-bold mb-4 text-md uppercase font-black italic px-2 text-center">VAMOS VER O QUÃO ESTRAGADO TU ESTÁS HOJE!</p>
                         <img id="meme-img" src="" class="max-h-[250px] rounded-lg hidden shadow-2xl border-2 border-white object-contain">
                     </div>
-                    <button onclick="sortearMeme()" class="w-full py-5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 font-black rounded-xl active:scale-95 transition shadow-lg text-lg uppercase">
+                    <button onclick="sortearMeme()" class="w-full py-5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 font-black rounded-xl active:scale-95 transition shadow-lg text-lg uppercase italic">
                         🔥 REVELAR O MEU ESTADO!
                     </button>
                 </div>
             `;
         }
 
-        // --- Navegação Principal ---
         function switchGame(name) {
-            currentGame = name;
-            cancelAnimationFrame(confettiGameInstance);
+            currentGame = name; cancelAnimationFrame(confettiGameInstance);
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.game === name));
             if (name === 'confetti') renderConfetti();
             else if (name === 'faceCustomizer') renderFaceCustomizer();
             else if (name === 'oraculo') renderOraculo();
         }
 
-        document.getElementById('tabMenu').onclick = (e) => {
-            if (e.target.dataset.game) switchGame(e.target.dataset.game);
-        };
+        document.getElementById('tabMenu').onclick = (e) => { if (e.target.dataset.game) switchGame(e.target.dataset.game); };
 
-        // Início da aplicação
-        window.onload = async () => {
-            await initFirebase();
-            switchGame('confetti');
-        };
+        window.onload = async () => { await initFirebase(); switchGame('confetti'); };
     </script>
 </body>
 </html>
