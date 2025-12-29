@@ -3,18 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Central de Jogos</title>
-    <!-- Inclusão de scripts externos e fontes -->
+    <title>Central de Jogos Otimizada</title>
+    
+    <!-- Scripts Externos -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     
-    <!-- SDKs do Firebase para persistência do Ranking -->
+    <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-auth-compat.js"></script>
 
     <style>
-        /* Estilos base e animações */
+        /* Otimizações de Performance e UI */
         body {
             font-family: 'Inter', sans-serif;
             background: linear-gradient(135deg, #e0f7fa, #b2ebf2);
@@ -24,12 +25,13 @@
             align-items: center;
             min-height: 100vh;
             padding: 10px;
-            overscroll-behavior-y: contain;
+            overscroll-behavior-y: contain; /* Evita puxar a página no mobile */
+            -webkit-tap-highlight-color: transparent;
         }
 
         .game-container {
             width: 100%;
-            max-width: 1000px; 
+            max-width: 600px; /* Limitado para melhor performance visual */
             border-radius: 25px;
             box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
             padding: 15px;
@@ -37,24 +39,29 @@
             display: flex;
             flex-direction: column;
             gap: 15px;
-            border: 10px solid transparent; 
-            background-image: linear-gradient(#ffffff, #ffffff), url('https://i.postimg.cc/CKdYnGmr/b7cfca-ecba34bc03024b7280cf546ab72057a3.jpg');
-            background-origin: padding-box, border-box;
-            background-clip: padding-box, border-box;
-            background-size: cover; 
+            border: 8px solid white;
+            background-color: rgba(255, 255, 255, 0.9);
+            position: relative;
         }
 
-        .game-header {
-            font-size: 2rem;
-            font-weight: 700;
-            color: #00796b;
-            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
+        .game-section {
+            display: none; /* O segredo da performance: esconde em vez de destruir */
+            width: 100%;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .game-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .tab-menu {
             display: flex;
             justify-content: center;
-            margin-bottom: 10px;
             border-bottom: 2px solid #b2ebf2;
             flex-wrap: wrap;
             gap: 5px;
@@ -62,543 +69,677 @@
 
         .tab-btn {
             padding: 10px 15px;
-            font-size: 1rem;
-            font-weight: 600;
+            font-size: 0.9rem;
+            font-weight: 700;
             color: #00796b;
-            background-color: transparent;
+            background: transparent;
             border: none;
             cursor: pointer;
-            transition: all 0.3s ease;
             border-radius: 10px 10px 0 0;
+            transition: all 0.2s;
         }
 
         .tab-btn.active {
             background-color: #e0f7fa;
             border-bottom: 3px solid #00bfa5;
             color: #004d40;
-            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        /* OTIMIZAÇÃO CRÍTICA: touch-action none para evitar scroll enquanto desenha */
+        #confettiCanvas, #drawingCanvas, #drawingArea {
+            touch-action: none; 
+            user-select: none;
+            -webkit-user-select: none;
         }
 
         #confettiCanvas {
             width: 100%;
-            height: auto;
-            min-height: 350px;
+            height: 400px;
             background-color: #f0fdfa;
-            background-image: url('https://i.postimg.cc/wBvjgdWm/054d7f95-28c1-4cca-9f0a-6262b04f0bab.png'); 
+            background-image: url('https://i.postimg.cc/wBvjgdWm/054d7f95-28c1-4cca-9f0a-6262b04f0bab.png');
             background-size: cover;
             background-position: center;
-            background-repeat: no-repeat;
-            border: 2px solid #b2ebf2;
             border-radius: 20px;
-            touch-action: none;
+            border: 2px solid #b2ebf2;
         }
-
-        #faceCustomizer { display: flex; flex-direction: column; align-items: center; gap: 12px; }
 
         #drawingArea {
             position: relative;
             width: 100%;
-            max-width: 500px; 
-            aspect-ratio: 1 / 1;
-            background-image: url('https://i.postimg.cc/Wb4BsmdQ/ddddddd.jpg'); 
+            height: 400px; /* Altura fixa ajuda na performance */
+            background-image: url('https://i.postimg.cc/Wb4BsmdQ/ddddddd.jpg');
             background-size: cover;
             background-position: center;
             border: 2px solid #a7ffeb;
             border-radius: 15px;
-            overflow: hidden; 
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            background-color: #eee;
+            overflow: hidden;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.1);
+            margin-bottom: 10px;
+        }
+
+        #drawingArea canvas {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 5;
+            pointer-events: none; /* Deixa passar clique se não estiver desenhando */
+        }
+        
+        #drawingArea canvas.drawing-active {
+            pointer-events: auto; /* Captura clique quando desenhando */
+        }
+
+        .accessory-wrapper {
+            position: absolute;
+            z-index: 10;
             touch-action: none;
         }
         
-        #drawingArea > canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; pointer-events: none; }
-        #drawingArea > canvas.drawing-active { pointer-events: auto; }
-
-        .accessory-wrapper { z-index: 10; position: absolute; cursor: grab; user-select: none; touch-action: none; }
-        .accessory-wrapper.active { border: 2px dashed #ff4081; z-index: 11; }
-        .accessory-wrapper img { width: 100%; height: 100%; pointer-events: none; display: block; }
-
-        .delete-handle {
-            position: absolute; width: 32px; height: 32px; background: #ef4444; color: white; border-radius: 50%;
-            top: -16px; right: -16px; display: flex; align-items: center; justify-content: center;
-            font-size: 16px; font-weight: bold; cursor: pointer; opacity: 0; transition: opacity 0.2s; z-index: 20;
+        .accessory-wrapper.active {
+            border: 2px dashed #ff4081;
+            z-index: 20;
         }
 
-        .resize-handle {
-            position: absolute; width: 28px; height: 28px; background: #00bfa5; border: 3px solid white; border-radius: 50%;
-            bottom: -14px; right: -14px; cursor: nwse-resize; opacity: 0; transition: opacity 0.2s; z-index: 21;
+        .accessory-wrapper img {
+            width: 100%; height: 100%;
+            pointer-events: none;
+            display: block;
         }
 
-        .accessory-wrapper.active .delete-handle, .accessory-wrapper.active .resize-handle { opacity: 1; }
+        .handle {
+            position: absolute;
+            width: 30px; height: 30px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: bold; color: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            opacity: 0; transition: opacity 0.2s;
+        }
+
+        .accessory-wrapper.active .handle { opacity: 1; }
+
+        .delete-handle { top: -15px; right: -15px; background: #ef4444; font-size: 14px; cursor: pointer; }
+        .resize-handle { bottom: -15px; right: -15px; background: #00bfa5; cursor: nwse-resize; border: 2px solid white; }
 
         #accessoriesContainer {
-            display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; padding: 10px;
-            background-color: #e0f2f7; border-radius: 15px; width: 100%; max-height: 200px; overflow-y: auto;
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding: 10px;
+            background: #e0f2f7;
+            border-radius: 12px;
+            scrollbar-width: thin;
         }
 
-        .accessory-item { width: 65px; height: 65px; background: white; border: 2px solid #b2ebf2; border-radius: 10px; padding: 5px; cursor: pointer; flex-shrink: 0; }
-        .accessory-item img { width: 100%; height: 100%; object-fit: contain; }
-
-        /* Estilo para Botões Ativos na Customização */
-        .tool-btn {
-            padding: 10px 15px;
-            border: 2px solid #b2ebf2;
+        .accessory-item {
+            min-width: 60px; height: 60px;
             background: white;
+            border: 2px solid #b2ebf2;
             border-radius: 8px;
+            padding: 5px;
             cursor: pointer;
+        }
+        
+        .tool-btn {
+            padding: 8px 12px;
+            border-radius: 8px;
             font-weight: bold;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            border: 1px solid #b2ebf2;
+            background: white;
             transition: all 0.2s;
-            font-size: 0.8rem;
-            box-shadow: 0 2px 0 #b2ebf2;
         }
         .tool-btn.active {
-            background: #00bfa5;
-            color: white;
-            border-color: #00897b;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
-            transform: translateY(1px);
+            background: #00bfa5; color: white; transform: scale(1.05); border-color: #00897b;
         }
 
         #rankingModal {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(0,0,0,0.8); z-index: 3000; display: none;
+            display: none;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); z-index: 50;
             align-items: center; justify-content: center; padding: 20px;
-        }
-
-        .ranking-content {
-            background: white; width: 100%; max-width: 400px; border-radius: 20px;
-            padding: 20px; text-align: center; max-height: 80vh; overflow-y: auto;
-            position: relative; border: 4px solid #00bfa5;
-        }
-
-        #gameOverOverlay {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255,255,255,0.95); z-index: 100; display: none; flex-direction: column;
-            align-items: center; justify-content: center; border-radius: 20px;
-        }
-
-        @media (max-width: 640px) {
-            .game-header { font-size: 1.5rem; }
-            #drawingArea { height: 350px; }
         }
     </style>
 </head>
 <body>
 
     <div class="game-container">
-        <h1 class="game-header">Central de Jogos</h1>
+        <h1 class="text-2xl font-black text-teal-700 uppercase tracking-tighter">Central de Jogos</h1>
         
         <div class="tab-menu" id="tabMenu">
-            <button class="tab-btn active" data-game="confetti">Confetche!</button>
-            <button class="tab-btn" data-game="faceCustomizer">Me deixe bem bonito!</button>
-            <button class="tab-btn" data-game="oraculo">Que Luisinho vc é hoje</button>
+            <button class="tab-btn active" onclick="switchGame('confetti')">Confetche!</button>
+            <button class="tab-btn" onclick="switchGame('customizer')">Me deixe bonito!</button>
+            <button class="tab-btn" onclick="switchGame('oraculo')">Oráculo</button>
         </div>
 
-        <div id="gameContent" class="tab-content relative">
-            <!-- Conteúdo dinâmico -->
+        <!-- Jogo 1: Confetti -->
+        <div id="game-confetti" class="game-section active">
+            <div id="gameOverOverlay" class="hidden absolute inset-0 bg-white/95 z-50 flex flex-col items-center justify-center rounded-2xl p-6">
+                <h2 class="text-2xl font-black text-red-600 uppercase mb-2">Perdeu!</h2>
+                <input id="playerNick" type="text" placeholder="Seu Nick" class="border-4 border-teal-500 p-3 rounded-xl mb-4 text-center w-full font-bold">
+                <button id="saveBtn" class="w-full bg-teal-600 text-white font-bold py-3 rounded-xl shadow-lg mb-4">SALVAR PONTOS</button>
+                <button onclick="resetConfetti()" class="text-gray-500 font-bold underline">Tentar de novo</button>
+            </div>
+
+            <div class="flex justify-between items-center mb-2 px-2">
+                <div class="font-bold text-teal-800 bg-teal-100 px-3 py-1 rounded-lg">PTS: <span id="scoreDisplay">0</span></div>
+                <button onclick="openRanking()" class="bg-yellow-400 hover:bg-yellow-500 text-white p-2 rounded-full shadow transition">🏆</button>
+                <div class="font-bold text-red-500 bg-red-100 px-3 py-1 rounded-lg">ERROS: <span id="missDisplay">0</span>/10</div>
+            </div>
+            <canvas id="confettiCanvas"></canvas>
+        </div>
+
+        <!-- Jogo 2: Customizador -->
+        <div id="game-customizer" class="game-section">
+            <div class="flex gap-2 justify-center mb-2 flex-wrap">
+                <button id="btn-select" class="tool-btn active" onclick="setTool('select')">👆 Mover</button>
+                <button id="btn-brush" class="tool-btn" onclick="setTool('brush')">🖌️ Pincel</button>
+                <button id="btn-eraser" class="tool-btn" onclick="setTool('eraser')">🧽 Apagar</button>
+                <input type="color" id="brushColor" value="#000000" class="h-8 w-8 rounded cursor-pointer">
+                <button class="bg-red-500 text-white px-3 py-1 rounded text-xs font-bold" onclick="clearCanvas()">LIMPAR</button>
+            </div>
+
+            <div id="drawingArea">
+                <canvas id="drawingCanvas"></canvas>
+            </div>
+
+            <div id="accessoriesContainer">
+                <!-- Acessórios gerados via JS -->
+            </div>
+        </div>
+
+        <!-- Jogo 3: Oráculo -->
+        <div id="game-oraculo" class="game-section">
+            <div class="bg-indigo-900 p-6 rounded-2xl text-white text-center border-4 border-indigo-500">
+                <h2 class="text-xl font-black mb-4 uppercase italic">🔮 Que Luisinho você é?</h2>
+                <div id="meme-container" class="min-h-[300px] flex flex-col items-center justify-center bg-indigo-950/50 rounded-lg p-4 mb-4 border border-indigo-500/30">
+                    <p id="meme-txt" class="text-yellow-300 font-bold text-lg text-center">Clique para revelar seu destino...</p>
+                    <img id="meme-img" class="hidden max-h-[220px] rounded-lg border-2 border-white mt-4 shadow-xl object-contain">
+                </div>
+                <button onclick="revealMeme()" class="w-full py-4 bg-gradient-to-r from-purple-600 to-indigo-600 font-black rounded-xl shadow-lg active:scale-95 transition">
+                    🎲 REVELAR AGORA
+                </button>
+            </div>
         </div>
     </div>
 
-    <!-- Modal Ranking Global -->
+    <!-- Modal Ranking -->
     <div id="rankingModal" onclick="if(event.target === this) closeRanking()">
-        <div class="ranking-content shadow-2xl">
-            <h2 class="text-2xl font-black text-teal-700 mb-4 uppercase italic">🏆 Ranking de Boloios</h2>
-            <div id="rankingList" class="space-y-2 mb-6">
-                <p class="text-gray-500 italic">A carregar recordes...</p>
+        <div class="bg-white w-full max-w-sm p-6 rounded-2xl shadow-2xl relative animate-bounce-in">
+            <h2 class="text-2xl font-black text-teal-700 mb-4 text-center">🏆 RANKING</h2>
+            <div id="rankingList" class="max-h-[60vh] overflow-y-auto space-y-2 mb-4">
+                <p class="text-center text-gray-400">Carregando...</p>
             </div>
-            <button onclick="closeRanking()" class="w-full bg-teal-600 text-white font-bold py-3 rounded-lg uppercase hover:bg-teal-700 transition active:scale-95">Fechar Placar</button>
+            <button onclick="closeRanking()" class="w-full bg-gray-200 text-gray-700 font-bold py-3 rounded-lg">FECHAR</button>
         </div>
     </div>
 
     <script>
-        // --- Inicialização Protegida do Firebase ---
-        let db, auth, appId, currentUser = null, userNick = '';
-
+        // --- CONFIGURAÇÃO GLOBAL E FIREBASE ---
+        let db, auth, appId, user = null, userNick = '';
+        
         async function initFirebase() {
             try {
-                if (typeof __firebase_config !== 'undefined') {
-                    const config = JSON.parse(__firebase_config);
-                    firebase.initializeApp(config);
-                    db = firebase.firestore();
-                    auth = firebase.auth();
-                    appId = typeof __app_id !== 'undefined' ? __app_id : 'central-luisinho';
+                if (typeof __firebase_config === 'undefined') return;
+                const config = JSON.parse(__firebase_config);
+                firebase.initializeApp(config);
+                db = firebase.firestore();
+                auth = firebase.auth();
+                appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app';
 
-                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                        const res = await auth.signInWithCustomToken(__initial_auth_token);
-                        currentUser = res.user;
-                    } else {
-                        const res = await auth.signInAnonymously();
-                        currentUser = res.user;
-                    }
-                    
-                    if (currentUser) fetchUserNick();
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await auth.signInWithCustomToken(__initial_auth_token);
+                } else {
+                    await auth.signInAnonymously();
                 }
-            } catch (e) { console.error("Firebase falhou", e); }
-        }
-
-        async function fetchUserNick() {
-            if (!currentUser || !db) return;
-            try {
-                const collectionRef = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('ranking');
-                const snapshot = await collectionRef.get();
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    if (data.userId === currentUser.uid) {
-                        userNick = data.nick || '';
-                    }
+                
+                firebase.auth().onAuthStateChanged((u) => {
+                    user = u;
+                    if(user) loadUserNick();
                 });
-            } catch (e) { console.log("Erro no nick"); }
+            } catch(e) { console.error("Erro Firebase", e); }
         }
 
-        // --- Estado Global ---
-        let currentGame = 'confetti';
-        let confettiScore = 0;
-        let confettiMisses = 0;
-        let confettiGameInstance = null;
-        let currentTool = 'select'; // select, brush, eraser
+        async function loadUserNick() {
+            if(!user) return;
+            try {
+                const snapshot = await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('ranking').where('userId', '==', user.uid).get();
+                if(!snapshot.empty) userNick = snapshot.docs[0].data().nick;
+            } catch(e){}
+        }
 
-        const manImages = { 
-            idle: new Image(), open: new Image(), cough: new Image(), cough2: new Image()
+        // --- SISTEMA DE ABAS (PERFORMANCE: Apenas troca display) ---
+        function switchGame(gameId) {
+            document.querySelectorAll('.game-section').forEach(el => el.classList.remove('active'));
+            document.getElementById(`game-${gameId}`).classList.add('active');
+            
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            // Encontra o botão que chamou (aproximação simples)
+            const btns = document.querySelectorAll('.tab-btn');
+            if(gameId === 'confetti') btns[0].classList.add('active');
+            if(gameId === 'customizer') {
+                btns[1].classList.add('active');
+                initCustomizerOnce(); // Inicializa canvas apenas se necessário e UMA VEZ
+            }
+            if(gameId === 'oraculo') btns[2].classList.add('active');
+
+            // Pausa ou retoma Confetti para economizar bateria
+            if (gameId === 'confetti') {
+                isConfettiRunning = true;
+                loopConfetti();
+            } else {
+                isConfettiRunning = false;
+            }
+        }
+
+        // --- JOGO 1: CONFETTI ---
+        const confettiCanvas = document.getElementById('confettiCanvas');
+        const ctxConfetti = confettiCanvas.getContext('2d');
+        let confettiScore = 0, confettiMisses = 0, isConfettiRunning = true;
+        let particles = [];
+        let man = { x: 50, y: 200, dx: 3, dy: 2, state: 'idle', timer: 0 };
+        
+        // Imagens do confete (Carregamento Único)
+        const imgs = { 
+            idle: new Image(), open: new Image(), cough: new Image() 
         };
-        manImages.idle.src = 'https://i.postimg.cc/XvhMHHx2/fechando.png';
-        manImages.open.src = 'https://i.postimg.cc/kgTP8XSP/6a575d21-32c4-4876-abc2-99943e746c78.png';
-        manImages.cough.src = 'https://i.postimg.cc/jS0bKFrB/tosse-esse-sim.png';
-        manImages.cough2.src = 'https://i.postimg.cc/gjmgN39S/tosse-esse-sim2.png';
+        imgs.idle.src = 'https://i.postimg.cc/XvhMHHx2/fechando.png';
+        imgs.open.src = 'https://i.postimg.cc/kgTP8XSP/6a575d21-32c4-4876-abc2-99943e746c78.png';
+        imgs.cough.src = 'https://i.postimg.cc/jS0bKFrB/tosse-esse-sim.png';
 
-        const ALL_ACCESSORIES = [
-            { name: "Peruca Curta", src: "https://i.postimg.cc/XvxPGjJw/perucawws.png", w: 150, h: 150 },
-            { name: "Peruca Vermelha", src: "https://i.postimg.cc/XJJz9RGt/perucas.png", w: 150, h: 150 },
-            { name: "Peruca Loira", src: "https://i.postimg.cc/N0w4gWkT/Captura-de-tela-2025-11-30-190254.png", w: 150, h: 150 },
-            { name: "Cabelo Estiloso", src: "https://i.postimg.cc/MGcKZpq9/a214595cb778d15d02a04495c94e14b3.png", w: 150, h: 150 },
-            { name: "Saco Ovo", src: "https://i.postimg.cc/kDrY3D1P/SACO-OVO.png", w: 180, h: 180 },
-            { name: "Bigode", src: "https://i.postimg.cc/m2j4BwSM/bigode.png", w: 80, h: 40 },
-            { name: "Maquiagem", src: "https://i.postimg.cc/XY2nc8Gd/make.png", w: 180, h: 150 },
-            { name: "Maquiagem Olho", src: "https://i.postimg.cc/D058JpDM/ddddddd.png", w: 150, h: 80 },
-            { name: "Boca", src: "https://i.postimg.cc/RZkLGqsZ/Captura-de-tela-2025-11-30-195023.png", w: 80, h: 40 },
-            { name: "Chapéu", src: "https://i.postimg.cc/MpjnsHR1/Captura-de-tela-2025-11-30-191447.png", w: 100, h: 80 }
-        ];
+        function resizeConfetti() {
+            confettiCanvas.width = confettiCanvas.offsetWidth;
+            confettiCanvas.height = confettiCanvas.offsetHeight;
+        }
+        window.addEventListener('resize', resizeConfetti);
+        resizeConfetti();
 
-        const MEMES_DATABASE = [
-            { text: "🦁 LUISINHO FULL PISTOLA: Hoje quem te der 'bom dia' vai levar um coice!", img: "https://i.postimg.cc/fLsbj21L/642e8812-6b1b-4da5-8654-43fed94f3ac5.jpg" },
-            { text: "🕺 LUISINHO INIMIGO DO FIM: Tomou 3 energéticos e vai dançar até no velório!", img: "https://i.postimg.cc/B6Cnh5GM/20250902-203254.jpg" },
-            { text: "💸 LUISINHO MAGNATA DO PIX: Caiu 2 reais na conta e já quer financiar uma Ferrari.", img: "https://i.postimg.cc/nV0LB1kw/Captura-de-tela-2025-12-09-153113.jpg" },
-            { text: "💅 LUISINHO BLOGUEIRINHA: Fazendo a pose pro print porque o deboche é meu sobrenome.", img: "https://i.postimg.cc/28WXPC6C/Captura-de-tela-2025-12-21-141211.png" },
-            { text: "🧐 LUISINHO ANALISTA: Te julgando silenciosamente por essa sua cara de sono.", img: "https://i.postimg.cc/pLNYMxFG/Captura-de-tela-2025-05-19-205622.png" },
-            { text: "🤡 LUISINHO CORINGOU: Rindo de nervoso porque o boleto venceu e você esqueceu.", img: "https://i.postimg.cc/Dz6qGXM2/Captura-de-tela-2025-06-11-233239.png" },
-            { text: "😲 LUISINHO PASSADO: Viu a fofoca e ficou em choque com o nível da audácia.", img: "https://i.postimg.cc/wjdJbVCW/Captura-de-tela-2025-12-20-172039.png" },
-            { text: "🤨 LUISINHO DESCONFIADO: Hummm, sei não hein... essa sua história tá mais mal contada!", img: "https://i.postimg.cc/CxVD67yh/Captura-de-tela-2025-12-20-172050.jpg" },
-            { text: "🤫 LUISINHO SIGILO TOTAL: Guardando o segredo que vai destruir a reputação de alguém.", img: "https://i.postimg.cc/HLYMTLsJ/Captura-de-tela-2025-12-20-172912.jpg" },
-            { text: "💀 LUISINHO ALMA SAINDO: Quando a segunda-feira chega e você ainda não superou o sábado.", img: "https://i.postimg.cc/zB3RRPh8/Captura-de-tela-2025-12-20-172946.png" },
-            { text: "🥴 LUISINHO PÓS-LIVE: A cara de quem não dorme há 3 dias por causa de vício em jogo.", img: "https://i.postimg.cc/W3tJJfZ7/Captura-de-tela-2025-12-20-173450.png" },
-            { text: "😶 LUISINHO SEM PALAVRAS: A burrice alheia às vezes atinge níveis astronômicos.", img: "https://i.postimg.cc/RF8J1QQB/Captura-de-tela-2025-12-20-173530.png" },
-            { text: "🔥 LUISINHO MODE ON: Se me irritar hoje, o barraco vai ser transmitido via satélite.", img: "https://i.postimg.cc/vTVg0g3D/Captura-de-tela-2025-12-20-173556.png" },
-            { text: "🎭 LUISINHO DRAMÁTICO: Sofrendo mais que vilão de novela mexicana porque o Wi-Fi caiu!", img: "https://i.postimg.cc/0yxZFmFS/Captura-de-tela-2025-05-19-212628.png" },
-            { text: "😎 LUISINHO DONO DA RAZÃO: Eu não discuto, eu apenas explico por que você está errado.", img: "https://i.postimg.cc/CKx7L0FR/Captura-de-tela-2025-06-02-143116.png" },
-            { text: "😴 LUISINHO DERROTADO: A vida bateu tanto hoje que o plano é só virar um vegetal.", img: "https://i.postimg.cc/908F2W0H/Captura-de-tela-2025-12-09-152444.jpg" },
-            { text: "🌽 LUISINHO 'TÔ NEM AÍ': O mundo pode acabar em fogo, eu vou estar aqui com meu milho.", img: "https://i.postimg.cc/jqZjPhcR/Captura-de-tela-2025-12-09-153135.jpg" },
-            { text: "🤯 LUISINHO PANE NO SISTEMA: Viu o preço da carne e a alma saiu do corpo!", img: "https://i.postimg.cc/GhtmQsgh/e1eef602-b7bb-42ee-bae8-f5f99b3ba7ec.jpg" },
-            { text: "🚀 LUISINHO ESTOURADO: Esquece, o pai tá viciado em vencer !", img: "https://i.postimg.cc/L6W606GB/Gemini-Generated-Image-t1rwy1t1rwy1t1rw.jpg" }
-        ];
-
-        function getCoords(e) {
+        // Adiciona partícula
+        const addParticle = (e) => {
+            if(!isConfettiRunning || confettiMisses >= 10) return;
+            const rect = confettiCanvas.getBoundingClientRect();
             const clientX = e.touches ? e.touches[0].clientX : e.clientX;
             const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-            return { clientX, clientY };
-        }
+            particles.push({
+                x: clientX - rect.left,
+                y: clientY - rect.top,
+                speed: -4 - Math.random() * 2,
+                color: `hsl(${Math.random()*360}, 100%, 50%)`
+            });
+        };
+        confettiCanvas.addEventListener('mousedown', addParticle);
+        confettiCanvas.addEventListener('touchstart', (e) => { e.preventDefault(); addParticle(e); }, {passive: false});
 
-        // --- Ranking Logic ---
-        async function saveScore(nick, score) {
-            if (!currentUser || !db) return;
-            const collectionRef = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('ranking');
-            try {
-                const snapshot = await collectionRef.get();
-                let existingDocId = null;
-                let oldScore = 0;
-                
-                snapshot.forEach(doc => {
-                    if (doc.data().userId === currentUser.uid) {
-                        existingDocId = doc.id;
-                        oldScore = doc.data().score || 0;
-                    }
-                });
+        function loopConfetti() {
+            if(!isConfettiRunning) return;
+            
+            ctxConfetti.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+            
+            // Lógica do Homem
+            man.x += man.dx; man.y += man.dy;
+            if(man.x < 0 || man.x > confettiCanvas.width - 150) man.dx *= -1;
+            if(man.y < 50 || man.y > confettiCanvas.height - 180) man.dy *= -1;
 
-                const finalNick = nick.trim() || 'Anónimo';
-                userNick = finalNick; // Atualiza globalmente
-
-                if (existingDocId) {
-                    await collectionRef.doc(existingDocId).update({
-                        nick: finalNick,
-                        score: Math.max(score, oldScore),
-                        timestamp: Date.now()
-                    });
-                } else {
-                    await collectionRef.add({
-                        userId: currentUser.uid, 
-                        nick: finalNick, 
-                        score: score, 
-                        timestamp: Date.now()
-                    });
-                }
-                showRanking();
-            } catch (e) { console.error("Falha ao salvar", e); }
-        }
-
-        function showRanking() {
-            const modal = document.getElementById('rankingModal');
-            const list = document.getElementById('rankingList');
-            if (!modal || !list) return;
-            modal.style.display = 'flex';
-            list.innerHTML = '<p class="text-gray-500 italic uppercase py-4">A carregar recordes...</p>';
-            if (!db) return;
-
-            const collectionRef = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('ranking');
-            collectionRef.onSnapshot((snapshot) => {
-                const umMesMs = 30 * 24 * 60 * 60 * 1000, agora = Date.now();
-                let data = [];
-                snapshot.forEach(doc => {
-                    const item = doc.data();
-                    if (agora - item.timestamp < umMesMs) data.push(item);
-                });
-                data.sort((a, b) => b.score - a.score);
-                list.innerHTML = data.length ? '' : '<p class="text-gray-400 uppercase font-bold py-4">Ranking Vazio!</p>';
-                data.slice(0, 15).forEach((item, index) => {
-                    const isMe = currentUser && item.userId === currentUser.uid;
-                    list.innerHTML += `
-                        <div class="flex justify-between items-center bg-gray-100 p-2 rounded border-l-4 ${isMe ? 'border-indigo-600 bg-indigo-50' : (index === 0 ? 'border-yellow-400' : 'border-teal-500')} mb-1 shadow-sm">
-                            <span class="font-bold text-gray-700 text-sm truncate max-w-[150px]">${index + 1}º ${item.nick || 'Anónimo'} ${isMe ? '(Tu)' : ''}</span>
-                            <span class="font-black text-teal-600 text-sm">${item.score} pts</span>
-                        </div>
-                    `;
-                });
-            }, (error) => console.log("Erro no ranking:", error));
-        }
-
-        window.closeRanking = () => { document.getElementById('rankingModal').style.display = 'none'; };
-
-        // --- Render: Confetche ---
-        function renderConfetti() {
-            const content = document.getElementById('gameContent');
-            content.innerHTML = `
-                <div id="gameOverOverlay" class="p-6">
-                    <img src="https://i.postimg.cc/LsVbsvKL/luis-gifdedo.gif" class="max-w-[180px] mb-4 rounded-lg shadow-2xl border-4 border-red-500">
-                    <h2 class="text-2xl font-black text-red-600 uppercase mb-2 italic text-center">Perdeu seu Boloio</h2>
-                    <input id="playerNick" type="text" value="${userNick}" placeholder="Teu Nick..." class="border-4 border-teal-500 p-3 rounded-xl mb-4 text-center outline-none w-full font-bold uppercase shadow-inner">
-                    <button id="saveBtn" class="w-full bg-teal-600 text-white font-black py-4 px-8 rounded-xl uppercase shadow-lg hover:bg-teal-700 transition active:scale-95">💾 Salvar Nick e Pontos</button>
-                    <button onclick="resetConfetti()" class="mt-6 text-sm text-gray-500 font-bold uppercase underline">Jogar de novo</button>
-                </div>
-                <h2 class="text-xl font-black text-teal-700 uppercase mb-2">Festa do Confete!</h2>
-                <div class="flex items-center justify-center gap-3 mb-2">
-                    <div class="font-bold text-lg text-teal-800">PONTOS: <span id="scoreDisplay">${confettiScore}</span></div>
-                    <button onclick="showRanking()" class="bg-teal-100 p-2 rounded-full border-2 border-teal-300 hover:bg-teal-200 transition shadow-sm active:scale-90" title="Ver Ranking">🏆</button>
-                    <div class="text-xs font-bold text-red-500">ERROS: <span id="missDisplay">${confettiMisses}</span>/10</div>
-                </div>
-                <canvas id="confettiCanvas"></canvas>
-            `;
-            const canvas = document.getElementById('confettiCanvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = canvas.offsetWidth; canvas.height = 450;
-            let particles = [];
-            let man = { x: canvas.width/2 - 100, y: canvas.height - 240, dx: 3, dy: 2, open: false, isCoughing: false, coughStage: 0 };
-            let lastUpdate = Date.now();
-            const addP = (e) => {
-                if (currentGame !== 'confetti' || confettiMisses >= 10) return;
-                const r = canvas.getBoundingClientRect(), c = getCoords(e);
-                particles.push({ x: c.clientX - r.left, y: c.clientY - r.top, speed: -5, color: `hsl(${Math.random()*360}, 100%, 50%)` });
-            };
-            canvas.onmousedown = addP; canvas.ontouchstart = (e) => { e.preventDefault(); addP(e); };
-            function loop() {
-                if (currentGame !== 'confetti') return;
-                if (confettiMisses >= 10) {
-                    const ov = document.getElementById('gameOverOverlay'); if(ov) ov.style.display = 'flex';
-                    const inp = document.getElementById('playerNick'); if(inp) inp.value = userNick;
-                    return;
-                }
-                ctx.clearRect(0,0,canvas.width, canvas.height);
-                man.x += man.dx; if (man.x + 200 > canvas.width || man.x < 0) man.dx *= -1;
-                man.y += man.dy; if (man.y + 240 > canvas.height || man.y < canvas.height/4) man.dy *= -1;
-                if (!man.isCoughing && Date.now() - lastUpdate > 1200) { man.open = !man.open; lastUpdate = Date.now(); }
-                let img = man.isCoughing ? (man.coughStage === 1 ? manImages.cough : manImages.cough2) : (man.open ? manImages.open : manImages.idle);
-                ctx.drawImage(img, man.x, man.y, 200, 240);
-                particles.forEach((p, i) => {
-                    p.y += p.speed; ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, 6, 0, Math.PI*2); ctx.fill();
-                    const bx = man.x + 50, bw = 100, by = man.y, bh = 100;
-                    if (p.x > bx && p.x < bx + bw && p.y > by && p.y < by + bh) {
-                        confettiScore++; document.getElementById('scoreDisplay').innerText = confettiScore;
-                        particles.splice(i, 1); man.isCoughing = true; man.coughStage = 1;
-                        setTimeout(() => man.coughStage = 2, 200); setTimeout(() => { man.isCoughing = false; lastUpdate = Date.now(); }, 400);
-                    } else if (p.y < 0) {
-                        confettiMisses++; document.getElementById('missDisplay').innerText = confettiMisses; particles.splice(i, 1);
-                    }
-                });
-                confettiGameInstance = requestAnimationFrame(loop);
+            if(man.state !== 'cough') {
+                if(Date.now() % 2000 < 1000) man.state = 'open';
+                else man.state = 'idle';
+            } else {
+                man.timer--;
+                if(man.timer <= 0) man.state = 'idle';
             }
-            loop();
-            const saveBtn = document.getElementById('saveBtn');
-            if(saveBtn) saveBtn.onclick = async () => { 
-                const nickInput = document.getElementById('playerNick').value;
-                saveBtn.innerText = "⌛ A GUARDAR...";
-                saveBtn.disabled = true;
-                await saveScore(nickInput, confettiScore); 
-                resetConfetti(); 
-            };
+
+            let currentImg = man.state === 'cough' ? imgs.cough : (man.state === 'open' ? imgs.open : imgs.idle);
+            ctxConfetti.drawImage(currentImg, man.x, man.y, 150, 180);
+
+            // Partículas
+            for (let i = particles.length - 1; i >= 0; i--) {
+                let p = particles[i];
+                p.y += p.speed;
+                ctxConfetti.fillStyle = p.color;
+                ctxConfetti.beginPath();
+                ctxConfetti.arc(p.x, p.y, 6, 0, Math.PI*2);
+                ctxConfetti.fill();
+
+                // Colisão simples
+                if (p.x > man.x + 40 && p.x < man.x + 110 && p.y > man.y + 40 && p.y < man.y + 100) {
+                    confettiScore++;
+                    document.getElementById('scoreDisplay').innerText = confettiScore;
+                    man.state = 'cough'; man.timer = 20;
+                    particles.splice(i, 1);
+                } else if (p.y < -10) {
+                    confettiMisses++;
+                    document.getElementById('missDisplay').innerText = confettiMisses;
+                    particles.splice(i, 1);
+                    if(confettiMisses >= 10) gameOver();
+                }
+            }
+
+            requestAnimationFrame(loopConfetti);
         }
 
-        window.resetConfetti = () => { confettiScore = 0; confettiMisses = 0; renderConfetti(); };
-
-        // --- Customizador de Rosto ---
-        function renderFaceCustomizer() {
-            const content = document.getElementById('gameContent');
-            currentTool = 'select';
-
-            content.innerHTML = `
-                <div id="faceCustomizer">
-                    <div class="drawing-controls">
-                        <button id="toolSelect" class="tool-btn active uppercase">👆 MOVER</button>
-                        <button id="toolBrush" class="tool-btn uppercase">🖌️ PINCEL</button>
-                        <button id="toolEraser" class="tool-btn uppercase">🧽 APAGAR</button>
-                        <input type="color" id="brushColor" value="#000000" class="h-8 w-8 cursor-pointer border-none p-0">
-                        <button id="clearBtn" class="bg-red-500 text-white px-3 py-2 rounded shadow text-xs font-bold uppercase hover:bg-red-600 transition">Limpar</button>
-                    </div>
-                    <div id="drawingArea"><canvas id="drawingCanvas"></canvas></div>
-                    <div id="accessoriesContainer"></div>
-                </div>
-            `;
-            const area = document.getElementById('drawingArea'), canvas = document.getElementById('drawingCanvas'), ctx = canvas.getContext('2d');
-            let drawing = false;
-
-            const deselectAll = () => {
-                document.querySelectorAll('.accessory-wrapper').forEach(w => w.classList.remove('active'));
-            };
-
-            setTimeout(() => {
-                canvas.width = area.offsetWidth; 
-                canvas.height = area.offsetHeight;
-                
-                area.onclick = (e) => {
-                    if (e.target === area || e.target === canvas) deselectAll();
-                };
-
-                const setT = (t) => { 
-                    currentTool = t; 
-                    document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active')); 
-                    const btnId = 'tool' + t.charAt(0).toUpperCase() + t.slice(1);
-                    const btn = document.getElementById(btnId);
-                    if(btn) btn.classList.add('active'); 
-                    canvas.classList.toggle('drawing-active', t !== 'select'); 
-                    if(t !== 'select') deselectAll();
-                };
-
-                document.getElementById('toolSelect').onclick = () => setT('select'); 
-                document.getElementById('toolBrush').onclick = () => setT('brush'); 
-                document.getElementById('toolEraser').onclick = () => setT('eraser');
-                
-                document.getElementById('clearBtn').onclick = () => { 
-                    ctx.clearRect(0,0,canvas.width, canvas.height); 
-                    document.querySelectorAll('.accessory-wrapper').forEach(w => w.remove()); 
-                };
-
-                const sD = (e) => { 
-                    if(currentTool === 'select') return; 
-                    drawing = true; 
-                    const rect = canvas.getBoundingClientRect(), c = getCoords(e); 
-                    ctx.beginPath(); ctx.moveTo(c.clientX - rect.left, c.clientY - rect.top); 
-                };
-                
-                const dM = (e) => { 
-                    if(!drawing) return; 
-                    const rect = canvas.getBoundingClientRect(), c = getCoords(e); 
-                    ctx.lineWidth = 5; ctx.lineCap = 'round'; ctx.strokeStyle = document.getElementById('brushColor').value; 
-                    ctx.globalCompositeOperation = currentTool === 'eraser' ? 'destination-out' : 'source-over'; 
-                    ctx.lineTo(c.clientX - rect.left, c.clientY - rect.top); ctx.stroke(); 
-                };
-
-                canvas.onmousedown = sD; 
-                canvas.ontouchstart = (e) => { if(currentTool !== 'select') e.preventDefault(); sD(e); }; 
-                canvas.onmousemove = dM; 
-                canvas.ontouchmove = (e) => { if(currentTool !== 'select') e.preventDefault(); dM(e); }; 
-                window.onmouseup = window.ontouchend = () => drawing = false;
-
-                const cont = document.getElementById('accessoriesContainer');
-                ALL_ACCESSORIES.forEach(acc => {
-                    const div = document.createElement('div'); div.className = 'accessory-item shadow-sm hover:scale-105 transition'; div.innerHTML = `<img src="${acc.src}">`;
-                    div.onclick = () => {
-                        const wrap = document.createElement('div'); 
-                        wrap.className = 'accessory-wrapper'; 
-                        wrap.style.width = '120px'; wrap.style.height = '120px'; 
-                        wrap.style.left = '50px'; wrap.style.top = '50px';
-                        wrap.innerHTML = `<img src="${acc.src}"><div class="delete-handle">X</div><div class="resize-handle"></div>`;
-                        
-                        let drag = false, resiz = false, sX, sY, sW, sH;
-
-                        const onS = (e) => {
-                            if(currentTool !== 'select') return;
-                            e.stopPropagation(); 
-                            deselectAll();
-                            wrap.classList.add('active');
-                            const co = getCoords(e); sX = co.clientX; sY = co.clientY; sW = wrap.offsetWidth; sH = wrap.offsetHeight;
-                            if (e.target.classList.contains('delete-handle')) { wrap.remove(); return; }
-                            if (e.target.classList.contains('resize-handle')) { resiz = true; drag = false; }
-                            else { 
-                                drag = true; resiz = false; 
-                                wrap.dataset.oX = co.clientX - wrap.offsetLeft; 
-                                wrap.dataset.oY = co.clientY - wrap.offsetTop; 
-                            }
-                            const onM = (me) => {
-                                if(me.touches) me.preventDefault(); 
-                                const mc = getCoords(me);
-                                if (drag) { wrap.style.left = (mc.clientX - wrap.dataset.oX) + 'px'; wrap.style.top = (mc.clientY - wrap.dataset.oY) + 'px'; }
-                                else if (resiz) { wrap.style.width = Math.max(30, sW + (mc.clientX - sX)) + 'px'; wrap.style.height = Math.max(30, sH + (mc.clientY - sY)) + 'px'; }
-                            };
-                            const onE = () => { drag = resiz = false; document.removeEventListener('mousemove', onM); document.removeEventListener('mouseup', onE); document.removeEventListener('touchmove', onM); document.removeEventListener('touchend', onE); };
-                            document.addEventListener('mousemove', onM); document.addEventListener('mouseup', onE); 
-                            document.addEventListener('touchmove', onM, {passive: false}); document.addEventListener('touchend', onE);
-                        };
-                        wrap.onmousedown = onS; 
-                        wrap.ontouchstart = (e) => { if(currentTool === 'select') { e.preventDefault(); onS(e); } }; 
-                        area.appendChild(wrap);
-                    }; 
-                    cont.appendChild(div);
-                });
-            }, 150);
+        function gameOver() {
+            isConfettiRunning = false;
+            document.getElementById('gameOverOverlay').classList.remove('hidden');
+            document.getElementById('gameOverOverlay').classList.add('flex');
+            if(document.getElementById('playerNick')) document.getElementById('playerNick').value = userNick;
         }
 
-        window.sortearMeme = function() {
-            const txt = document.getElementById('meme-txt'), img = document.getElementById('meme-img');
-            txt.innerText = "🧿 A ANALISAR O TEU NÍVEL DE CAOS..."; img.style.display = 'none';
-            setTimeout(() => {
-                const item = MEMES_DATABASE[Math.floor(Math.random() * MEMES_DATABASE.length)];
-                txt.innerText = item.text; img.src = item.img; img.style.display = 'block';
-                const d = document.getElementById('display-meme'); d.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
-                setTimeout(() => d.style.backgroundColor = 'rgba(30, 27, 75, 0.5)', 200);
-            }, 1000);
+        window.resetConfetti = () => {
+            confettiScore = 0; confettiMisses = 0; particles = [];
+            document.getElementById('scoreDisplay').innerText = 0;
+            document.getElementById('missDisplay').innerText = 0;
+            document.getElementById('gameOverOverlay').classList.add('hidden');
+            document.getElementById('gameOverOverlay').classList.remove('flex');
+            isConfettiRunning = true;
+            loopConfetti();
         };
 
-        function renderOraculo() {
-            document.getElementById('gameContent').innerHTML = `
-                <div class="bg-indigo-900 p-6 rounded-2xl text-white text-center shadow-xl border-4 border-purple-500">
-                    <h2 class="text-xl font-black mb-4 uppercase">🔮 QUE LUISINHO VC É HOJE?</h2>
-                    <div id="display-meme" class="min-h-[350px] flex flex-col items-center justify-center bg-indigo-950/50 rounded-lg p-4 mb-4 border border-indigo-400/30 transition-all">
-                        <p id="meme-txt" class="text-yellow-300 font-bold mb-4 text-md uppercase font-black italic px-2 text-center">VAMOS VER O QUÃO ESTRAGADO TU ESTÁS HOJE!</p>
-                        <img id="meme-img" src="" class="max-h-[250px] rounded-lg hidden shadow-2xl border-2 border-white object-contain">
-                    </div>
-                    <button onclick="sortearMeme()" class="w-full py-5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 font-black rounded-xl active:scale-95 transition shadow-lg text-lg uppercase italic">
-                        🔥 REVELAR O MEU ESTADO!
-                    </button>
-                </div>
+        // Salvar Ranking
+        document.getElementById('saveBtn').onclick = async () => {
+            const nick = document.getElementById('playerNick').value || 'Anônimo';
+            const btn = document.getElementById('saveBtn');
+            btn.innerText = "SALVANDO...";
+            
+            try {
+                // Remove recorde anterior se existir (simplificado: apenas adiciona novo por simplicidade ou atualiza)
+                // Usando lógica de adicionar novo documento para histórico
+                await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('ranking').add({
+                    userId: user.uid,
+                    nick: nick,
+                    score: confettiScore,
+                    timestamp: Date.now()
+                });
+                userNick = nick;
+                resetConfetti();
+            } catch(e) { console.error(e); }
+            btn.innerText = "SALVAR PONTOS";
+        };
+
+        // --- JOGO 2: CUSTOMIZADOR OTIMIZADO ---
+        let customizerInitialized = false;
+        let drawingCanvas, drawingCtx, currentTool = 'select';
+        let isDrawing = false;
+        let canvasRect = null; // CACHE IMPORTANTE
+
+        const accessories = [
+            { src: "https://i.postimg.cc/XvxPGjJw/perucawws.png" },
+            { src: "https://i.postimg.cc/XJJz9RGt/perucas.png" },
+            { src: "https://i.postimg.cc/N0w4gWkT/Captura-de-tela-2025-11-30-190254.png" },
+            { src: "https://i.postimg.cc/MGcKZpq9/a214595cb778d15d02a04495c94e14b3.png" },
+            { src: "https://i.postimg.cc/kDrY3D1P/SACO-OVO.png" },
+            { src: "https://i.postimg.cc/m2j4BwSM/bigode.png" },
+            { src: "https://i.postimg.cc/XY2nc8Gd/make.png" },
+            { src: "https://i.postimg.cc/D058JpDM/ddddddd.png" },
+            { src: "https://i.postimg.cc/RZkLGqsZ/Captura-de-tela-2025-11-30-195023.png" },
+            { src: "https://i.postimg.cc/MpjnsHR1/Captura-de-tela-2025-11-30-191447.png" }
+        ];
+
+        function initCustomizerOnce() {
+            if (customizerInitialized) return;
+            customizerInitialized = true;
+
+            drawingCanvas = document.getElementById('drawingCanvas');
+            drawingCtx = drawingCanvas.getContext('2d');
+            const area = document.getElementById('drawingArea');
+
+            // Ajusta tamanho do canvas (IMPORTANTE: Fazer isso uma vez evita blur)
+            drawingCanvas.width = area.offsetWidth;
+            drawingCanvas.height = area.offsetHeight;
+
+            // Preenche menu de acessórios
+            const container = document.getElementById('accessoriesContainer');
+            accessories.forEach(acc => {
+                const img = document.createElement('img');
+                img.src = acc.src;
+                img.className = 'accessory-item';
+                img.onclick = () => addAccessory(acc.src);
+                container.appendChild(img);
+            });
+
+            // Eventos de Desenho OTIMIZADOS
+            const startDraw = (e) => {
+                if (currentTool === 'select') return;
+                isDrawing = true;
+                
+                // ATUALIZA RECT AQUI, NÃO NO MOVE
+                canvasRect = drawingCanvas.getBoundingClientRect();
+                
+                drawingCtx.beginPath();
+                const x = (e.touches ? e.touches[0].clientX : e.clientX) - canvasRect.left;
+                const y = (e.touches ? e.touches[0].clientY : e.clientY) - canvasRect.top;
+                drawingCtx.moveTo(x, y);
+            };
+
+            const moveDraw = (e) => {
+                if (!isDrawing || currentTool === 'select') return;
+                // e.preventDefault() já é tratado pelo passive: false ou touch-action css
+                
+                const x = (e.touches ? e.touches[0].clientX : e.clientX) - canvasRect.left;
+                const y = (e.touches ? e.touches[0].clientY : e.clientY) - canvasRect.top;
+
+                drawingCtx.lineTo(x, y);
+                drawingCtx.strokeStyle = document.getElementById('brushColor').value;
+                drawingCtx.lineWidth = 5;
+                drawingCtx.lineCap = 'round';
+                drawingCtx.globalCompositeOperation = currentTool === 'eraser' ? 'destination-out' : 'source-over';
+                drawingCtx.stroke();
+            };
+
+            const endDraw = () => { isDrawing = false; };
+
+            drawingCanvas.addEventListener('mousedown', startDraw);
+            drawingCanvas.addEventListener('mousemove', moveDraw);
+            window.addEventListener('mouseup', endDraw);
+
+            drawingCanvas.addEventListener('touchstart', (e) => { 
+                if(currentTool !== 'select') e.preventDefault(); 
+                startDraw(e); 
+            }, {passive: false});
+            
+            drawingCanvas.addEventListener('touchmove', (e) => { 
+                if(currentTool !== 'select') e.preventDefault(); 
+                moveDraw(e); 
+            }, {passive: false});
+            
+            window.addEventListener('touchend', endDraw);
+
+            // Clique na área deseleciona itens
+            area.addEventListener('click', (e) => {
+                if(e.target === area || e.target === drawingCanvas) {
+                    document.querySelectorAll('.accessory-wrapper').forEach(el => el.classList.remove('active'));
+                }
+            });
+        }
+
+        window.setTool = (tool) => {
+            currentTool = tool;
+            document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(`btn-${tool}`).classList.add('active');
+            
+            const canvas = document.getElementById('drawingCanvas');
+            if(tool === 'select') {
+                canvas.classList.remove('drawing-active');
+            } else {
+                canvas.classList.add('drawing-active');
+                // Deseleciona acessórios ao entrar em modo desenho
+                document.querySelectorAll('.accessory-wrapper').forEach(el => el.classList.remove('active'));
+            }
+        };
+
+        window.clearCanvas = () => {
+            if(drawingCtx) drawingCtx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+            document.querySelectorAll('.accessory-wrapper').forEach(el => el.remove());
+        };
+
+        function addAccessory(src) {
+            const area = document.getElementById('drawingArea');
+            const wrapper = document.createElement('div');
+            wrapper.className = 'accessory-wrapper active';
+            wrapper.style.left = '50px';
+            wrapper.style.top = '50px';
+            wrapper.style.width = '100px';
+            wrapper.style.height = '100px';
+            
+            wrapper.innerHTML = `
+                <img src="${src}">
+                <div class="handle delete-handle">X</div>
+                <div class="handle resize-handle"></div>
             `;
+
+            // Lógica de Arrastar OTIMIZADA
+            let isDragging = false, isResizing = false;
+            let startX, startY, startW, startH, initialLeft, initialTop;
+
+            const onStart = (e) => {
+                if(currentTool !== 'select') return;
+                e.stopPropagation(); // Evita desenhar
+                
+                // Ativa este, desativa outros
+                document.querySelectorAll('.accessory-wrapper').forEach(el => el.classList.remove('active'));
+                wrapper.classList.add('active');
+
+                if (e.target.classList.contains('delete-handle')) {
+                    wrapper.remove();
+                    return;
+                }
+
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+                if (e.target.classList.contains('resize-handle')) {
+                    isResizing = true;
+                    startW = wrapper.offsetWidth;
+                    startH = wrapper.offsetHeight;
+                    startX = clientX;
+                    startY = clientY;
+                } else {
+                    isDragging = true;
+                    startX = clientX;
+                    startY = clientY;
+                    initialLeft = wrapper.offsetLeft;
+                    initialTop = wrapper.offsetTop;
+                }
+            };
+
+            const onMove = (e) => {
+                if (!isDragging && !isResizing) return;
+                e.preventDefault(); // Importante no mobile
+
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+                if (isDragging) {
+                    const dx = clientX - startX;
+                    const dy = clientY - startY;
+                    wrapper.style.left = `${initialLeft + dx}px`;
+                    wrapper.style.top = `${initialTop + dy}px`;
+                } else if (isResizing) {
+                    const dx = clientX - startX;
+                    // Mantém proporção simples
+                    const newW = Math.max(30, startW + dx);
+                    wrapper.style.width = `${newW}px`;
+                    wrapper.style.height = `${newW}px`; // Mantém quadrado/proporcional
+                }
+            };
+
+            const onEnd = () => { isDragging = false; isResizing = false; };
+
+            wrapper.addEventListener('mousedown', onStart);
+            wrapper.addEventListener('touchstart', onStart, {passive: false});
+            
+            // Adiciona listeners globais temporários para movimento suave
+            window.addEventListener('mousemove', onMove);
+            window.addEventListener('touchmove', onMove, {passive: false});
+            window.addEventListener('mouseup', onEnd);
+            window.addEventListener('touchend', onEnd);
+
+            area.appendChild(wrapper);
         }
 
-        function switchGame(name) {
-            currentGame = name; cancelAnimationFrame(confettiGameInstance);
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.game === name));
-            if (name === 'confetti') renderConfetti();
-            else if (name === 'faceCustomizer') renderFaceCustomizer();
-            else if (name === 'oraculo') renderOraculo();
-        }
+        // --- JOGO 3: ORÁCULO OTIMIZADO (SEM REPETIÇÕES) ---
+        const MEMES = [
+            { text: "🦁 LUISINHO FULL PISTOLA", img: "https://i.postimg.cc/fLsbj21L/642e8812-6b1b-4da5-8654-43fed94f3ac5.jpg" },
+            { text: "🕺 LUISINHO DANÇARINO", img: "https://i.postimg.cc/B6Cnh5GM/20250902-203254.jpg" },
+            { text: "💸 LUISINHO MAGNATA", img: "https://i.postimg.cc/nV0LB1kw/Captura-de-tela-2025-12-09-153113.jpg" },
+            { text: "💅 LUISINHO DEBOCHADO", img: "https://i.postimg.cc/28WXPC6C/Captura-de-tela-2025-12-21-141211.png" },
+            { text: "😴 LUISINHO COM SONO", img: "https://i.postimg.cc/pLNYMxFG/Captura-de-tela-2025-05-19-205622.png" },
+            { text: "🤡 LUISINHO PALHAÇO", img: "https://i.postimg.cc/Dz6qGXM2/Captura-de-tela-2025-06-11-233239.png" },
+            { text: "🧐 LUISINHO ANALISTA", img: "https://i.postimg.cc/pLNYMxFG/Captura-de-tela-2025-05-19-205622.png" },
+            { text: "😲 LUISINHO PASSADO", img: "https://i.postimg.cc/wjdJbVCW/Captura-de-tela-2025-12-20-172039.png" },
+            { text: "🤨 LUISINHO DESCONFIADO", img: "https://i.postimg.cc/CxVD67yh/Captura-de-tela-2025-12-20-172050.jpg" },
+            { text: "🤫 LUISINHO SIGILO TOTAL", img: "https://i.postimg.cc/HLYMTLsJ/Captura-de-tela-2025-12-20-172912.jpg" },
+            { text: "💀 LUISINHO ALMA SAINDO", img: "https://i.postimg.cc/zB3RRPh8/Captura-de-tela-2025-12-20-172946.png" },
+            { text: "🥴 LUISINHO PÓS-LIVE", img: "https://i.postimg.cc/W3tJJfZ7/Captura-de-tela-2025-12-20-173450.png" },
+            { text: "😶 LUISINHO SEM PALAVRAS", img: "https://i.postimg.cc/RF8J1QQB/Captura-de-tela-2025-12-20-173530.png" },
+            { text: "🔥 LUISINHO MODE ON", img: "https://i.postimg.cc/vTVg0g3D/Captura-de-tela-2025-12-20-173556.png" },
+            { text: "🎭 LUISINHO DRAMÁTICO", img: "https://i.postimg.cc/0yxZFmFS/Captura-de-tela-2025-05-19-212628.png" },
+            { text: "😎 LUISINHO DONO DA RAZÃO", img: "https://i.postimg.cc/CKx7L0FR/Captura-de-tela-2025-06-02-143116.png" },
+            { text: "🌽 LUISINHO 'TÔ NEM AÍ'", img: "https://i.postimg.cc/jqZjPhcR/Captura-de-tela-2025-12-09-153135.jpg" },
+            { text: "🤯 LUISINHO PANE NO SISTEMA", img: "https://i.postimg.cc/GhtmQsgh/e1eef602-b7bb-42ee-bae8-f5f99b3ba7ec.jpg" },
+            { text: "🚀 LUISINHO ESTOURADO", img: "https://i.postimg.cc/L6W606GB/Gemini-Generated-Image-t1rwy1t1rwy1t1rw.jpg" }
+        ];
 
-        document.getElementById('tabMenu').onclick = (e) => { if (e.target.dataset.game) switchGame(e.target.dataset.game); };
+        let lastMemeIndex = -1;
 
-        window.onload = async () => { await initFirebase(); switchGame('confetti'); };
+        window.revealMeme = () => {
+            const txt = document.getElementById('meme-txt');
+            const img = document.getElementById('meme-img');
+            
+            txt.innerText = "🔮 Consultando os astros...";
+            img.classList.add('hidden');
+            
+            setTimeout(() => {
+                let newIndex;
+                // Garante que o novo índice não seja igual ao anterior
+                do {
+                    newIndex = Math.floor(Math.random() * MEMES.length);
+                } while (newIndex === lastMemeIndex && MEMES.length > 1);
+                
+                lastMemeIndex = newIndex;
+                const random = MEMES[newIndex];
+                
+                txt.innerText = random.text;
+                img.src = random.img;
+                img.onload = () => img.classList.remove('hidden');
+            }, 800);
+        };
+
+        // --- RANKING ---
+        window.openRanking = () => {
+            document.getElementById('rankingModal').style.display = 'flex';
+            const list = document.getElementById('rankingList');
+            list.innerHTML = '<p class="text-center text-gray-500">Carregando...</p>';
+            
+            db.collection('artifacts').doc(appId).collection('public').doc('data').collection('ranking')
+                .orderBy('score', 'desc')
+                .limit(20)
+                .get()
+                .then(snap => {
+                    list.innerHTML = '';
+                    if(snap.empty) { list.innerHTML = '<p class="text-center">Sem recordes ainda!</p>'; return; }
+                    
+                    snap.forEach((doc, idx) => {
+                        const d = doc.data();
+                        const isMe = user && d.userId === user.uid;
+                        list.innerHTML += `
+                            <div class="flex justify-between items-center p-3 rounded ${isMe ? 'bg-indigo-100 border-l-4 border-indigo-500' : 'bg-gray-100'}">
+                                <span class="font-bold text-gray-700">${idx+1}. ${d.nick}</span>
+                                <span class="font-black text-teal-600">${d.score}</span>
+                            </div>
+                        `;
+                    });
+                });
+        };
+        
+        window.closeRanking = () => document.getElementById('rankingModal').style.display = 'none';
+
+        // Inicializa
+        window.onload = () => {
+            initFirebase();
+            switchGame('confetti');
+        };
+
     </script>
 </body>
 </html>
