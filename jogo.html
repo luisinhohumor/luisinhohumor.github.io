@@ -315,20 +315,23 @@
             document.getElementById(`game-${gameId}`).classList.add('active');
             
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            // Encontra o botão que chamou (aproximação simples)
             const btns = document.querySelectorAll('.tab-btn');
-            if(gameId === 'confetti') btns[0].classList.add('active');
+            
+            if(gameId === 'confetti') {
+                btns[0].classList.add('active');
+                // Correção: Força redimensionamento após o layout estar visível
+                requestAnimationFrame(() => {
+                    resizeConfetti();
+                    isConfettiRunning = true;
+                    loopConfetti();
+                });
+            }
             if(gameId === 'customizer') {
                 btns[1].classList.add('active');
-                initCustomizerOnce(); // Inicializa canvas apenas se necessário e UMA VEZ
+                initCustomizerOnce();
             }
-            if(gameId === 'oraculo') btns[2].classList.add('active');
-
-            // Pausa ou retoma Confetti para economizar bateria
-            if (gameId === 'confetti') {
-                isConfettiRunning = true;
-                loopConfetti();
-            } else {
+            if(gameId === 'oraculo') {
+                btns[2].classList.add('active');
                 isConfettiRunning = false;
             }
         }
@@ -349,12 +352,23 @@
         imgs.cough.src = 'https://i.postimg.cc/jS0bKFrB/tosse-esse-sim.png';
 
         function resizeConfetti() {
-            confettiCanvas.width = confettiCanvas.offsetWidth;
-            confettiCanvas.height = confettiCanvas.offsetHeight;
+            // Garante que o canvas pegue o tamanho real, mesmo se carregou oculto
+            const rect = confettiCanvas.getBoundingClientRect();
+            if (rect.width > 0) {
+                confettiCanvas.width = rect.width;
+                confettiCanvas.height = 400; // Força altura fixa do CSS
+            } else {
+                // Fallback se rect for 0 (elemento oculto)
+                confettiCanvas.width = confettiCanvas.parentElement.offsetWidth || 300;
+                confettiCanvas.height = 400;
+            }
+
+            // Centraliza o boneco se ele estiver fora da tela
+            if (man.x > confettiCanvas.width - 150 || man.x < 0) man.x = (confettiCanvas.width / 2) - 75;
+            if (man.y > confettiCanvas.height - 180 || man.y < 0) man.y = 200;
         }
         window.addEventListener('resize', resizeConfetti);
-        resizeConfetti();
-
+        
         // Adiciona partícula
         const addParticle = (e) => {
             if(!isConfettiRunning || confettiMisses >= 10) return;
@@ -376,11 +390,15 @@
             
             ctxConfetti.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
             
-            // Lógica do Homem
-            man.x += man.dx; man.y += man.dy;
-            if(man.x < 0 || man.x > confettiCanvas.width - 150) man.dx *= -1;
-            if(man.y < 50 || man.y > confettiCanvas.height - 180) man.dy *= -1;
+            // Lógica do Homem com limites de tela seguros
+            man.x += man.dx; 
+            man.y += man.dy;
 
+            // Colisões com as bordas (com margem de segurança)
+            if(man.x <= 0 || man.x >= confettiCanvas.width - 150) man.dx *= -1;
+            if(man.y <= 20 || man.y >= confettiCanvas.height - 180) man.dy *= -1;
+
+            // Animação de estado
             if(man.state !== 'cough') {
                 if(Date.now() % 2000 < 1000) man.state = 'open';
                 else man.state = 'idle';
@@ -390,7 +408,10 @@
             }
 
             let currentImg = man.state === 'cough' ? imgs.cough : (man.state === 'open' ? imgs.open : imgs.idle);
-            ctxConfetti.drawImage(currentImg, man.x, man.y, 150, 180);
+            // Desenha a imagem
+            if (currentImg.complete) {
+                ctxConfetti.drawImage(currentImg, man.x, man.y, 150, 180);
+            }
 
             // Partículas
             for (let i = particles.length - 1; i >= 0; i--) {
@@ -427,11 +448,16 @@
 
         window.resetConfetti = () => {
             confettiScore = 0; confettiMisses = 0; particles = [];
+            // Reseta posição do boneco para o centro para evitar bugs
+            man.x = (confettiCanvas.width / 2) - 75;
+            man.y = 200;
+            
             document.getElementById('scoreDisplay').innerText = 0;
             document.getElementById('missDisplay').innerText = 0;
             document.getElementById('gameOverOverlay').classList.add('hidden');
             document.getElementById('gameOverOverlay').classList.remove('flex');
             isConfettiRunning = true;
+            resizeConfetti(); // Garante tamanho correto
             loopConfetti();
         };
 
@@ -442,8 +468,6 @@
             btn.innerText = "SALVANDO...";
             
             try {
-                // Remove recorde anterior se existir (simplificado: apenas adiciona novo por simplicidade ou atualiza)
-                // Usando lógica de adicionar novo documento para histórico
                 await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('ranking').add({
                     userId: user.uid,
                     nick: nick,
@@ -659,25 +683,25 @@
 
         // --- JOGO 3: ORÁCULO OTIMIZADO (SEM REPETIÇÕES) ---
         const MEMES = [
-            { text: "🦁 LUISINHO FULL PISTOLA", img: "https://i.postimg.cc/fLsbj21L/642e8812-6b1b-4da5-8654-43fed94f3ac5.jpg" },
-            { text: "🕺 LUISINHO DANÇARINO", img: "https://i.postimg.cc/B6Cnh5GM/20250902-203254.jpg" },
-            { text: "💸 LUISINHO MAGNATA", img: "https://i.postimg.cc/nV0LB1kw/Captura-de-tela-2025-12-09-153113.jpg" },
-            { text: "💅 LUISINHO DEBOCHADO", img: "https://i.postimg.cc/28WXPC6C/Captura-de-tela-2025-12-21-141211.png" },
-            { text: "😴 LUISINHO COM SONO", img: "https://i.postimg.cc/pLNYMxFG/Captura-de-tela-2025-05-19-205622.png" },
-            { text: "🤡 LUISINHO PALHAÇO", img: "https://i.postimg.cc/Dz6qGXM2/Captura-de-tela-2025-06-11-233239.png" },
-            { text: "🧐 LUISINHO ANALISTA", img: "https://i.postimg.cc/pLNYMxFG/Captura-de-tela-2025-05-19-205622.png" },
-            { text: "😲 LUISINHO PASSADO", img: "https://i.postimg.cc/wjdJbVCW/Captura-de-tela-2025-12-20-172039.png" },
-            { text: "🤨 LUISINHO DESCONFIADO", img: "https://i.postimg.cc/CxVD67yh/Captura-de-tela-2025-12-20-172050.jpg" },
-            { text: "🤫 LUISINHO SIGILO TOTAL", img: "https://i.postimg.cc/HLYMTLsJ/Captura-de-tela-2025-12-20-172912.jpg" },
-            { text: "💀 LUISINHO ALMA SAINDO", img: "https://i.postimg.cc/zB3RRPh8/Captura-de-tela-2025-12-20-172946.png" },
-            { text: "🥴 LUISINHO PÓS-LIVE", img: "https://i.postimg.cc/W3tJJfZ7/Captura-de-tela-2025-12-20-173450.png" },
-            { text: "😶 LUISINHO SEM PALAVRAS", img: "https://i.postimg.cc/RF8J1QQB/Captura-de-tela-2025-12-20-173530.png" },
-            { text: "🔥 LUISINHO MODE ON", img: "https://i.postimg.cc/vTVg0g3D/Captura-de-tela-2025-12-20-173556.png" },
-            { text: "🎭 LUISINHO DRAMÁTICO", img: "https://i.postimg.cc/0yxZFmFS/Captura-de-tela-2025-05-19-212628.png" },
-            { text: "😎 LUISINHO DONO DA RAZÃO", img: "https://i.postimg.cc/CKx7L0FR/Captura-de-tela-2025-06-02-143116.png" },
-            { text: "🌽 LUISINHO 'TÔ NEM AÍ'", img: "https://i.postimg.cc/jqZjPhcR/Captura-de-tela-2025-12-09-153135.jpg" },
-            { text: "🤯 LUISINHO PANE NO SISTEMA", img: "https://i.postimg.cc/GhtmQsgh/e1eef602-b7bb-42ee-bae8-f5f99b3ba7ec.jpg" },
-            { text: "🚀 LUISINHO ESTOURADO", img: "https://i.postimg.cc/L6W606GB/Gemini-Generated-Image-t1rwy1t1rwy1t1rw.jpg" }
+            { text: "🦁 LUISINHO FULL PISTOLA: Hoje quem te der 'bom dia' vai levar um coice!", img: "https://i.postimg.cc/fLsbj21L/642e8812-6b1b-4da5-8654-43fed94f3ac5.jpg" },
+            { text: "🕺 LUISINHO INIMIGO DO FIM: Tomou 3 energéticos e vai dançar até no velório!", img: "https://i.postimg.cc/B6Cnh5GM/20250902-203254.jpg" },
+            { text: "💸 LUISINHO MAGNATA DO PIX: Caiu 2 reais na conta e já quer financiar uma Ferrari.", img: "https://i.postimg.cc/nV0LB1kw/Captura-de-tela-2025-12-09-153113.jpg" },
+            { text: "💅 LUISINHO BLOGUEIRINHA: Fazendo a pose pro print porque o deboche é meu sobrenome.", img: "https://i.postimg.cc/28WXPC6C/Captura-de-tela-2025-12-21-141211.png" },
+            { text: "🧐 LUISINHO ANALISTA: Te julgando silenciosamente por essa sua cara de sono.", img: "https://i.postimg.cc/pLNYMxFG/Captura-de-tela-2025-05-19-205622.png" },
+            { text: "🤡 LUISINHO CORINGOU: Rindo de nervoso porque o boleto venceu e você esqueceu.", img: "https://i.postimg.cc/Dz6qGXM2/Captura-de-tela-2025-06-11-233239.png" },
+            { text: "😲 LUISINHO PASSADO: Viu a fofoca e ficou em choque com o nível da audácia.", img: "https://i.postimg.cc/wjdJbVCW/Captura-de-tela-2025-12-20-172039.png" },
+            { text: "🤨 LUISINHO DESCONFIADO: Hummm, sei não hein... essa sua história tá mais mal contada!", img: "https://i.postimg.cc/CxVD67yh/Captura-de-tela-2025-12-20-172050.jpg" },
+            { text: "🤫 LUISINHO SIGILO TOTAL: Guardando o segredo que vai destruir a reputação de alguém.", img: "https://i.postimg.cc/HLYMTLsJ/Captura-de-tela-2025-12-20-172912.jpg" },
+            { text: "💀 LUISINHO ALMA SAINDO: Quando a segunda-feira chega e você ainda não superou o sábado.", img: "https://i.postimg.cc/zB3RRPh8/Captura-de-tela-2025-12-20-172946.png" },
+            { text: "🥴 LUISINHO PÓS-LIVE: A cara de quem não dorme há 3 dias por causa de vício em jogo.", img: "https://i.postimg.cc/W3tJJfZ7/Captura-de-tela-2025-12-20-173450.png" },
+            { text: "😶 LUISINHO SEM PALAVRAS: A burrice alheia às vezes atinge níveis astronômicos.", img: "https://i.postimg.cc/RF8J1QQB/Captura-de-tela-2025-12-20-173530.png" },
+            { text: "🔥 LUISINHO MODE ON: Se me irritar hoje, o barraco vai ser transmitido via satélite.", img: "https://i.postimg.cc/vTVg0g3D/Captura-de-tela-2025-12-20-173556.png" },
+            { text: "🎭 LUISINHO DRAMÁTICO: Sofrendo mais que vilão de novela mexicana porque o Wi-Fi caiu!", img: "https://i.postimg.cc/0yxZFmFS/Captura-de-tela-2025-05-19-212628.png" },
+            { text: "😎 LUISINHO DONO DA RAZÃO: Eu não discuto, eu apenas explico por que você está errado.", img: "https://i.postimg.cc/CKx7L0FR/Captura-de-tela-2025-06-02-143116.png" },
+            { text: "😴 LUISINHO DERROTADO: A vida bateu tanto hoje que o plano é só virar um vegetal.", img: "https://i.postimg.cc/908F2W0H/Captura-de-tela-2025-12-09-152444.jpg" },
+            { text: "🌽 LUISINHO 'TÔ NEM AÍ': O mundo pode acabar em fogo, eu vou estar aqui com meu milho.", img: "https://i.postimg.cc/jqZjPhcR/Captura-de-tela-2025-12-09-153135.jpg" },
+            { text: "🤯 LUISINHO PANE NO SISTEMA: Viu o preço da carne e a alma saiu do corpo!", img: "https://i.postimg.cc/GhtmQsgh/e1eef602-b7bb-42ee-bae8-f5f99b3ba7ec.jpg" },
+            { text: "🚀 LUISINHO ESTOURADO: Esquece, o pai tá viciado em vencer !", img: "https://i.postimg.cc/L6W606GB/Gemini-Generated-Image-t1rwy1t1rwy1t1rw.jpg" }
         ];
 
         let lastMemeIndex = -1;
@@ -691,7 +715,6 @@
             
             setTimeout(() => {
                 let newIndex;
-                // Garante que o novo índice não seja igual ao anterior
                 do {
                     newIndex = Math.floor(Math.random() * MEMES.length);
                 } while (newIndex === lastMemeIndex && MEMES.length > 1);
@@ -738,6 +761,8 @@
         window.onload = () => {
             initFirebase();
             switchGame('confetti');
+            // Garante redimensionamento inicial do confetti
+            setTimeout(resizeConfetti, 500);
         };
 
     </script>
