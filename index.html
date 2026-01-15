@@ -3,339 +3,309 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meus Links - @luisinhohumor</title>
+    <title>Luisinho Humor - Official Site</title>
+    
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Fontes: Inter para o site e Mountains of Christmas para o Natal -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Mountains+of+Christmas:wght@700&display=swap" rel="stylesheet">
-    <!-- Font Awesome (Logos Oficiais) -->
+    
+    <!-- Fontes Google (Inter & Outfit) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Outfit', 'sans-serif'],
+                    },
+                    colors: {
+                        card: 'rgba(255, 255, 255, 0.08)',
+                        cardHover: 'rgba(255, 255, 255, 0.12)',
+                    }
+                }
+            }
+        }
+    </script>
+
     <style>
         body {
-            font-family: 'Inter', sans-serif;
-            background-image: url('https://i.postimg.cc/CKdYnGmr/b7cfca_ecba34bc03024b7280cf546ab72057a3.jpg');
-            background-size: cover; background-position: center; background-attachment: fixed;
-            min-height: 100vh; display: flex; justify-content: center; align-items: flex-start;
-            padding-top: 1rem; padding-bottom: 4rem;
-        }
-        body::before {
-            content: ''; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-color: rgba(240, 243, 246, 0.75); z-index: -1;
-        }
-
-        /* Estilo da Tela de Natal (Splash Screen) */
-        #christmas-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(255, 255, 255, 0.5);
-            backdrop-filter: blur(4px);
-            -webkit-backdrop-filter: blur(4px);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 9999;
-            transition: opacity 1s ease, visibility 1s;
-            text-align: center;
-            padding: 1.5rem;
-        }
-
-        /* Botão X pequeno no canto */
-        .close-overlay {
-            position: absolute;
-            top: 15px;
-            right: 20px;
-            font-size: 14px;
-            color: #666;
-            cursor: pointer;
-            font-weight: bold;
-            padding: 10px;
-            z-index: 10000;
-            transition: color 0.2s;
-        }
-        .close-overlay:hover { color: #d42426; }
-
-        .christmas-title {
-            font-family: 'Mountains of Christmas', cursive;
-            font-size: clamp(1.8rem, 8vw, 3.5rem);
-            color: #d42426;
-            margin-bottom: 20px;
-            /* Adicionado traço branco ao redor das letras */
-            text-shadow: 
-                -2px -2px 0 #fff,  
-                 2px -2px 0 #fff,
-                -2px  2px 0 #fff,
-                 2px  2px 0 #fff,
-                 0px  4px 10px rgba(0,0,0,0.2);
-            line-height: 1.2;
-            font-weight: bold;
-        }
-
-        #christmas-img {
-            max-width: 100%;
-            height: auto;
-            border-radius: 1.5rem;
-            filter: drop-shadow(0 10px 20px rgba(0,0,0,0.1));
-        }
-
-        /* Animação de Brilho */
-        @keyframes entrance-shine {
-            0% { box-shadow: 0 0 0 rgba(255, 255, 255, 0); filter: brightness(1); }
-            50% { box-shadow: 0 0 25px rgba(255, 255, 255, 0.9); filter: brightness(1.2); }
-            100% { box-shadow: 0 0 0 rgba(255, 255, 255, 0); filter: brightness(1); }
-        }
-
-        .link-card-shine {
-            animation: entrance-shine 1s ease-in-out 3;
-        }
-
-        /* Estilização Moderna dos Cartões */
-        .link-card { 
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-        }
-        .link-card:hover { 
-            transform: translateY(-5px);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15);
-        }
-        .link-card:active { transform: scale(0.98); }
-
-        .icon-bubble {
-            background: rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(4px);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 44px;
-            height: 44px;
-            flex-shrink: 0;
-            margin-right: 0.75rem;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-        }
-
-        @media (min-width: 640px) {
-            .icon-bubble { width: 48px; height: 48px; margin-right: 1rem; }
-        }
-
-        .instagram-gradient { background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%); }
-        
-        .social-btn {
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        .social-btn:hover { transform: scale(1.15) rotate(5deg); }
-
-        /* Galeria de Vídeos */
-        #video-gallery {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.5s ease-in-out, opacity 0.3s ease;
-            opacity: 0;
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 0.75rem;
-        }
-        #video-gallery.open {
-            max-height: 2000px;
-            opacity: 1;
-            margin-top: 1rem;
-            padding: 0.75rem;
-        }
-
-        .thumb-container {
-            position: relative;
-            width: 100%;
-            border-radius: 0.75rem;
-            overflow: hidden;
-            background: #000;
-            aspect-ratio: 1/1; 
-        }
-        .thumb-container img { width: 100%; height: 100%; object-fit: cover; }
-
-        .play-overlay {
-            position: absolute;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(255, 0, 0, 0.9);
+            background-color: #0f0f11;
+            background-image: 
+                radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), 
+                radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%), 
+                radial-gradient(at 100% 0%, hsla(339,49%,30%,1) 0, transparent 50%);
             color: white;
-            width: 32px; height: 22px;
-            border-radius: 4px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 0.6rem;
+            min-height: 100vh;
         }
 
-        /* Perfil Quadrado */
-        .profile-square {
-            margin: 0 auto; 
-            aspect-ratio: 1/1;
-            border-radius: 2rem;
+        /* Bento Grid Cards */
+        .bento-card {
+            background: var(--card);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 24px;
+            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
             overflow: hidden;
             position: relative;
-            box-shadow: 0 25px 30px -10px rgba(0, 0, 0, 0.2);
-            border: 4px solid white;
-            background: #000;
         }
-        .profile-overlay {
-            position: absolute;
-            bottom: 0;
-            width: 100%;
-            background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.5) 60%, transparent 100%);
-            padding: 1.5rem 0.5rem 0.75rem;
-            text-align: center;
+
+        .bento-card:hover {
+            transform: translateY(-4px) scale(1.01);
+            background: var(--cardHover);
+            border-color: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
         }
+
+        .bento-card:active {
+            transform: scale(0.98);
+        }
+
+        /* Animação das barras de som */
+        @keyframes soundbar {
+            0%, 100% { height: 4px; }
+            50% { height: 16px; }
+        }
+        .sound-bar {
+            width: 4px;
+            background: rgba(255,255,255,0.8);
+            border-radius: 2px;
+            animation: soundbar 0.8s infinite ease-in-out;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #0f0f11; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #555; }
+
+        .text-shadow { text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
     </style>
 </head>
-<body>
+<body class="antialiased p-4 sm:p-8 flex justify-center items-start">
 
-    <!-- TELA DE NATAL COM BOTÃO FECHAR E LETRAS COM CONTORNO BRANCO -->
-    <div id="christmas-overlay">
-        <span class="close-overlay" onclick="closeChristmasOverlay()">x</span>
-        <h2 class="christmas-title">Feliz Natal e um Próspero Ano Novo!</h2>
-        <div class="max-w-[280px] sm:max-w-[350px]">
-            <img id="christmas-img" src="https://www.imagensanimadas.com/data/media/1080/natal-engracado-imagem-animada-0036.gif" alt="Gatinho de Natal">
-        </div>
-    </div>
-
-    <div class="w-full max-w-lg px-4 sm:mx-4">
-
-        <header class="mb-8 text-center">
-            <div class="profile-square w-64 sm:w-72 mb-6">
-                <img src="https://i.postimg.cc/4NqM5f6w/1209-(2)(1).gif" alt="Foto de Perfil" class="w-full h-full object-cover">
-                <div class="profile-overlay">
-                    <h1 class="text-xl sm:text-2xl font-black text-white tracking-tight">@luisinhohumor</h1>
-                </div>
+    <!-- Main Container -->
+    <div class="w-full max-w-5xl mx-auto">
+        
+        <!-- Header Simples -->
+        <nav class="flex justify-between items-center mb-8 px-2">
+            <div class="flex items-center gap-2">
+                <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                <span class="text-xs font-medium text-gray-400 uppercase tracking-widest">Disponível para Parcerias</span>
             </div>
+            <button onclick="shareProfile()" class="text-white hover:bg-white/10 p-2 rounded-full transition-colors">
+                <i data-lucide="share-2" class="w-5 h-5"></i>
+            </button>
+        </nav>
 
-            <p class="text-gray-700 font-semibold mt-1 mb-6 text-sm sm:text-base px-2">Bem-vindo(a)! Entrem nos links abaixo 👇</p>
-            
-            <div class="flex flex-wrap justify-center items-center gap-3 sm:gap-4 mb-2">
-                <a href="https://www.youtube.com/@luisinhumor" target="_blank" class="social-btn w-10 h-10 sm:w-12 sm:h-12 bg-red-600 text-white rounded-full flex items-center justify-center shadow-lg">
-                    <i class="fab fa-youtube text-xl sm:text-2xl"></i>
-                </a>
-                <a href="https://www.instagram.com/luisinhohumor/" target="_blank" class="social-btn w-10 h-10 sm:w-12 sm:h-12 instagram-gradient text-white rounded-full flex items-center justify-center shadow-lg">
-                    <i class="fab fa-instagram text-xl sm:text-2xl"></i>
-                </a>
-                <a href="https://www.tiktok.com/@luisinhohumor" target="_blank" class="social-btn w-12 h-12 bg-black text-white rounded-full flex items-center justify-center shadow-lg">
-                    <i class="fab fa-tiktok text-lg sm:text-xl"></i>
-                </a>
-                <a href="https://www.facebook.com/luis.marquesfilho/?locale=pt_BR" target="_blank" class="social-btn w-10 h-10 sm:w-12 sm:h-12 bg-blue-700 text-white rounded-full flex items-center justify-center shadow-lg">
-                    <i class="fab fa-facebook-f text-lg sm:text-xl"></i>
-                </a>
-                <button onclick="shareProfile()" class="social-btn w-10 h-10 sm:w-12 sm:h-12 bg-gray-500 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-gray-600">
-                    <i data-lucide="share-2" class="w-5 h-5 sm:w-6 sm:h-6"></i>
-                </button>
-            </div>
+        <!-- Bento Grid Layout -->
+        <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 auto-rows-[180px]">
 
-            <div id="message-box" class="mt-2 text-xs sm:text-sm font-medium h-4 text-center"></div>
-        </header>
-
-        <main class="space-y-4 sm:space-y-5">
-            
-            <a href="https://livepix.gg/luisinhohumor" target="_blank" class="link-card shine-target flex items-center w-full p-2 bg-gradient-to-r from-emerald-500 to-green-600 text-white rounded-2xl sm:rounded-3xl shadow-xl border-2 border-white/20">
-                <div class="icon-bubble">
-                    <i data-lucide="gift" class="w-6 h-6 sm:w-7 sm:h-7 text-yellow-300 animate-pulse"></i>
-                </div>
-                <div class="flex-1 pr-4">
-                    <span class="block text-lg sm:text-xl font-black uppercase tracking-wide">Apoiar a Live!</span>
-                    <span class="block text-[10px] sm:text-xs font-medium text-emerald-100">Ajude o canal com um Pix 💸</span>
-                </div>
-            </a>
-
-            <div class="w-full">
-                <button onclick="toggleVideos()" class="link-card shine-target flex items-center w-full p-2 bg-gradient-to-r from-red-500 to-rose-600 text-white rounded-2xl sm:rounded-3xl shadow-lg border-2 border-white/10">
-                    <div class="icon-bubble">
-                        <i data-lucide="video" class="w-5 h-5 sm:w-6 sm:h-6 text-white"></i>
-                    </div>
-                    <div class="flex-1 text-left">
-                        <span class="block text-base sm:text-lg font-bold uppercase">Vídeos</span>
-                        <span class="block text-[10px] sm:text-xs text-rose-100">Antigos</span>
-                    </div>
-                    <i id="chevron-icon" data-lucide="chevron-down" class="w-5 h-5 sm:w-6 sm:h-6 mr-2 sm:mr-4 transition-transform duration-300"></i>
-                </button>
+            <!-- 1. Perfil (Ocupa 2 colunas e 2 linhas no desktop) -->
+            <div class="bento-card col-span-1 md:col-span-2 row-span-2 flex flex-col justify-between p-6 md:p-8 group relative">
+                <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-10"></div>
+                <!-- Imagem de Fundo do Perfil -->
+                <img src="https://i.postimg.cc/4NqM5f6w/1209-(2)(1).gif" class="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-70 transition-opacity duration-700" alt="Background">
                 
-                <div id="video-gallery" class="bg-white/40 backdrop-blur-md rounded-2xl sm:rounded-3xl border border-white/30">
-                    <div class="space-y-1">
-                        <a href="https://www.youtube.com/watch?v=DZjA5np_ry0" target="_blank" class="block">
-                            <div class="thumb-container shadow-lg">
-                                <img src="https://img.youtube.com/vi/DZjA5np_ry0/mqdefault.jpg" alt="Duelo de Titãs">
-                                <div class="play-overlay"><i class="fas fa-play"></i></div>
-                            </div>
-                        </a>
-                        <p class="text-center text-[9px] sm:text-[10px] font-bold text-gray-700 uppercase truncate px-1">Duelo de Titãs</p>
-                    </div>
-                    <div class="space-y-1">
-                        <a href="https://www.youtube.com/watch?v=_9HCvQBalMA" target="_blank" class="block">
-                            <div class="thumb-container shadow-lg">
-                                <img src="https://img.youtube.com/vi/_9HCvQBalMA/mqdefault.jpg" alt="Boneco de Posto">
-                                <div class="play-overlay"><i class="fas fa-play"></i></div>
-                            </div>
-                        </a>
-                        <p class="text-center text-[9px] sm:text-[10px] font-bold text-gray-700 uppercase truncate px-1">Boneco de Posto</p>
-                    </div>
-                    <div class="space-y-1">
-                        <a href="https://www.youtube.com/watch?v=KWYsFo8Uh8M" target="_blank" class="block">
-                            <div class="thumb-container shadow-lg">
-                                <img src="https://img.youtube.com/vi/KWYsFo8Uh8M/mqdefault.jpg" alt="Trabalho com Perfil">
-                                <div class="play-overlay"><i class="fas fa-play"></i></div>
-                            </div>
-                        </a>
-                        <p class="text-center text-[9px] sm:text-[10px] font-bold text-gray-700 uppercase truncate px-1">Trabalho com Perfil</p>
-                    </div>
-                    <div class="space-y-1">
-                        <a href="https://www.youtube.com/watch?v=J3Uki4OOVa4" target="_blank" class="block">
-                            <div class="thumb-container shadow-lg">
-                                <img src="https://img.youtube.com/vi/J3Uki4OOVa4/mqdefault.jpg" alt="Carnaval Tosco II">
-                                <div class="play-overlay"><i class="fas fa-play"></i></div>
-                            </div>
-                        </a>
-                        <p class="text-center text-[9px] sm:text-[10px] font-bold text-gray-700 uppercase truncate px-1">Carnaval Tosco II</p>
-                    </div>
+                <div class="relative z-20">
+                    <span class="inline-block px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-xs font-bold text-white border border-white/10 mb-2">
+                        Humor & Entretenimento
+                    </span>
+                </div>
+
+                <div class="relative z-20 translate-y-2 group-hover:translate-y-0 transition-transform duration-500">
+                    <h1 class="font-display font-black text-4xl md:text-5xl text-white mb-2 text-shadow">
+                        @luisinhohumor
+                    </h1>
+                    <p class="text-gray-200 text-sm md:text-base max-w-sm leading-relaxed text-shadow">
+                        Criador de conteúdo digital trazendo alegria para o seu dia. Bem-vindo ao meu espaço oficial.
+                    </p>
                 </div>
             </div>
 
-            <a href="https://www.revistaconnessione.com" target="_blank" class="link-card shine-target flex items-center w-full p-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-2xl sm:rounded-3xl shadow-lg border-2 border-white/10">
-                <div class="icon-bubble">
-                    <i data-lucide="newspaper" class="w-5 h-5 sm:w-6 sm:h-6 text-white"></i>
+            <!-- 2. Youtube (Bloco Vermelho) -->
+            <a href="https://www.youtube.com/@luisinhumor" target="_blank" class="bento-card bg-gradient-to-br from-red-600 to-red-800 p-6 flex flex-col justify-between group hover:shadow-red-500/20">
+                <div class="flex justify-between items-start">
+                    <i class="fab fa-youtube text-4xl text-white/90"></i>
+                    <i data-lucide="arrow-up-right" class="text-white/50 group-hover:text-white transition-colors"></i>
                 </div>
-                <div class="flex-1">
-                    <span class="block text-base sm:text-lg font-bold uppercase">Revista Connessione</span>
-                    <span class="block text-[10px] sm:text-xs text-blue-100">Fique por dentro</span>
-                </div>
-            </a>
-
-            <a href="jogo.html" class="link-card shine-target flex items-center w-full p-2 bg-gradient-to-r from-purple-500 to-violet-600 text-white rounded-2xl sm:rounded-3xl shadow-lg border-2 border-yellow-300/50">
-                <div class="icon-bubble">
-                    <i data-lucide="gamepad" class="w-5 h-5 sm:w-6 sm:h-6 text-white"></i>
-                </div>
-                <div class="flex-1">
-                    <span class="block text-base sm:text-lg font-bold uppercase">🎮 Jogar GAME!</span>
-                    <span class="block text-[10px] sm:text-xs text-purple-100">Desafie-se</span>
+                <div>
+                    <span class="text-red-200 text-xs font-bold uppercase tracking-wider">Inscreva-se</span>
+                    <h3 class="text-xl font-bold text-white mt-1">YouTube</h3>
                 </div>
             </a>
 
-            <a href="https://www.tiktok.com/coin?rc=CVMSEFNT" target="_blank" class="link-card shine-target flex items-center w-full p-2 bg-gradient-to-r from-teal-400 to-emerald-500 text-white rounded-2xl sm:rounded-3xl shadow-lg border-2 border-white/10">
-                <div class="icon-bubble">
-                    <i data-lucide="coins" class="w-6 h-6 text-white"></i>
+            <!-- 3. Instagram (Bloco Gradiente) -->
+            <a href="https://www.instagram.com/luisinhohumor/" target="_blank" class="bento-card bg-gradient-to-br from-purple-600 via-pink-600 to-orange-500 p-6 flex flex-col justify-between group">
+                <div class="flex justify-between items-start">
+                    <i class="fab fa-instagram text-4xl text-white/90"></i>
+                    <i data-lucide="arrow-up-right" class="text-white/50 group-hover:text-white transition-colors"></i>
                 </div>
-                <div class="flex-1">
-                    <span class="block text-base sm:text-lg font-bold uppercase">Moedas TikTok</span>
-                    <span class="block text-[10px] sm:text-xs text-teal-100">Adquira moedas</span>
+                <div>
+                    <span class="text-pink-100 text-xs font-bold uppercase tracking-wider">Siga no Insta</span>
+                    <h3 class="text-xl font-bold text-white mt-1">Instagram</h3>
                 </div>
             </a>
 
-        </main>
+            <!-- 4. TikTok (Bloco Preto/Dark) -->
+            <a href="https://www.tiktok.com/@luisinhohumor" target="_blank" class="bento-card bg-black border-gray-800 p-6 flex flex-col justify-between group">
+                <div class="flex justify-between items-start">
+                    <i class="fab fa-tiktok text-3xl text-white/90"></i>
+                    <i data-lucide="arrow-up-right" class="text-white/50 group-hover:text-white transition-colors"></i>
+                </div>
+                <div>
+                    <span class="text-gray-400 text-xs font-bold uppercase tracking-wider">Assista</span>
+                    <h3 class="text-xl font-bold text-white mt-1">TikTok</h3>
+                </div>
+            </a>
 
-        <footer class="mt-12 mb-8 text-center">
-            <p class="text-[10px] text-gray-500 font-black uppercase tracking-[0.2em] opacity-50">@luisinhohumor &bull; 2025</p>
-            <p class="text-xs text-gray-400 mt-2 italic">feito com ❤️</p>
+            <!-- 5. Facebook (Bloco Azul) -->
+            <a href="https://www.facebook.com/luis.marquesfilho/?locale=pt_BR" target="_blank" class="bento-card bg-blue-700 p-6 flex flex-col justify-between group">
+                <div class="flex justify-between items-start">
+                    <i class="fab fa-facebook text-3xl text-white/90"></i>
+                    <i data-lucide="arrow-up-right" class="text-white/50 group-hover:text-white transition-colors"></i>
+                </div>
+                <div>
+                    <span class="text-blue-200 text-xs font-bold uppercase tracking-wider">Curta</span>
+                    <h3 class="text-xl font-bold text-white mt-1">Facebook</h3>
+                </div>
+            </a>
+
+            <!-- 6. Destaque: LivePix (Ocupa 2 colunas) -->
+            <a href="https://livepix.gg/luisinhohumor" target="_blank" class="bento-card md:col-span-2 relative overflow-hidden group">
+                <div class="absolute inset-0 bg-gradient-to-r from-emerald-600 to-green-500 opacity-90 transition-opacity group-hover:opacity-100"></div>
+                <div class="absolute -right-10 -bottom-10 opacity-20 transform rotate-12 group-hover:rotate-0 transition-transform duration-500">
+                    <i data-lucide="gift" class="w-48 h-48 text-white"></i>
+                </div>
+                <div class="relative z-10 p-6 h-full flex flex-col justify-center">
+                    <div class="flex items-center gap-3 mb-2">
+                        <div class="bg-white/20 p-2 rounded-lg">
+                            <i data-lucide="zap" class="text-yellow-300 w-6 h-6"></i>
+                        </div>
+                        <span class="font-bold text-emerald-100 uppercase tracking-widest text-xs">Apoie o Criador</span>
+                    </div>
+                    <h2 class="text-3xl font-display font-bold text-white">Mande um PIX</h2>
+                    <p class="text-emerald-100 mt-1 max-w-xs">Sua mensagem aparece na tela durante a live!</p>
+                </div>
+            </a>
+
+            <!-- 7. RÁDIO (NOVO) -->
+            <a href="https://www.radioconnessione.com/" target="_blank" class="bento-card bg-gradient-to-tr from-pink-500 to-rose-600 p-4 flex flex-col items-center justify-center text-center group relative overflow-hidden">
+                <!-- Indicador de barras de som -->
+                <div class="absolute top-4 right-4 flex gap-1">
+                    <div class="sound-bar" style="animation-delay: 0s"></div>
+                    <div class="sound-bar" style="animation-delay: 0.1s"></div>
+                    <div class="sound-bar" style="animation-delay: 0.2s"></div>
+                </div>
+
+                <!-- Botão redondo em destaque -->
+                <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-2xl mb-2 group-hover:scale-110 transition-transform duration-300 ring-4 ring-white/20">
+                    <i data-lucide="radio" class="w-8 h-8 text-rose-600"></i>
+                </div>
+                
+                <h3 class="font-bold text-lg text-white leading-tight">Rádio<br>Connessione</h3>
+                <span class="inline-block mt-2 px-2 py-0.5 bg-black/20 rounded-full text-[10px] font-bold uppercase tracking-wider animate-pulse border border-white/10">Ao Vivo 🔴</span>
+            </a>
+
+            <!-- 8. Revista (Card com Imagem) -->
+            <a href="https://www.revistaconnessione.com" target="_blank" class="bento-card relative group overflow-hidden">
+                <img src="https://images.unsplash.com/photo-1504711434969-e33886168f5c?q=80&w=1000&auto=format&fit=crop" class="absolute inset-0 w-full h-full object-cover opacity-50 group-hover:scale-110 transition-transform duration-700">
+                <div class="absolute inset-0 bg-blue-900/40 mix-blend-multiply"></div>
+                <div class="relative z-10 p-6 h-full flex flex-col justify-end">
+                    <i data-lucide="newspaper" class="w-6 h-6 text-white mb-2"></i>
+                    <h3 class="font-bold text-lg leading-tight">Revista Connessione</h3>
+                </div>
+            </a>
+
+            <!-- 9. Game -->
+            <a href="jogo.html" class="bento-card bg-gradient-to-br from-indigo-600 to-violet-600 p-6 flex flex-col justify-center items-center text-center group">
+                <div class="bg-white/10 p-4 rounded-full mb-3 group-hover:scale-110 transition-transform">
+                    <i data-lucide="gamepad-2" class="w-8 h-8 text-white"></i>
+                </div>
+                <h3 class="font-bold text-lg">Jogar Game</h3>
+                <span class="text-xs text-indigo-200 mt-1">Toque para iniciar</span>
+            </a>
+
+            <!-- 10. TikTok Coins -->
+            <a href="https://www.tiktok.com/coin?rc=CVMSEFNT" target="_blank" class="bento-card bg-gray-800 p-6 flex flex-col justify-center items-center text-center group border border-yellow-500/20">
+                <i data-lucide="coins" class="w-8 h-8 text-yellow-400 mb-3 group-hover:rotate-12 transition-transform"></i>
+                <h3 class="font-bold text-lg text-yellow-50">Moedas TikTok</h3>
+            </a>
+
+        </div>
+        
+        <!-- Seção de Vídeos Expansível (Fora do Grid para largura total) -->
+        <div class="mt-4">
+            <button onclick="toggleVideos()" class="w-full bento-card p-4 flex items-center justify-between hover:bg-white/5 cursor-pointer">
+                <div class="flex items-center gap-3">
+                    <div class="bg-red-500/20 p-2 rounded-lg text-red-500">
+                        <i data-lucide="play-circle" class="w-6 h-6"></i>
+                    </div>
+                    <span class="font-bold text-lg">Vídeos Antigos</span>
+                </div>
+                <i id="chevron-icon" data-lucide="chevron-down" class="w-5 h-5 text-gray-400 transition-transform"></i>
+            </button>
+
+            <div id="video-gallery" class="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-0 max-h-0 overflow-hidden transition-all duration-500 opacity-0">
+                <!-- Vídeo 1 -->
+                <a href="https://www.youtube.com/watch?v=DZjA5np_ry0" target="_blank" class="block group mt-4">
+                    <div class="rounded-xl overflow-hidden aspect-video relative shadow-lg">
+                        <img src="https://img.youtube.com/vi/DZjA5np_ry0/mqdefault.jpg" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                        <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            <i class="fas fa-play text-white text-2xl drop-shadow-lg"></i>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-400 mt-2 font-medium truncate">Duelo de Titãs</p>
+                </a>
+                <!-- Vídeo 2 -->
+                <a href="https://www.youtube.com/watch?v=_9HCvQBalMA" target="_blank" class="block group mt-4">
+                    <div class="rounded-xl overflow-hidden aspect-video relative shadow-lg">
+                        <img src="https://img.youtube.com/vi/_9HCvQBalMA/mqdefault.jpg" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                        <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            <i class="fas fa-play text-white text-2xl drop-shadow-lg"></i>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-400 mt-2 font-medium truncate">Boneco de Posto</p>
+                </a>
+                <!-- Vídeo 3 -->
+                <a href="https://www.youtube.com/watch?v=KWYsFo8Uh8M" target="_blank" class="block group mt-4">
+                    <div class="rounded-xl overflow-hidden aspect-video relative shadow-lg">
+                        <img src="https://img.youtube.com/vi/KWYsFo8Uh8M/mqdefault.jpg" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                        <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            <i class="fas fa-play text-white text-2xl drop-shadow-lg"></i>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-400 mt-2 font-medium truncate">Trabalho com Perfil</p>
+                </a>
+                <!-- Vídeo 4 -->
+                <a href="https://www.youtube.com/watch?v=J3Uki4OOVa4" target="_blank" class="block group mt-4">
+                    <div class="rounded-xl overflow-hidden aspect-video relative shadow-lg">
+                        <img src="https://img.youtube.com/vi/J3Uki4OOVa4/mqdefault.jpg" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                        <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            <i class="fas fa-play text-white text-2xl drop-shadow-lg"></i>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-400 mt-2 font-medium truncate">Carnaval Tosco II</p>
+                </a>
+            </div>
+        </div>
+
+        <footer class="mt-12 text-center pb-8">
+            <div class="flex items-center justify-center gap-2 text-gray-500 mb-2">
+                <i data-lucide="code-2" class="w-4 h-4"></i>
+                <span class="text-xs font-medium">Desenvolvido com tecnologia moderna</span>
+            </div>
+            <p class="text-[10px] text-gray-600 font-bold uppercase tracking-widest">
+                © 2025 Luisinho Humor. Todos os direitos reservados.
+            </p>
+            <div id="message-box" class="h-6 mt-2 text-sm font-medium text-emerald-400 transition-all opacity-0"></div>
         </footer>
 
     </div>
@@ -343,62 +313,40 @@
     <script>
         lucide.createIcons();
 
-        let christmasTimer;
-
-        function closeChristmasOverlay() {
-            clearTimeout(christmasTimer);
-            const overlay = document.getElementById('christmas-overlay');
-            if(overlay) {
-                overlay.style.opacity = '0';
-                overlay.style.visibility = 'hidden';
-                
-                // Ativa brilho nos botões
-                const targets = document.querySelectorAll('.shine-target');
-                targets.forEach(el => {
-                    el.classList.add('link-card-shine');
-                });
-
-                // Remove do DOM após a transição
-                setTimeout(() => {
-                    overlay.remove();
-                }, 1000);
-            }
-        }
-
-        window.addEventListener('load', () => {
-            christmasTimer = setTimeout(closeChristmasOverlay, 4000); 
-        });
-
-        const messageBox = document.getElementById('message-box');
-
-        function showMessage(message, color = 'text-green-500') {
+        function showMessage(message) {
+            const messageBox = document.getElementById('message-box');
             messageBox.textContent = message;
-            messageBox.className = `mt-2 text-xs sm:text-sm font-medium h-4 text-center ${color}`;
-            setTimeout(() => { messageBox.textContent = ''; }, 3000);
+            messageBox.style.opacity = '1';
+            setTimeout(() => { messageBox.style.opacity = '0'; }, 3000);
         }
 
-        function shareProfile() {
+        async function shareProfile() {
             const url = window.location.href;
             if (navigator.share) {
-                navigator.share({ title: document.title, url: url }).then(() => showMessage('Compartilhado!'));
+                try {
+                    await navigator.share({ title: document.title, url: url });
+                } catch (err) {}
             } else {
-                const dummy = document.createElement('input');
-                document.body.appendChild(dummy);
-                dummy.value = url;
-                dummy.select();
-                document.execCommand('copy');
-                document.body.removeChild(dummy);
-                showMessage('Link copiado!', 'text-blue-600');
+                navigator.clipboard.writeText(url);
+                showMessage('Link copiado! 📋');
             }
         }
 
         function toggleVideos() {
             const gallery = document.getElementById('video-gallery');
             const chevron = document.getElementById('chevron-icon');
-            gallery.classList.toggle('open');
-            chevron.style.transform = gallery.classList.contains('open') ? 'rotate(180deg)' : 'rotate(0deg)';
+            const isOpen = gallery.style.maxHeight !== '0px' && gallery.style.maxHeight !== '';
+            
+            if (isOpen) {
+                gallery.style.maxHeight = '0px';
+                gallery.style.opacity = '0';
+                chevron.style.transform = 'rotate(0deg)';
+            } else {
+                gallery.style.maxHeight = '1000px';
+                gallery.style.opacity = '1';
+                chevron.style.transform = 'rotate(180deg)';
+            }
         }
     </script>
-
 </body>
 </html>
