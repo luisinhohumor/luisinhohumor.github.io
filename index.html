@@ -96,18 +96,27 @@
         
         <!-- Header Simples -->
         <nav class="flex justify-between items-center mb-8 px-2">
-            <!-- Container flexível para agrupar o texto e o botão -->
+            <!-- Container flexível para agrupar o texto e os botões -->
             <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                 <div class="flex items-center gap-2">
                     <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
                     <span class="text-xs font-medium text-gray-400 uppercase tracking-widest">Disponível para Parcerias</span>
                 </div>
                 
-                <!-- BOTÃO DE CONTATO -->
-                <a href="contato.html" class="text-[10px] font-bold bg-white/5 hover:bg-white/10 border border-white/10 text-white px-3 py-1 rounded-full transition-all flex items-center gap-1 w-fit group">
-                    <i data-lucide="mail" class="w-3 h-3 text-gray-400 group-hover:text-white transition-colors"></i>
-                    Contato
-                </a>
+                <!-- CONTAINER DOS BOTÕES LADO A LADO -->
+                <div class="flex items-center gap-2">
+                    <!-- BOTÃO DE CONTATO -->
+                    <a href="contato.html" class="text-[10px] font-bold bg-white/5 hover:bg-white/10 border border-white/10 text-white px-3 py-1 rounded-full transition-all flex items-center gap-1 w-fit group">
+                        <i data-lucide="mail" class="w-3 h-3 text-gray-400 group-hover:text-white transition-colors"></i>
+                        Contato
+                    </a>
+
+                    <!-- BOTÃO GRUPO DO ZAP -->
+                    <a href="https://chat.whatsapp.com/EIXwCOfms7J2GBy4Yz57Ku" target="_blank" class="text-[10px] font-bold bg-green-600/20 hover:bg-green-600/40 border border-green-500/30 text-white px-3 py-1 rounded-full transition-all flex items-center gap-1 w-fit group">
+                        <i class="fab fa-whatsapp w-3 h-3 text-green-400 group-hover:text-white transition-colors"></i>
+                        Grupo do Zap
+                    </a>
+                </div>
             </div>
 
             <button onclick="shareProfile()" class="text-white hover:bg-white/10 p-2 rounded-full transition-colors">
@@ -118,7 +127,7 @@
         <!-- Bento Grid Layout -->
         <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 auto-rows-[180px]">
 
-            <!-- 1. Perfil (MANTIDO NO INÍCIO) -->
+            <!-- 1. Perfil -->
             <div class="bento-card col-span-1 md:col-span-2 row-span-2 flex flex-col justify-between p-6 md:p-8 group relative">
                 <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-10"></div>
                 <!-- Imagem de Fundo do Perfil -->
@@ -140,7 +149,7 @@
                 </div>
             </div>
 
-            <!-- 2. LivePix (AGORA O PRIMEIRO BOTÃO) -->
+            <!-- 2. LivePix -->
             <a href="https://livepix.gg/luisinhohumor" target="_blank" class="bento-card md:col-span-2 relative overflow-hidden group">
                 <div class="absolute inset-0 bg-gradient-to-r from-emerald-600 to-green-500 opacity-90 transition-opacity group-hover:opacity-100"></div>
                 <div class="absolute -right-10 -bottom-10 opacity-20 transform rotate-12 group-hover:rotate-0 transition-transform duration-500">
@@ -158,7 +167,7 @@
                 </div>
             </a>
 
-            <!-- 3. RÁDIO (SEGUNDO) -->
+            <!-- 3. RÁDIO -->
             <a href="https://www.radioconnessione.com/" target="_blank" class="bento-card bg-gradient-to-tr from-pink-500 to-rose-600 p-4 flex flex-col items-center justify-center text-center group relative overflow-hidden">
                 <!-- Indicador de barras de som -->
                 <div class="absolute top-4 right-4 flex gap-1">
@@ -176,7 +185,7 @@
                 <span class="inline-block mt-2 px-2 py-0.5 bg-black/20 rounded-full text-[10px] font-bold uppercase tracking-wider animate-pulse border border-white/10">Ao Vivo 🔴</span>
             </a>
 
-            <!-- 4. TikTok (TERCEIRO) -->
+            <!-- 4. TikTok -->
             <a href="https://www.tiktok.com/@luisinhohumor" target="_blank" class="bento-card bg-black border-gray-800 p-6 flex flex-col justify-between group">
                 <div class="flex justify-between items-start">
                     <i class="fab fa-tiktok text-3xl text-white/90"></i>
@@ -188,7 +197,7 @@
                 </div>
             </a>
 
-            <!-- 5. Instagram (QUARTO) -->
+            <!-- 5. Instagram -->
             <a href="https://www.instagram.com/luisinhohumor/" target="_blank" class="bento-card bg-gradient-to-br from-purple-600 via-pink-600 to-orange-500 p-6 flex flex-col justify-between group">
                 <div class="flex justify-between items-start">
                     <i class="fab fa-instagram text-4xl text-white/90"></i>
@@ -200,7 +209,7 @@
                 </div>
             </a>
 
-            <!-- 6. Youtube (QUINTO) -->
+            <!-- 6. Youtube -->
             <a href="https://www.youtube.com/@luisinhumor" target="_blank" class="bento-card bg-gradient-to-br from-red-600 to-red-800 p-6 flex flex-col justify-between group hover:shadow-red-500/20">
                 <div class="flex justify-between items-start">
                     <i class="fab fa-youtube text-4xl text-white/90"></i>
@@ -212,7 +221,7 @@
                 </div>
             </a>
 
-            <!-- 7. Facebook (SEXTO) -->
+            <!-- 7. Facebook -->
             <a href="https://www.facebook.com/luis.marquesfilho/?locale=pt_BR" target="_blank" class="bento-card bg-blue-700 p-6 flex flex-col justify-between group">
                 <div class="flex justify-between items-start">
                     <i class="fab fa-facebook text-3xl text-white/90"></i>
@@ -224,33 +233,33 @@
                 </div>
             </a>
 
-            <!-- 8. Revista (SÉTIMO) -->
+            <!-- 8. Revista -->
             <a href="https://www.revistaconnessione.com" target="_blank" class="bento-card relative group overflow-hidden">
                 <img src="https://images.unsplash.com/photo-1504711434969-e33886168f5c?q=80&w=1000&auto=format&fit=crop" class="absolute inset-0 w-full h-full object-cover opacity-50 group-hover:scale-110 transition-transform duration-700">
                 <div class="absolute inset-0 bg-blue-900/40 mix-blend-multiply"></div>
                 <div class="relative z-10 p-6 h-full flex flex-col justify-end">
                     <i data-lucide="newspaper" class="w-6 h-6 text-white mb-2"></i>
-                    <h3 class="font-bold text-lg leading-tight">Revista Connessione</h3>
+                    <h3 class="font-bold text-lg leading-tight text-white">Revista Connessione</h3>
                 </div>
             </a>
 
-            <!-- 9. Game (OITAVO) -->
+            <!-- 9. Game -->
             <a href="jogo.html" class="bento-card bg-gradient-to-br from-indigo-600 to-violet-600 p-6 flex flex-col justify-center items-center text-center group">
                 <div class="bg-white/10 p-4 rounded-full mb-3 group-hover:scale-110 transition-transform">
                     <i data-lucide="gamepad-2" class="w-8 h-8 text-white"></i>
                 </div>
-                <h3 class="font-bold text-lg">Jogar Game</h3>
+                <h3 class="font-bold text-lg text-white">Jogar Game</h3>
                 <span class="text-xs text-indigo-200 mt-1">Toque para iniciar</span>
             </a>
 
-            <!-- 10. TikTok Coins (ÚLTIMO) -->
+            <!-- 10. TikTok Coins -->
             <a href="https://www.tiktok.com/coin?rc=CVMSEFNT" target="_blank" class="bento-card bg-gray-800 p-6 flex flex-col justify-center items-center text-center group border border-yellow-500/20">
                 <i data-lucide="coins" class="w-8 h-8 text-yellow-400 mb-3 group-hover:rotate-12 transition-transform"></i>
                 <h3 class="font-bold text-lg text-yellow-50">Moedas TikTok</h3>
             </a>
 
         </div>
-        
+
         <!-- Seção de Vídeos Expansível -->
         <div class="mt-4">
             <button onclick="toggleVideos()" class="w-full bento-card p-4 flex items-center justify-between hover:bg-white/5 cursor-pointer">
@@ -258,7 +267,7 @@
                     <div class="bg-red-500/20 p-2 rounded-lg text-red-500">
                         <i data-lucide="play-circle" class="w-6 h-6"></i>
                     </div>
-                    <span class="font-bold text-lg">Vídeos Recentes</span>
+                    <span class="font-bold text-lg">Vídeos Antigos</span>
                 </div>
                 <i id="chevron-icon" data-lucide="chevron-down" class="w-5 h-5 text-gray-400 transition-transform"></i>
             </button>
