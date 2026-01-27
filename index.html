@@ -45,7 +45,6 @@
             min-height: 100vh;
         }
 
-        /* Bento Grid Cards */
         .bento-card {
             background: var(--card);
             backdrop-filter: blur(20px);
@@ -64,58 +63,69 @@
             box-shadow: 0 20px 40px rgba(0,0,0,0.4);
         }
 
-        .bento-card:active {
-            transform: scale(0.98);
-        }
-
-        /* Animação das barras de som */
-        @keyframes soundbar {
-            0%, 100% { height: 4px; }
-            50% { height: 16px; }
-        }
-        .sound-bar {
-            width: 4px;
-            background: rgba(255,255,255,0.8);
-            border-radius: 2px;
-            animation: soundbar 0.8s infinite ease-in-out;
-        }
-
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #0f0f11; }
-        ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: #555; }
-
         .text-shadow { text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
+
+        /* Modal Background */
+        #whatsapp-modal {
+            display: none;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
+        }
     </style>
 </head>
 <body class="antialiased p-4 sm:p-8 flex justify-center items-start">
 
-    <!-- Main Container -->
+    <!-- Modal WhatsApp Solution -->
+    <div id="whatsapp-modal" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div class="bg-[#1c1c1e] border border-white/10 w-full max-w-sm rounded-3xl p-6 shadow-2xl scale-95 opacity-0 transition-all duration-300 transform" id="modal-content">
+            <div class="flex justify-between items-start mb-4">
+                <div class="flex items-center gap-3">
+                    <div class="bg-green-500/20 p-2 rounded-xl">
+                        <i class="fab fa-whatsapp text-green-500 text-xl"></i>
+                    </div>
+                    <h2 class="text-xl font-bold font-display">Grupo do Zap</h2>
+                </div>
+                <button onclick="closeWhatsAppModal()" class="text-gray-400 hover:text-white">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+            
+            <p class="text-gray-400 text-sm mb-6">Se o botão "Entrar" não funcionar no TikTok, escolha a opção "Copiar Link" e cole no seu navegador.</p>
+            
+            <div class="space-y-3">
+                <a href="https://chat.whatsapp.com/EIXwCOfms7J2GBy4Yz57Ku" target="_blank" class="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-colors">
+                    <i class="fas fa-external-link-alt text-sm"></i>
+                    Entrar no Grupo
+                </a>
+                
+                <button onclick="copyWhatsAppLink()" class="w-full bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-colors">
+                    <i data-lucide="copy" class="w-4 h-4"></i>
+                    Copiar Link do Grupo
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div class="w-full max-w-5xl mx-auto">
         
-        <!-- Header Simples -->
+        <!-- Header -->
         <nav class="flex justify-between items-center mb-8 px-2">
-            <!-- Container flexível para agrupar o texto e os botões -->
             <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                 <div class="flex items-center gap-2">
                     <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
                     <span class="text-xs font-medium text-gray-400 uppercase tracking-widest">Disponível para Parcerias</span>
                 </div>
                 
-                <!-- CONTAINER DOS BOTÕES LADO A LADO -->
                 <div class="flex items-center gap-2">
-                    <!-- BOTÃO DE CONTATO -->
                     <a href="contato.html" class="text-[10px] font-bold bg-white/5 hover:bg-white/10 border border-white/10 text-white px-3 py-1 rounded-full transition-all flex items-center gap-1 w-fit group">
                         <i data-lucide="mail" class="w-3 h-3 text-gray-400 group-hover:text-white transition-colors"></i>
                         Contato
                     </a>
 
-                    <!-- BOTÃO GRUPO DO ZAP -->
-                    <a href="https://chat.whatsapp.com/EIXwCOfms7J2GBy4Yz57Ku" target="_blank" class="text-[10px] font-bold bg-green-600/20 hover:bg-green-600/40 border border-green-500/30 text-white px-3 py-1 rounded-full transition-all flex items-center gap-1 w-fit group">
+                    <button onclick="openWhatsAppModal()" class="text-[10px] font-bold bg-green-600/20 hover:bg-green-600/40 border border-green-500/30 text-white px-3 py-1 rounded-full transition-all flex items-center gap-1 w-fit group">
                         <i class="fab fa-whatsapp w-3 h-3 text-green-400 group-hover:text-white transition-colors"></i>
                         Grupo do Zap
-                    </a>
+                    </button>
                 </div>
             </div>
 
@@ -124,13 +134,12 @@
             </button>
         </nav>
 
-        <!-- Bento Grid Layout -->
+        <!-- Bento Grid -->
         <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 auto-rows-[180px]">
 
             <!-- 1. Perfil -->
             <div class="bento-card col-span-1 md:col-span-2 row-span-2 flex flex-col justify-between p-6 md:p-8 group relative">
                 <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-10"></div>
-                <!-- Imagem de Fundo do Perfil -->
                 <img src="https://i.postimg.cc/4NqM5f6w/1209-(2)(1).gif" class="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-70 transition-opacity duration-700" alt="Background">
                 
                 <div class="relative z-20">
@@ -167,22 +176,13 @@
                 </div>
             </a>
 
-            <!-- 3. RÁDIO -->
-            <a href="https://www.radioconnessione.com/" target="_blank" class="bento-card bg-gradient-to-tr from-pink-500 to-rose-600 p-4 flex flex-col items-center justify-center text-center group relative overflow-hidden">
-                <!-- Indicador de barras de som -->
-                <div class="absolute top-4 right-4 flex gap-1">
-                    <div class="sound-bar" style="animation-delay: 0s"></div>
-                    <div class="sound-bar" style="animation-delay: 0.1s"></div>
-                    <div class="sound-bar" style="animation-delay: 0.2s"></div>
+            <!-- 3. RÁDIO CONNESSIONE (APENAS LINK) -->
+            <a href="https://www.radioconnessione.com/" target="_blank" class="bento-card bg-gradient-to-tr from-pink-500 to-rose-600 p-6 flex flex-col items-center justify-center text-center group">
+                <div class="bg-white/20 p-4 rounded-full mb-3 group-hover:scale-110 transition-transform duration-300">
+                    <i data-lucide="radio" class="w-8 h-8 text-white"></i>
                 </div>
-
-                <!-- Botão redondo em destaque -->
-                <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-2xl mb-2 group-hover:scale-110 transition-transform duration-300 ring-4 ring-white/20">
-                    <i data-lucide="radio" class="w-8 h-8 text-rose-600"></i>
-                </div>
-                
                 <h3 class="font-bold text-lg text-white leading-tight">Rádio<br>Connessione</h3>
-                <span class="inline-block mt-2 px-2 py-0.5 bg-black/20 rounded-full text-[10px] font-bold uppercase tracking-wider animate-pulse border border-white/10">Ao Vivo 🔴</span>
+                <p class="text-[10px] text-rose-100 uppercase tracking-widest font-bold mt-2">Ouvir Agora</p>
             </a>
 
             <!-- 4. TikTok -->
@@ -210,7 +210,7 @@
             </a>
 
             <!-- 6. Youtube -->
-            <a href="https://www.youtube.com/@luisinhumor" target="_blank" class="bento-card bg-gradient-to-br from-red-600 to-red-800 p-6 flex flex-col justify-between group hover:shadow-red-500/20">
+            <a href="https://www.youtube.com/@luisinhumor" target="_blank" class="bento-card bg-gradient-to-br from-red-600 to-red-800 p-6 flex flex-col justify-between group">
                 <div class="flex justify-between items-start">
                     <i class="fab fa-youtube text-4xl text-white/90"></i>
                     <i data-lucide="arrow-up-right" class="text-white/50 group-hover:text-white transition-colors"></i>
@@ -235,7 +235,7 @@
 
             <!-- 8. Revista -->
             <a href="https://www.revistaconnessione.com" target="_blank" class="bento-card relative group overflow-hidden">
-                <img src="https://images.unsplash.com/photo-1504711434969-e33886168f5c?q=80&w=1000&auto=format&fit=crop" class="absolute inset-0 w-full h-full object-cover opacity-50 group-hover:scale-110 transition-transform duration-700">
+                <img src="https://images.unsplash.com/photo-1504711434969-e33886168f5c?q=80&w=1000&auto=format&fit=crop" class="absolute inset-0 w-full h-full object-cover opacity-50">
                 <div class="absolute inset-0 bg-blue-900/40 mix-blend-multiply"></div>
                 <div class="relative z-10 p-6 h-full flex flex-col justify-end">
                     <i data-lucide="newspaper" class="w-6 h-6 text-white mb-2"></i>
@@ -249,18 +249,17 @@
                     <i data-lucide="gamepad-2" class="w-8 h-8 text-white"></i>
                 </div>
                 <h3 class="font-bold text-lg text-white">Jogar Game</h3>
-                <span class="text-xs text-indigo-200 mt-1">Toque para iniciar</span>
             </a>
 
             <!-- 10. TikTok Coins -->
-            <a href="https://www.tiktok.com/coin?rc=CVMSEFNT" target="_blank" class="bento-card bg-gray-800 p-6 flex flex-col justify-center items-center text-center group border border-yellow-500/20">
+            <a href="https://www.tiktok.com/coin?rc=CVMSEFNT" target="_blank" class="bento-card bg-gray-800 p-6 flex flex-col justify-center items-center text-center group">
                 <i data-lucide="coins" class="w-8 h-8 text-yellow-400 mb-3 group-hover:rotate-12 transition-transform"></i>
                 <h3 class="font-bold text-lg text-yellow-50">Moedas TikTok</h3>
             </a>
 
         </div>
 
-        <!-- Seção de Vídeos Expansível -->
+        <!-- Seção de Vídeos -->
         <div class="mt-4">
             <button onclick="toggleVideos()" class="w-full bento-card p-4 flex items-center justify-between hover:bg-white/5 cursor-pointer">
                 <div class="flex items-center gap-3">
@@ -273,54 +272,42 @@
             </button>
 
             <div id="video-gallery" class="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-0 max-h-0 overflow-hidden transition-all duration-500 opacity-0">
-                <!-- Vídeo 1 -->
                 <a href="https://www.youtube.com/watch?v=DZjA5np_ry0" target="_blank" class="block group mt-4">
-                    <div class="rounded-xl overflow-hidden aspect-video relative shadow-lg">
-                        <img src="https://img.youtube.com/vi/DZjA5np_ry0/mqdefault.jpg" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                    <div class="rounded-xl overflow-hidden aspect-video relative">
+                        <img src="https://img.youtube.com/vi/DZjA5np_ry0/mqdefault.jpg" class="w-full h-full object-cover">
                         <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                            <i class="fas fa-play text-white text-2xl drop-shadow-lg"></i>
+                            <i class="fas fa-play text-white text-2xl"></i>
                         </div>
                     </div>
-                    <p class="text-xs text-gray-400 mt-2 font-medium truncate">Duelo de Titãs</p>
                 </a>
-                <!-- Vídeo 2 -->
                 <a href="https://www.youtube.com/watch?v=_9HCvQBalMA" target="_blank" class="block group mt-4">
-                    <div class="rounded-xl overflow-hidden aspect-video relative shadow-lg">
-                        <img src="https://img.youtube.com/vi/_9HCvQBalMA/mqdefault.jpg" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                    <div class="rounded-xl overflow-hidden aspect-video relative">
+                        <img src="https://img.youtube.com/vi/_9HCvQBalMA/mqdefault.jpg" class="w-full h-full object-cover">
                         <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                            <i class="fas fa-play text-white text-2xl drop-shadow-lg"></i>
+                            <i class="fas fa-play text-white text-2xl"></i>
                         </div>
                     </div>
-                    <p class="text-xs text-gray-400 mt-2 font-medium truncate">Boneco de Posto</p>
                 </a>
-                <!-- Vídeo 3 -->
                 <a href="https://www.youtube.com/watch?v=KWYsFo8Uh8M" target="_blank" class="block group mt-4">
-                    <div class="rounded-xl overflow-hidden aspect-video relative shadow-lg">
-                        <img src="https://img.youtube.com/vi/KWYsFo8Uh8M/mqdefault.jpg" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                    <div class="rounded-xl overflow-hidden aspect-video relative">
+                        <img src="https://img.youtube.com/vi/KWYsFo8Uh8M/mqdefault.jpg" class="w-full h-full object-cover">
                         <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                            <i class="fas fa-play text-white text-2xl drop-shadow-lg"></i>
+                            <i class="fas fa-play text-white text-2xl"></i>
                         </div>
                     </div>
-                    <p class="text-xs text-gray-400 mt-2 font-medium truncate">Trabalho com Perfil</p>
                 </a>
-                <!-- Vídeo 4 -->
                 <a href="https://www.youtube.com/watch?v=J3Uki4OOVa4" target="_blank" class="block group mt-4">
-                    <div class="rounded-xl overflow-hidden aspect-video relative shadow-lg">
-                        <img src="https://img.youtube.com/vi/J3Uki4OOVa4/mqdefault.jpg" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                    <div class="rounded-xl overflow-hidden aspect-video relative">
+                        <img src="https://img.youtube.com/vi/J3Uki4OOVa4/mqdefault.jpg" class="w-full h-full object-cover">
                         <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                            <i class="fas fa-play text-white text-2xl drop-shadow-lg"></i>
+                            <i class="fas fa-play text-white text-2xl"></i>
                         </div>
                     </div>
-                    <p class="text-xs text-gray-400 mt-2 font-medium truncate">Carnaval Tosco II</p>
                 </a>
             </div>
         </div>
 
         <footer class="mt-12 text-center pb-8">
-            <div class="flex items-center justify-center gap-2 text-gray-500 mb-2">
-                <i data-lucide="code-2" class="w-4 h-4"></i>
-                <span class="text-xs font-medium">Desenvolvido com tecnologia moderna</span>
-            </div>
             <p class="text-[10px] text-gray-600 font-bold uppercase tracking-widest">
                 © 2025 Luisinho Humor. Todos os direitos reservados.
             </p>
@@ -331,6 +318,41 @@
 
     <script>
         lucide.createIcons();
+
+        const WHATSAPP_LINK = "https://chat.whatsapp.com/EIXwCOfms7J2GBy4Yz57Ku";
+
+        // Funções do Modal WhatsApp
+        function openWhatsAppModal() {
+            const modal = document.getElementById('whatsapp-modal');
+            const content = document.getElementById('modal-content');
+            modal.style.display = 'flex';
+            setTimeout(() => {
+                content.classList.remove('scale-95', 'opacity-0');
+                content.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+
+        function closeWhatsAppModal() {
+            const modal = document.getElementById('whatsapp-modal');
+            const content = document.getElementById('modal-content');
+            content.classList.remove('scale-100', 'opacity-100');
+            content.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                modal.style.display = 'none';
+            }, 300);
+        }
+
+        function copyWhatsAppLink() {
+            const el = document.createElement('textarea');
+            el.value = WHATSAPP_LINK;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+            
+            showMessage('Link copiado! Cole no navegador. 📋');
+            setTimeout(closeWhatsAppModal, 1500);
+        }
 
         function showMessage(message) {
             const messageBox = document.getElementById('message-box');
@@ -346,7 +368,12 @@
                     await navigator.share({ title: document.title, url: url });
                 } catch (err) {}
             } else {
-                navigator.clipboard.writeText(url);
+                const el = document.createElement('textarea');
+                el.value = url;
+                document.body.appendChild(el);
+                el.select();
+                document.execCommand('copy');
+                document.body.removeChild(el);
                 showMessage('Link copiado! 📋');
             }
         }
@@ -364,6 +391,13 @@
                 gallery.style.maxHeight = '1000px';
                 gallery.style.opacity = '1';
                 chevron.style.transform = 'rotate(180deg)';
+            }
+        }
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('whatsapp-modal');
+            if (event.target == modal) {
+                closeWhatsAppModal();
             }
         }
     </script>
