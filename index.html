@@ -327,10 +327,9 @@
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, deleteDoc, onSnapshot, doc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // SUAS CHAVES DO FIREBASE (CORRIGIDAS)
-        // O erro anterior estava no "Rl4J" que foi digitado como "R14J"
+        // SUAS CHAVES DO FIREBASE (CORRIGIDAS v5.0)
         const firebaseConfig = {
-            apiKey: "AIzaSyAM0jdJmVkYyFKmRl4J5ujdUWAsN-O2MeI", 
+            apiKey: "AIzaSyAM0jdJmVkYyFKmRl4J5ujdUWAsN-O2MeI", // M maiúsculo!
             authDomain: "luisinho-site.firebaseapp.com",
             projectId: "luisinho-site",
             storageBucket: "luisinho-site.firebasestorage.app",
@@ -359,6 +358,74 @@
         let clickCount = 0;  
 
         const emojis = ['😂', '❤️', '🔥', '😍', '👏', '🚀', '💀', '😭', '👀', '😎', '🎉', '🤡', '🤔', '🙌', '✨', '💯', '🤣', '🥹', '🥰', '🫡', '🫣', '🥴', '🥵', '🥶', '🤯', '😱', '😡', '🤬', '🤮', '🤢', '🤧', '😷', '💪', '🤝', '👍', '👎', '✌️', '🤞', '🫶', '👋', '👻', '💩', '👽', '🤖', '🎃', '😺', '🐵', '🐶', '🍔', '🍟', '🍕', '🍺', '🍻', '🍷', '⚽', '🏀', '🎮', '🎲', '🎰', '🎸', '🎹', '🎧', '🎤', '🎬', '🇧🇷', '🇺🇸', '🏳️‍🌈', '💡', '💸', '💰', '💣', '🔪'];
+
+        // --- FUNÇÕES GLOBAIS DE UI (Adicionadas para funcionar com type="module") ---
+        
+        window.openWhatsAppModal = function() {
+            const modal = document.getElementById('whatsapp-modal');
+            const content = document.getElementById('modal-content');
+            modal.style.display = 'flex';
+            setTimeout(() => {
+                content.classList.remove('scale-95', 'opacity-0');
+                content.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+
+        window.closeWhatsAppModal = function() {
+            const modal = document.getElementById('whatsapp-modal');
+            const content = document.getElementById('modal-content');
+            content.classList.remove('scale-100', 'opacity-100');
+            content.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                modal.style.display = 'none';
+            }, 300);
+        }
+
+        window.copyWhatsAppLink = function() {
+            navigator.clipboard.writeText("https://chat.whatsapp.com/EIXwCOfms7J2GBy4Yz57Ku");
+            alert("Link copiado!");
+        }
+
+        window.toggleConnessione = function() {
+            const menu = document.getElementById('connessione-menu');
+            menu.classList.toggle('hidden');
+        }
+
+        window.shareProfile = function() {
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Luisinho Humor',
+                    url: window.location.href
+                });
+            } else {
+                navigator.clipboard.writeText(window.location.href);
+                window.showMessage("Link do perfil copiado!");
+            }
+        }
+
+        window.toggleVideos = function() {
+            const gallery = document.getElementById('video-gallery');
+            const icon = document.getElementById('chevron-icon');
+            
+            if (gallery.style.maxHeight) {
+                gallery.style.maxHeight = null;
+                gallery.style.opacity = '0';
+                icon.style.transform = 'rotate(0deg)';
+            } else {
+                gallery.style.maxHeight = gallery.scrollHeight + "px";
+                gallery.style.opacity = '1';
+                icon.style.transform = 'rotate(180deg)';
+            }
+        }
+
+        // Fechar menu Connessione ao clicar fora
+        document.addEventListener('click', function(event) {
+            const btn = document.getElementById('connessione-btn');
+            const menu = document.getElementById('connessione-menu');
+            if (btn && menu && !btn.contains(event.target) && !menu.contains(event.target)) {
+                menu.classList.add('hidden');
+            }
+        });
 
         // --- INICIALIZAÇÃO ---
         
