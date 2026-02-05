@@ -327,9 +327,10 @@
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, deleteDoc, onSnapshot, doc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // SUAS CHAVES DO FIREBASE (CORRIGIDAS v5.0)
+        // SUAS CHAVES DO FIREBASE (CORRIGIDAS)
+        // O erro anterior estava no "Rl4J" que foi digitado como "R14J"
         const firebaseConfig = {
-            apiKey: "AIzaSyAM0jdJmVkYyFKmR14J5ujdUWAsN-O2MeI", // M maiúsculo!
+            apiKey: "AIzaSyAM0jdJmVkYyFKmRl4J5ujdUWAsN-O2MeI", 
             authDomain: "luisinho-site.firebaseapp.com",
             projectId: "luisinho-site",
             storageBucket: "luisinho-site.firebasestorage.app",
@@ -593,6 +594,14 @@
                     enableButton();
                 }
             });
+        }
+
+        // Função auxiliar para mostrar toast de mensagens
+        window.showMessage = function(text) {
+            const box = document.getElementById('message-box');
+            box.textContent = text;
+            box.classList.remove('opacity-0');
+            setTimeout(() => box.classList.add('opacity-0'), 3000);
         }
     </script>
 </body>
