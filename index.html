@@ -65,6 +65,22 @@
 
         .text-shadow { text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
 
+        /* Estilização da barra de rolagem do mural */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.4);
+        }
+
         /* Modal Background */
         #whatsapp-modal {
             display: none;
@@ -109,14 +125,15 @@
     <div class="w-full max-w-5xl mx-auto">
         
         <!-- Header -->
-        <nav class="flex justify-between items-center mb-8 px-2">
-            <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+        <nav class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 px-2 gap-4 sm:gap-0">
+            <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6">
+                <!-- Status -->
                 <div class="flex items-center gap-2">
                     <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
                     <span class="text-xs font-medium text-gray-400 uppercase tracking-widest">Disponível para Parcerias</span>
                 </div>
                 
-                <div class="flex items-center gap-2 relative">
+                <div class="flex items-center gap-2 relative mt-2 sm:mt-0">
                     <a href="contato.html" class="text-[10px] font-bold bg-white/5 hover:bg-white/10 border border-white/10 text-white px-3 py-1 rounded-full transition-all flex items-center gap-1 w-fit group">
                         <i data-lucide="mail" class="w-3 h-3 text-gray-400 group-hover:text-white transition-colors"></i>
                         Contato
@@ -149,7 +166,11 @@
                 </div>
             </div>
 
-            <button onclick="shareProfile()" class="text-white hover:bg-white/10 p-2 rounded-full transition-colors">
+            <button onclick="shareProfile()" class="text-white hover:bg-white/10 p-2 rounded-full transition-colors hidden sm:block">
+                <i data-lucide="share-2" class="w-5 h-5"></i>
+            </button>
+            <!-- Botão de share mobile flutuante -->
+             <button onclick="shareProfile()" class="text-white hover:bg-white/10 p-2 rounded-full transition-colors sm:hidden absolute top-4 right-4">
                 <i data-lucide="share-2" class="w-5 h-5"></i>
             </button>
         </nav>
@@ -275,6 +296,72 @@
 
         </div>
 
+        <!-- ======================= -->
+        <!--  MURAL DE RECADOS (ONLINE)  -->
+        <!-- ======================= -->
+        <div class="mt-4 bento-card p-6 md:p-8">
+            <div class="flex items-center justify-between mb-6">
+                <!-- Título e Ícone -->
+                <div class="flex items-center gap-3">
+                    <div class="bg-indigo-500/20 p-2 rounded-lg text-indigo-400">
+                        <i data-lucide="message-square" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-display font-bold text-white">Mural de Recados</h2>
+                        <p class="text-xs text-gray-400">Deixa teu recado aqui pra mim!</p>
+                    </div>
+                </div>
+
+                <!-- Contador Online (Movido para cá) -->
+                <div class="flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-full border border-white/5 w-fit">
+                    <i data-lucide="users" class="w-3 h-3 text-indigo-400"></i>
+                    <span id="online-count" class="text-xs font-bold text-indigo-100 font-mono">1</span>
+                    <span class="text-[10px] text-gray-500 uppercase tracking-wider hidden sm:inline">Online</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Formulário -->
+                <div>
+                    <form id="mural-form" class="space-y-4">
+                        <div>
+                            <div class="flex justify-between items-end mb-1">
+                                <label class="block text-xs font-bold uppercase text-gray-400">Seu Nome / Nick</label>
+                                <span class="text-[10px] text-gray-600">Máx. 20</span>
+                            </div>
+                            <input type="text" id="mural-name" required maxlength="20" placeholder="Ex: João Humorista" 
+                                class="w-full bg-black/30 border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-indigo-500 transition-colors placeholder-gray-600">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold uppercase text-gray-400 mb-1">Sua Mensagem</label>
+                            <textarea id="mural-message" required maxlength="140" rows="3" placeholder="Manda um salve!" 
+                                class="w-full bg-black/30 border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-indigo-500 transition-colors placeholder-gray-600 resize-none"></textarea>
+                            <div class="text-right text-[10px] text-gray-500 mt-1 font-mono">
+                                <span id="char-count">0</span>/140
+                            </div>
+                        </div>
+                        <button type="submit" id="submit-btn" disabled class="w-full bg-indigo-600/50 cursor-not-allowed text-white font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2">
+                            <i data-lucide="loader" class="w-4 h-4 animate-spin"></i>
+                            Conectando...
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Lista de Recados -->
+                <div class="relative">
+                    <div class="absolute -top-3 right-0 text-[10px] text-gray-500 bg-black/40 px-2 py-1 rounded-full">
+                        Últimas mensagens (Ao Vivo)
+                    </div>
+                    <div id="mural-list" class="space-y-3 max-h-[250px] overflow-y-auto custom-scrollbar pr-2">
+                        <div class="text-center py-8 text-gray-500 text-sm italic">
+                            Carregando mensagens do servidor...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- FIM MURAL -->
+
         <!-- Seção de Vídeos -->
         <div class="mt-4">
             <button onclick="toggleVideos()" class="w-full bento-card p-4 flex items-center justify-between hover:bg-white/5 cursor-pointer">
@@ -332,12 +419,226 @@
 
     </div>
 
-    <script>
+    <!-- Lógica de UI e Firebase -->
+    <script type="module">
         lucide.createIcons();
 
+        // 1. Importações do Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, doc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // 2. Configuração
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        
+        // 3. Inicialização
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // UI Elements
+        const muralForm = document.getElementById('mural-form');
+        const muralList = document.getElementById('mural-list');
+        const submitBtn = document.getElementById('submit-btn');
+        const charCount = document.getElementById('char-count');
+        const msgInput = document.getElementById('mural-message');
+        const onlineCountEl = document.getElementById('online-count');
+
+        // Contador de Caracteres UI
+        msgInput.addEventListener('input', function() {
+            const current = this.value.length;
+            charCount.textContent = current;
+            if (current >= 130) {
+                charCount.classList.add('text-red-500');
+                charCount.classList.remove('text-gray-500');
+            } else {
+                charCount.classList.remove('text-red-500');
+                charCount.classList.add('text-gray-500');
+            }
+        });
+
+        // 4. Autenticação e Lógica Principal
+        const initAuth = async () => {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (error) {
+                console.error("Erro na autenticação:", error);
+                muralList.innerHTML = '<div class="text-center text-red-400 text-sm">Erro ao conectar ao servidor.</div>';
+            }
+        };
+
+        // Escuta mudança de estado da autenticação
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                console.log("Usuário conectado:", user.uid);
+                
+                // Habilitar botão
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('bg-indigo-600/50', 'cursor-not-allowed');
+                submitBtn.classList.add('bg-indigo-600', 'hover:bg-indigo-500', 'hover:scale-[1.02]', 'active:scale-95');
+                submitBtn.innerHTML = `<i data-lucide="send" class="w-4 h-4"></i> Publicar no Mural`;
+                lucide.createIcons();
+
+                // 5. Escutar Mensagens (Read Realtime)
+                setupMessagesListener(user);
+
+                // 6. Iniciar Sistema de Presença (Online)
+                initPresenceSystem(user);
+            }
+        });
+
+        // ============================================
+        // SISTEMA DE PRESENÇA (Online Counter)
+        // ============================================
+        function initPresenceSystem(user) {
+            const presenceCol = collection(db, 'artifacts', appId, 'public', 'data', 'presence');
+            
+            // Função para enviar "estou vivo" (heartbeat)
+            const sendHeartbeat = async () => {
+                try {
+                    await setDoc(doc(presenceCol, user.uid), {
+                        lastSeen: Date.now(),
+                        userId: user.uid
+                    });
+                } catch (e) { console.error("Erro no heartbeat", e); }
+            };
+
+            // Envia o primeiro e configura o intervalo (a cada 60s)
+            sendHeartbeat();
+            setInterval(sendHeartbeat, 60000);
+
+            // Escuta a coleção de presença para contar usuários ativos
+            onSnapshot(presenceCol, (snapshot) => {
+                const now = Date.now();
+                const ACTIVE_THRESHOLD = 120000; // 2 minutos (margem de segurança)
+                let count = 0;
+
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    if (data.lastSeen && (now - data.lastSeen < ACTIVE_THRESHOLD)) {
+                        count++;
+                    }
+                });
+
+                // Atualiza a UI (Animação simples)
+                onlineCountEl.textContent = count;
+                onlineCountEl.parentElement.classList.add('scale-110');
+                setTimeout(() => onlineCountEl.parentElement.classList.remove('scale-110'), 200);
+
+            });
+
+            // Tentar remover ao sair (Best effort)
+            window.addEventListener('beforeunload', () => {
+                // deleteDoc não é garantido no unload, mas tentamos
+                // Em um app real usaria onDisconnect do Realtime DB
+            });
+        }
+
+        // ============================================
+        // SISTEMA DE MENSAGENS
+        // ============================================
+        function setupMessagesListener(user) {
+            const messagesCol = collection(db, 'artifacts', appId, 'public', 'data', 'messages');
+
+            onSnapshot(messagesCol, (snapshot) => {
+                const messages = [];
+                snapshot.forEach((doc) => {
+                    messages.push({ id: doc.id, ...doc.data() });
+                });
+
+                messages.sort((a, b) => new Date(b.date) - new Date(a.date));
+                renderMessages(messages);
+            }, (error) => {
+                console.error("Erro ao ler mensagens:", error);
+            });
+        }
+
+        function renderMessages(messages) {
+            muralList.innerHTML = '';
+            
+            if (messages.length === 0) {
+                muralList.innerHTML = '<div class="text-center py-8 text-gray-500 text-sm italic">Seja o primeiro a comentar!</div>';
+                return;
+            }
+
+            messages.forEach((msg) => {
+                let dateString = '';
+                try {
+                    const dateObj = new Date(msg.date);
+                    dateString = dateObj.toLocaleDateString('pt-BR');
+                } catch(e) { dateString = 'Data desconhecida'; }
+
+                const div = document.createElement('div');
+                div.className = 'bg-white/5 border border-white/5 rounded-xl p-3 hover:bg-white/10 transition-colors animate-in fade-in slide-in-from-bottom-2 duration-300';
+                
+                const safeName = msg.name ? msg.name.replace(/</g, "&lt;").replace(/>/g, "&gt;") : 'Anônimo';
+                const safeText = msg.text ? msg.text.replace(/</g, "&lt;").replace(/>/g, "&gt;") : '';
+
+                div.innerHTML = `
+                    <div class="flex justify-between items-start mb-1">
+                        <h4 class="font-bold text-sm text-indigo-300">${safeName}</h4>
+                        <span class="text-[10px] text-gray-500">${dateString}</span>
+                    </div>
+                    <p class="text-sm text-gray-300 break-words">${safeText}</p>
+                `;
+                muralList.appendChild(div);
+            });
+        }
+
+        // Enviar Mensagem
+        muralForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            if (!auth.currentUser) return;
+
+            const nameInput = document.getElementById('mural-name');
+            const msgInput = document.getElementById('mural-message');
+            
+            const originalBtnContent = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i data-lucide="loader" class="w-4 h-4 animate-spin"></i> Enviando...';
+            lucide.createIcons();
+
+            try {
+                const messagesCol = collection(db, 'artifacts', appId, 'public', 'data', 'messages');
+                
+                await addDoc(messagesCol, {
+                    name: nameInput.value,
+                    text: msgInput.value,
+                    date: new Date().toISOString(),
+                    userId: auth.currentUser.uid 
+                });
+
+                muralForm.reset();
+                charCount.textContent = '0';
+                charCount.classList.remove('text-red-500');
+                
+                window.showMessage('Mensagem enviada! 🚀');
+
+            } catch (error) {
+                console.error("Erro ao enviar:", error);
+                window.showMessage('Erro ao enviar mensagem. Tente novamente.');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnContent;
+                lucide.createIcons();
+            }
+        });
+
+        // Inicia a autenticação
+        initAuth();
+
+    </script>
+
+    <!-- Scripts Globais -->
+    <script>
         const WHATSAPP_LINK = "https://chat.whatsapp.com/EIXwCOfms7J2GBy4Yz57Ku";
 
-        // Funções do Modal WhatsApp
         function openWhatsAppModal() {
             const modal = document.getElementById('whatsapp-modal');
             const content = document.getElementById('modal-content');
@@ -358,7 +659,6 @@
             }, 300);
         }
 
-        // Função Dropdown Connessione
         function toggleConnessione() {
             const menu = document.getElementById('connessione-menu');
             menu.classList.toggle('hidden');
@@ -376,7 +676,7 @@
             setTimeout(closeWhatsAppModal, 1500);
         }
 
-        function showMessage(message) {
+        window.showMessage = function(message) {
             const messageBox = document.getElementById('message-box');
             messageBox.textContent = message;
             messageBox.style.opacity = '1';
@@ -416,16 +716,12 @@
             }
         }
 
-        // Gestão de cliques globais (fechar modais/menus)
         window.onclick = function(event) {
             const modal = document.getElementById('whatsapp-modal');
-            
-            // Fechar Modal do Whats
             if (event.target == modal) {
                 closeWhatsAppModal();
             }
 
-            // Fechar Dropdown Connessione ao clicar fora
             const connMenu = document.getElementById('connessione-menu');
             const connBtn = document.getElementById('connessione-btn');
             if (connMenu && !connMenu.classList.contains('hidden') && 
