@@ -345,7 +345,10 @@
                         <p class="text-xs text-gray-400">Deixa teu recado aqui pra mim!</p>
                     </div>
                 </div>
-                <!-- Removido Contador Online Visualmente -->
+            </div>
+
+            <!-- MENSAGEM DE ERRO (VISÍVEL APENAS QUANDO HÁ ERRO) -->
+            <div id="error-message" class="hidden mb-4 p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-red-200 text-sm text-center">
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -482,19 +485,16 @@
 
     </div>
 
-    <!-- Lógica de UI e Firebase (MODO HÍBRIDO) -->
+    <!-- Lógica de UI e Firebase -->
     <script type="module">
         lucide.createIcons();
 
         // 1. Importações do Firebase
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        // IMPORTADO deleteDoc para apagar mensagens
         import { getFirestore, collection, addDoc, deleteDoc, onSnapshot, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // ==================================================================
-        // 🔧 SUA CONFIGURAÇÃO DO FIREBASE (PREENCHIDA!)
-        // ==================================================================
+        // CONFIGURAÇÃO DO FIREBASE (SUAS CHAVES)
         const MY_FIREBASE_CONFIG = {
             apiKey: "AIzaSyAM0jdJmVkYyFKmR14J5ujdUWAsN-O2MeI",
             authDomain: "luisinho-site.firebaseapp.com",
@@ -503,14 +503,11 @@
             messagingSenderId: "52102397191",
             appId: "1:52102397191:web:033eb6c43f1bf53bed19a2"
         };
-        // ==================================================================
 
         const envConfigRaw = typeof __firebase_config !== 'undefined' ? __firebase_config : '{}';
         const envConfig = JSON.parse(envConfigRaw);
-        
         const firebaseConfig = MY_FIREBASE_CONFIG.apiKey ? MY_FIREBASE_CONFIG : envConfig;
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        
         const hasFirebaseConfig = firebaseConfig && firebaseConfig.apiKey;
 
         // Elementos de UI
@@ -524,14 +521,14 @@
         const emojiGrid = document.getElementById('emoji-grid');
         const emojiContainer = document.getElementById('emoji-picker-container');
         const muralTitle = document.getElementById('mural-title');
+        const errorMsgEl = document.getElementById('error-message');
 
         // Estado Global
         let app, auth, db;
         let currentColor = '#818cf8'; 
-        let isAdmin = false; // Controle de Admin
-        let clickCount = 0;  // Contador para senha secreta
+        let isAdmin = false; 
+        let clickCount = 0;  
 
-        // Configuração de Lista Estendida de Emojis
         const emojis = [
             '😂', '❤️', '🔥', '😍', '👏', '🚀', '💀', '😭', 
             '👀', '😎', '🎉', '🤡', '🤔', '🙌', '✨', '💯',
@@ -546,14 +543,12 @@
 
         // --- INICIALIZAÇÃO DE UI ---
         
-        // Ativar Modo Admin (5 cliques no título)
         muralTitle.addEventListener('click', () => {
             clickCount++;
             if(clickCount === 5) {
                 const pass = prompt("Digite a senha de administrador:");
                 if(pass === "luisinho123") {
                     isAdmin = true;
-                    // Recarrega as mensagens para mostrar os botões de apagar
                     if (auth && auth.currentUser) {
                         setupMessagesListener(auth.currentUser); 
                     } else {
@@ -567,7 +562,6 @@
             }
         });
 
-        // Popular Grid de Emojis
         emojis.forEach(emoji => {
             const btn = document.createElement('button');
             btn.type = 'button';
@@ -582,7 +576,6 @@
             emojiGrid.appendChild(btn);
         });
 
-        // Monitorar mudança de cor
         colorPicker.addEventListener('input', (e) => {
             currentColor = e.target.value;
             nameInput.style.color = currentColor;
@@ -598,8 +591,6 @@
             }
         });
 
-        // --- FUNÇÕES DE UI (Comuns) ---
-        
         function enableButton() {
             submitBtn.disabled = false;
             submitBtn.classList.remove('bg-indigo-600/50', 'cursor-not-allowed');
@@ -622,7 +613,6 @@
             const safeText = msg.text ? msg.text.replace(/</g, "&lt;").replace(/>/g, "&gt;") : '';
             const nameColorStyle = msg.color ? `color: ${msg.color}` : 'color: #818cf8'; 
 
-            // Botão de Delete (Só aparece se for Admin)
             let deleteBtnHTML = '';
             if (isAdmin) {
                 deleteBtnHTML = `
@@ -641,7 +631,6 @@
                 ${deleteBtnHTML}
             `;
 
-            // Lógica de clique para deletar
             if (isAdmin && deleteCallback) {
                 const btn = div.querySelector('.delete-btn');
                 if(btn) {
@@ -654,10 +643,9 @@
             }
 
             muralList.appendChild(div);
-            lucide.createIcons(); // Atualiza ícones novos
+            lucide.createIcons();
         }
 
-        // Contador de Caracteres
         msgInput.addEventListener('input', function() {
             const current = this.value.length;
             charCount.textContent = current;
@@ -670,8 +658,7 @@
             }
         });
 
-
-        // --- LOGICA DE INICIALIZAÇÃO ---
+        // --- LÓGICA DE INICIALIZAÇÃO ---
 
         if (hasFirebaseConfig) {
             console.log("Iniciando Modo Online (Firebase v2.0)...");
@@ -680,11 +667,6 @@
                 app = initializeApp(firebaseConfig);
                 auth = getAuth(app);
                 db = getFirestore(app);
-
-                const connectionTimeout = setTimeout(() => {
-                    console.warn("Tempo de conexão esgotado. Forçando modo offline.");
-                    activateLocalMode();
-                }, 10000); // Aumentei para 10s
 
                 const initAuth = async () => {
                     try {
@@ -697,22 +679,24 @@
                         }
                     } catch (e) {
                         console.error("Auth falhou:", e);
-                        clearTimeout(connectionTimeout);
+                        showErrorState("Erro de Autenticação. Verifique 'Domínios Autorizados' no Firebase.");
                         activateLocalMode();
                     }
                 };
                 initAuth();
 
                 onAuthStateChanged(auth, (user) => {
-                    clearTimeout(connectionTimeout); 
                     if (user) {
                         enableButton();
                         setupMessagesListener(user);
+                        // Sucesso - remove erros
+                        errorMsgEl.classList.add('hidden');
                     }
                 });
 
             } catch (error) {
                 console.error("Erro ao iniciar Firebase:", error);
+                showErrorState("Erro ao conectar ao banco de dados.");
                 activateLocalMode(); 
             }
 
@@ -721,7 +705,10 @@
             activateLocalMode();
         }
 
-        // --- FUNÇÕES ESPECÍFICAS DOS MODOS ---
+        function showErrorState(msg) {
+            errorMsgEl.textContent = msg + " Ativado modo offline.";
+            errorMsgEl.classList.remove('hidden');
+        }
 
         function activateLocalMode() {
             enableButton();
@@ -729,24 +716,19 @@
             muralForm.onsubmit = handleLocalSubmit; 
         }
 
-        // >>>> Lógica Local
         const STORAGE_KEY = 'luisinho_mural_local';
 
         function renderLocalMessages() {
             muralList.innerHTML = '';
             let messages = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [
-                { id: 'sys', name: "Sistema", text: "Bem-vindo ao mural! As mensagens aparecem aqui.", date: new Date().toISOString(), color: '#10b981' }
+                { id: 'sys', name: "Sistema", text: "Modo Offline (Mensagens salvas apenas aqui).", date: new Date().toISOString(), color: '#10b981' }
             ];
-            
             messages.sort((a, b) => new Date(b.date) - new Date(a.date));
-            
-            // Função de deletar local
             const localDelete = (id) => {
                 messages = messages.filter(m => m.id !== id);
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
                 renderLocalMessages();
             };
-
             messages.forEach(msg => renderMessageItem(msg, localDelete));
         }
 
@@ -756,7 +738,7 @@
             const msgVal = document.getElementById('mural-message').value;
             
             const newMessage = {
-                id: Date.now().toString(), // ID único local
+                id: Date.now().toString(),
                 name: nameVal,
                 text: msgVal,
                 date: new Date().toISOString(),
@@ -774,8 +756,6 @@
             window.showMessage('Mensagem salva localmente! 💾');
         }
 
-        // >>>> Lógica Online
-        
         function setupMessagesListener(user) {
             let messagesCol;
             if (MY_FIREBASE_CONFIG.apiKey) {
@@ -784,10 +764,8 @@
                  messagesCol = collection(db, 'artifacts', appId, 'public', 'data', 'messages');
             }
 
-            // Função de Delete Online
             const onlineDelete = async (id) => {
                 try {
-                    // Determina qual documento deletar
                     const docRef = doc(messagesCol, id); 
                     await deleteDoc(docRef);
                     window.showMessage("Mensagem apagada! 🗑️");
@@ -813,6 +791,10 @@
                 }
             }, (error) => {
                 console.error("Erro no listener:", error);
+                // Se der erro de permissão aqui, avisa
+                if (error.code === 'permission-denied') {
+                    showErrorState("Erro de permissão. Verifique as Regras no Firebase.");
+                }
             });
             
             muralForm.addEventListener('submit', async (e) => {
@@ -828,7 +810,7 @@
 
                 try {
                     const timeoutPromise = new Promise((_, reject) => 
-                        setTimeout(() => reject(new Error("Timeout")), 10000)
+                        setTimeout(() => reject(new Error("Timeout")), 30000)
                     );
 
                     await Promise.race([
@@ -850,7 +832,7 @@
                 } catch (error) {
                     console.error("Erro ao enviar:", error);
                     if (error.message === "Timeout") {
-                        window.showMessage('Demorou muito. Verifique sua conexão.');
+                        window.showMessage('Conexão lenta. Tentando novamente...');
                     } else if (error.code === 'permission-denied') {
                         window.showMessage('Erro de permissão. Verifique o console do Firebase.');
                     } else {
@@ -861,7 +843,6 @@
                 }
             });
         }
-
     </script>
 
     <!-- Scripts Globais -->
