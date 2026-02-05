@@ -345,10 +345,18 @@
                         <p class="text-xs text-gray-400">Deixa teu recado aqui pra mim!</p>
                     </div>
                 </div>
-            </div>
 
-            <!-- MENSAGEM DE ERRO (VISÍVEL APENAS QUANDO HÁ ERRO) -->
-            <div id="error-message" class="hidden mb-4 p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-red-200 text-sm text-center font-mono">
+                <!-- Contador Online -->
+                <div class="flex items-center gap-3">
+                    <span id="local-mode-badge" class="hidden text-[10px] font-bold bg-yellow-500/20 text-yellow-200 px-2 py-1 rounded border border-yellow-500/30">
+                        OFFLINE
+                    </span>
+                    <div class="flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-full border border-white/5 w-fit">
+                        <i data-lucide="users" class="w-3 h-3 text-indigo-400"></i>
+                        <span id="online-count" class="text-xs font-bold text-indigo-100 font-mono">1</span>
+                        <span class="text-[10px] text-gray-500 uppercase tracking-wider hidden sm:inline">Online</span>
+                    </div>
+                </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -485,7 +493,7 @@
 
     </div>
 
-    <!-- Lógica de UI e Firebase -->
+    <!-- Lógica de UI e Firebase (MODO HÍBRIDO) -->
     <script type="module">
         lucide.createIcons();
 
@@ -494,7 +502,9 @@
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, deleteDoc, onSnapshot, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // CONFIGURAÇÃO DO FIREBASE (SUAS CHAVES)
+        // ==================================================================
+        // 🔧 SUA CONFIGURAÇÃO DO FIREBASE (PREENCHIDA!)
+        // ==================================================================
         const MY_FIREBASE_CONFIG = {
             apiKey: "AIzaSyAM0jdJmVkYyFKmR14J5ujdUWAsN-O2MeI",
             authDomain: "luisinho-site.firebaseapp.com",
@@ -503,12 +513,15 @@
             messagingSenderId: "52102397191",
             appId: "1:52102397191:web:033eb6c43f1bf53bed19a2"
         };
+        // ==================================================================
 
         const envConfigRaw = typeof __firebase_config !== 'undefined' ? __firebase_config : '{}';
         const envConfig = JSON.parse(envConfigRaw);
+        
         const firebaseConfig = MY_FIREBASE_CONFIG.apiKey ? MY_FIREBASE_CONFIG : envConfig;
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const hasFirebaseConfig = firebaseConfig && firebaseConfig.apiKey;
+        
+        const hasFirebaseConfig = firebaseConfig && firebaseConfig.apiKey && firebaseConfig.apiKey !== "COLE_SUA_API_KEY_AQUI";
 
         // Elementos de UI
         const muralForm = document.getElementById('mural-form');
@@ -517,6 +530,8 @@
         const charCount = document.getElementById('char-count');
         const msgInput = document.getElementById('mural-message');
         const nameInput = document.getElementById('mural-name');
+        const onlineCountEl = document.getElementById('online-count');
+        const localModeBadge = document.getElementById('local-mode-badge');
         const colorPicker = document.getElementById('color-picker');
         const emojiGrid = document.getElementById('emoji-grid');
         const emojiContainer = document.getElementById('emoji-picker-container');
@@ -668,6 +683,11 @@
                 auth = getAuth(app);
                 db = getFirestore(app);
 
+                const connectionTimeout = setTimeout(() => {
+                    console.warn("Tempo de conexão esgotado. Forçando modo offline.");
+                    activateLocalMode();
+                }, 10000); // Aumentei para 10s
+
                 const initAuth = async () => {
                     try {
                         if (MY_FIREBASE_CONFIG.apiKey) {
@@ -679,25 +699,23 @@
                         }
                     } catch (e) {
                         console.error("Auth falhou:", e);
-                        // Mostrar código técnico do erro na tela
-                        showErrorState("Erro: " + e.code + " - " + e.message);
+                        clearTimeout(connectionTimeout);
                         activateLocalMode();
                     }
                 };
                 initAuth();
 
                 onAuthStateChanged(auth, (user) => {
+                    clearTimeout(connectionTimeout); 
                     if (user) {
                         enableButton();
                         setupMessagesListener(user);
-                        // Sucesso - remove erros
-                        errorMsgEl.classList.add('hidden');
+                        initPresenceSystem(user);
                     }
                 });
 
             } catch (error) {
                 console.error("Erro ao iniciar Firebase:", error);
-                showErrorState("Erro ao conectar ao banco de dados: " + error.message);
                 activateLocalMode(); 
             }
 
@@ -706,30 +724,37 @@
             activateLocalMode();
         }
 
-        function showErrorState(msg) {
-            errorMsgEl.textContent = msg;
-            errorMsgEl.classList.remove('hidden');
-        }
+        // --- FUNÇÕES ESPECÍFICAS DOS MODOS ---
 
         function activateLocalMode() {
+            // UI Updates
+            onlineCountEl.parentElement.classList.add('opacity-80'); 
+            onlineCountEl.textContent = '1'; 
+            if (localModeBadge) localModeBadge.classList.remove('hidden'); // Restaurado para debug se necessário
+            
             enableButton();
             renderLocalMessages();
             muralForm.onsubmit = handleLocalSubmit; 
         }
 
+        // >>>> Lógica Local
         const STORAGE_KEY = 'luisinho_mural_local';
 
         function renderLocalMessages() {
             muralList.innerHTML = '';
             let messages = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [
-                { id: 'sys', name: "Sistema", text: "Modo Offline (Mensagens salvas apenas aqui).", date: new Date().toISOString(), color: '#10b981' }
+                { id: 'sys', name: "Sistema", text: "Bem-vindo ao mural! As mensagens aparecem aqui.", date: new Date().toISOString(), color: '#10b981' }
             ];
+            
             messages.sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            // Função de deletar local
             const localDelete = (id) => {
                 messages = messages.filter(m => m.id !== id);
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
                 renderLocalMessages();
             };
+
             messages.forEach(msg => renderMessageItem(msg, localDelete));
         }
 
@@ -739,7 +764,7 @@
             const msgVal = document.getElementById('mural-message').value;
             
             const newMessage = {
-                id: Date.now().toString(),
+                id: Date.now().toString(), // ID único local
                 name: nameVal,
                 text: msgVal,
                 date: new Date().toISOString(),
@@ -757,6 +782,8 @@
             window.showMessage('Mensagem salva localmente! 💾');
         }
 
+        // >>>> Lógica Online
+        
         function setupMessagesListener(user) {
             let messagesCol;
             if (MY_FIREBASE_CONFIG.apiKey) {
@@ -765,6 +792,7 @@
                  messagesCol = collection(db, 'artifacts', appId, 'public', 'data', 'messages');
             }
 
+            // Função de Delete Online
             const onlineDelete = async (id) => {
                 try {
                     const docRef = doc(messagesCol, id); 
@@ -772,7 +800,7 @@
                     window.showMessage("Mensagem apagada! 🗑️");
                 } catch (e) {
                     console.error("Erro ao deletar:", e);
-                    window.showMessage("Erro ao apagar: " + e.code);
+                    window.showMessage("Erro ao apagar. Verifique permissões.");
                 }
             };
 
@@ -792,12 +820,6 @@
                 }
             }, (error) => {
                 console.error("Erro no listener:", error);
-                // Se der erro de permissão aqui, avisa
-                if (error.code === 'permission-denied') {
-                    showErrorState("Erro de permissão (permission-denied). Verifique as Regras no Firebase.");
-                } else {
-                    showErrorState("Erro de conexão: " + error.code);
-                }
             });
             
             muralForm.addEventListener('submit', async (e) => {
@@ -813,7 +835,7 @@
 
                 try {
                     const timeoutPromise = new Promise((_, reject) => 
-                        setTimeout(() => reject(new Error("Timeout")), 30000)
+                        setTimeout(() => reject(new Error("Timeout")), 10000)
                     );
 
                     await Promise.race([
@@ -835,17 +857,52 @@
                 } catch (error) {
                     console.error("Erro ao enviar:", error);
                     if (error.message === "Timeout") {
-                        window.showMessage('Conexão lenta. Tentando novamente...');
+                        window.showMessage('Demorou muito. Verifique sua conexão.');
                     } else if (error.code === 'permission-denied') {
                         window.showMessage('Erro de permissão. Verifique o console do Firebase.');
                     } else {
-                        window.showMessage('Erro ao enviar: ' + error.code);
+                        window.showMessage('Erro ao enviar. Tente novamente.');
                     }
                 } finally {
                     enableButton();
                 }
             });
         }
+
+        function initPresenceSystem(user) {
+            let presenceCol;
+             if (MY_FIREBASE_CONFIG.apiKey) {
+                 presenceCol = collection(db, 'presence');
+            } else {
+                 presenceCol = collection(db, 'artifacts', appId, 'public', 'data', 'presence');
+            }
+            
+            const sendHeartbeat = async () => {
+                try {
+                    await setDoc(doc(presenceCol, user.uid), {
+                        lastSeen: Date.now(),
+                        userId: user.uid
+                    });
+                } catch (e) { console.error("Heartbeat error", e); }
+            };
+
+            sendHeartbeat();
+            setInterval(sendHeartbeat, 60000);
+
+            onSnapshot(presenceCol, (snapshot) => {
+                const now = Date.now();
+                const ACTIVE_THRESHOLD = 120000; 
+                let count = 0;
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    if (data.lastSeen && (now - data.lastSeen < ACTIVE_THRESHOLD)) count++;
+                });
+                onlineCountEl.textContent = count;
+                onlineCountEl.parentElement.classList.add('scale-110');
+                setTimeout(() => onlineCountEl.parentElement.classList.remove('scale-110'), 200);
+            });
+        }
+
     </script>
 </body>
 </html>
