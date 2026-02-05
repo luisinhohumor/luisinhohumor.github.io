@@ -297,7 +297,7 @@
         </div>
 
         <!-- ======================= -->
-        <!--  MURAL DE RECADOS (ONLINE)  -->
+        <!--  MURAL DE RECADOS  -->
         <!-- ======================= -->
         <div class="mt-4 bento-card p-6 md:p-8">
             <div class="flex items-center justify-between mb-6">
@@ -312,11 +312,18 @@
                     </div>
                 </div>
 
-                <!-- Contador Online (Movido para cá) -->
-                <div class="flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-full border border-white/5 w-fit">
-                    <i data-lucide="users" class="w-3 h-3 text-indigo-400"></i>
-                    <span id="online-count" class="text-xs font-bold text-indigo-100 font-mono">1</span>
-                    <span class="text-[10px] text-gray-500 uppercase tracking-wider hidden sm:inline">Online</span>
+                <!-- Contador Online (Com Badge de Modo) -->
+                <div class="flex items-center gap-3">
+                     <!-- Badge Local Mode (Invisível por padrão) -->
+                    <span id="local-mode-badge" class="hidden text-[10px] font-bold bg-yellow-500/20 text-yellow-200 px-2 py-1 rounded border border-yellow-500/30">
+                        OFFLINE
+                    </span>
+                    
+                    <div class="flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-full border border-white/5 w-fit">
+                        <i data-lucide="users" class="w-3 h-3 text-indigo-400"></i>
+                        <span id="online-count" class="text-xs font-bold text-indigo-100 font-mono">1</span>
+                        <span class="text-[10px] text-gray-500 uppercase tracking-wider hidden sm:inline">Online</span>
+                    </div>
                 </div>
             </div>
 
@@ -350,11 +357,11 @@
                 <!-- Lista de Recados -->
                 <div class="relative">
                     <div class="absolute -top-3 right-0 text-[10px] text-gray-500 bg-black/40 px-2 py-1 rounded-full">
-                        Últimas mensagens (Ao Vivo)
+                        Últimas mensagens
                     </div>
                     <div id="mural-list" class="space-y-3 max-h-[250px] overflow-y-auto custom-scrollbar pr-2">
                         <div class="text-center py-8 text-gray-500 text-sm italic">
-                            Carregando mensagens do servidor...
+                            Carregando mensagens...
                         </div>
                     </div>
                 </div>
@@ -419,33 +426,83 @@
 
     </div>
 
-    <!-- Lógica de UI e Firebase -->
+    <!-- Lógica de UI e Firebase (MODO HÍBRIDO) -->
     <script type="module">
         lucide.createIcons();
 
         // 1. Importações do Firebase
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot, doc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, onSnapshot, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // 2. Configuração
-        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        // ==================================================================
+        // 🔧 SUA CONFIGURAÇÃO DO FIREBASE (PREENCHIDA!)
+        // ==================================================================
+        const MY_FIREBASE_CONFIG = {
+            apiKey: "AIzaSyAM0jdJmVkYyFKmR14J5ujdUWAsN-O2MeI",
+            authDomain: "luisinho-site.firebaseapp.com",
+            projectId: "luisinho-site",
+            storageBucket: "luisinho-site.firebasestorage.app",
+            messagingSenderId: "52102397191",
+            appId: "1:52102397191:web:033eb6c43f1bf53bed19a2"
+        };
+        // ==================================================================
+
+        // 2. Configuração e Detecção de Ambiente
+        const envConfigRaw = typeof __firebase_config !== 'undefined' ? __firebase_config : '{}';
+        const envConfig = JSON.parse(envConfigRaw);
+        
+        const firebaseConfig = MY_FIREBASE_CONFIG.apiKey ? MY_FIREBASE_CONFIG : envConfig;
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
         
-        // 3. Inicialização
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+        const hasFirebaseConfig = firebaseConfig && firebaseConfig.apiKey;
 
-        // UI Elements
+        // Elementos de UI
         const muralForm = document.getElementById('mural-form');
         const muralList = document.getElementById('mural-list');
         const submitBtn = document.getElementById('submit-btn');
         const charCount = document.getElementById('char-count');
         const msgInput = document.getElementById('mural-message');
         const onlineCountEl = document.getElementById('online-count');
+        const localModeBadge = document.getElementById('local-mode-badge');
 
-        // Contador de Caracteres UI
+        // Estado Global
+        let app, auth, db;
+        
+        // --- FUNÇÕES DE UI (Comuns) ---
+        
+        function enableButton() {
+            submitBtn.disabled = false;
+            submitBtn.classList.remove('bg-indigo-600/50', 'cursor-not-allowed');
+            submitBtn.classList.add('bg-indigo-600', 'hover:bg-indigo-500', 'hover:scale-[1.02]', 'active:scale-95');
+            submitBtn.innerHTML = `<i data-lucide="send" class="w-4 h-4"></i> Publicar no Mural`;
+            lucide.createIcons();
+        }
+
+        function renderMessageItem(msg) {
+            let dateString = '';
+            try {
+                const dateObj = new Date(msg.date);
+                dateString = dateObj.toLocaleDateString('pt-BR');
+            } catch(e) { dateString = 'Data desconhecida'; }
+
+            const div = document.createElement('div');
+            div.className = 'bg-white/5 border border-white/5 rounded-xl p-3 hover:bg-white/10 transition-colors animate-in fade-in slide-in-from-bottom-2 duration-300';
+            
+            const safeName = msg.name ? msg.name.replace(/</g, "&lt;").replace(/>/g, "&gt;") : 'Anônimo';
+            const safeText = msg.text ? msg.text.replace(/</g, "&lt;").replace(/>/g, "&gt;") : '';
+
+            div.innerHTML = `
+                <div class="flex justify-between items-start mb-1">
+                    <h4 class="font-bold text-sm text-indigo-300">${safeName}</h4>
+                    <span class="text-[10px] text-gray-500">${dateString}</span>
+                </div>
+                <p class="text-sm text-gray-300 break-words">${safeText}</p>
+            `;
+            muralList.appendChild(div);
+        }
+
+        // Contador de Caracteres
         msgInput.addEventListener('input', function() {
             const current = this.value.length;
             charCount.textContent = current;
@@ -458,92 +515,114 @@
             }
         });
 
-        // 4. Autenticação e Lógica Principal
-        const initAuth = async () => {
-            try {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
-                }
-            } catch (error) {
-                console.error("Erro na autenticação:", error);
-                muralList.innerHTML = '<div class="text-center text-red-400 text-sm">Erro ao conectar ao servidor.</div>';
-            }
-        };
 
-        // Escuta mudança de estado da autenticação
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                console.log("Usuário conectado:", user.uid);
-                
-                // Habilitar botão
-                submitBtn.disabled = false;
-                submitBtn.classList.remove('bg-indigo-600/50', 'cursor-not-allowed');
-                submitBtn.classList.add('bg-indigo-600', 'hover:bg-indigo-500', 'hover:scale-[1.02]', 'active:scale-95');
-                submitBtn.innerHTML = `<i data-lucide="send" class="w-4 h-4"></i> Publicar no Mural`;
-                lucide.createIcons();
+        // --- LOGICA DE INICIALIZAÇÃO ---
 
-                // 5. Escutar Mensagens (Read Realtime)
-                setupMessagesListener(user);
-
-                // 6. Iniciar Sistema de Presença (Online)
-                initPresenceSystem(user);
-            }
-        });
-
-        // ============================================
-        // SISTEMA DE PRESENÇA (Online Counter)
-        // ============================================
-        function initPresenceSystem(user) {
-            const presenceCol = collection(db, 'artifacts', appId, 'public', 'data', 'presence');
+        if (hasFirebaseConfig) {
+            // =========================
+            // MODO ONLINE (Firebase)
+            // =========================
+            console.log("Iniciando Modo Online (Firebase)...");
             
-            // Função para enviar "estou vivo" (heartbeat)
-            const sendHeartbeat = async () => {
-                try {
-                    await setDoc(doc(presenceCol, user.uid), {
-                        lastSeen: Date.now(),
-                        userId: user.uid
-                    });
-                } catch (e) { console.error("Erro no heartbeat", e); }
-            };
+            try {
+                app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
 
-            // Envia o primeiro e configura o intervalo (a cada 60s)
-            sendHeartbeat();
-            setInterval(sendHeartbeat, 60000);
+                // Autenticação
+                const initAuth = async () => {
+                    // Se a config for "sua" (customizada), use login anônimo direto
+                    if (MY_FIREBASE_CONFIG.apiKey) {
+                         await signInAnonymously(auth);
+                    } 
+                    // Se for a config do ambiente de teste (editor), use o token customizado se existir
+                    else if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+                };
+                initAuth();
 
-            // Escuta a coleção de presença para contar usuários ativos
-            onSnapshot(presenceCol, (snapshot) => {
-                const now = Date.now();
-                const ACTIVE_THRESHOLD = 120000; // 2 minutos (margem de segurança)
-                let count = 0;
-
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    if (data.lastSeen && (now - data.lastSeen < ACTIVE_THRESHOLD)) {
-                        count++;
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        enableButton();
+                        setupMessagesListener(user);
+                        initPresenceSystem(user);
                     }
                 });
 
-                // Atualiza a UI (Animação simples)
-                onlineCountEl.textContent = count;
-                onlineCountEl.parentElement.classList.add('scale-110');
-                setTimeout(() => onlineCountEl.parentElement.classList.remove('scale-110'), 200);
+            } catch (error) {
+                console.error("Erro ao iniciar Firebase:", error);
+                activateLocalMode(); // Fallback se falhar
+            }
 
-            });
-
-            // Tentar remover ao sair (Best effort)
-            window.addEventListener('beforeunload', () => {
-                // deleteDoc não é garantido no unload, mas tentamos
-                // Em um app real usaria onDisconnect do Realtime DB
-            });
+        } else {
+            // =========================
+            // MODO OFFLINE (Sem Config)
+            // =========================
+            console.warn("Configuração Firebase ausente. Ativando Modo Local.");
+            activateLocalMode();
         }
 
-        // ============================================
-        // SISTEMA DE MENSAGENS
-        // ============================================
+        // --- FUNÇÕES ESPECÍFICAS DOS MODOS ---
+
+        function activateLocalMode() {
+            // UI Updates
+            localModeBadge.classList.remove('hidden');
+            onlineCountEl.parentElement.classList.add('opacity-50');
+            onlineCountEl.textContent = '-';
+            
+            enableButton();
+            renderLocalMessages();
+
+            // Override do Submit para Local
+            muralForm.addEventListener('submit', handleLocalSubmit);
+        }
+
+        // >>>> Lógica Local (LocalStorage)
+        const STORAGE_KEY = 'luisinho_mural_local';
+
+        function renderLocalMessages() {
+            muralList.innerHTML = '';
+            let messages = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [
+                { name: "Sistema (Offline)", text: "Você está no modo offline. As mensagens ficam salvas apenas aqui.", date: new Date().toISOString() }
+            ];
+            
+            messages.sort((a, b) => new Date(b.date) - new Date(a.date));
+            messages.forEach(renderMessageItem);
+        }
+
+        function handleLocalSubmit(e) {
+            e.preventDefault();
+            const nameInput = document.getElementById('mural-name');
+            
+            const newMessage = {
+                name: nameInput.value,
+                text: msgInput.value,
+                date: new Date().toISOString()
+            };
+
+            let messages = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+            messages.push(newMessage);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
+            
+            muralForm.reset();
+            charCount.textContent = '0';
+            renderLocalMessages();
+            window.showMessage('Mensagem salva localmente! 💾');
+        }
+
+        // >>>> Lógica Online (Firebase)
+        
         function setupMessagesListener(user) {
-            const messagesCol = collection(db, 'artifacts', appId, 'public', 'data', 'messages');
+            let messagesCol;
+            
+            if (MY_FIREBASE_CONFIG.apiKey) {
+                 messagesCol = collection(db, 'messages');
+            } else {
+                 messagesCol = collection(db, 'artifacts', appId, 'public', 'data', 'messages');
+            }
 
             onSnapshot(messagesCol, (snapshot) => {
                 const messages = [];
@@ -552,93 +631,90 @@
                 });
 
                 messages.sort((a, b) => new Date(b.date) - new Date(a.date));
-                renderMessages(messages);
+                
+                muralList.innerHTML = '';
+                if (messages.length === 0) {
+                    muralList.innerHTML = '<div class="text-center py-8 text-gray-500 text-sm italic">Seja o primeiro a comentar!</div>';
+                } else {
+                    messages.forEach(renderMessageItem);
+                }
             }, (error) => {
-                console.error("Erro ao ler mensagens:", error);
+                console.error("Erro no listener:", error);
             });
-        }
-
-        function renderMessages(messages) {
-            muralList.innerHTML = '';
             
-            if (messages.length === 0) {
-                muralList.innerHTML = '<div class="text-center py-8 text-gray-500 text-sm italic">Seja o primeiro a comentar!</div>';
-                return;
-            }
-
-            messages.forEach((msg) => {
-                let dateString = '';
-                try {
-                    const dateObj = new Date(msg.date);
-                    dateString = dateObj.toLocaleDateString('pt-BR');
-                } catch(e) { dateString = 'Data desconhecida'; }
-
-                const div = document.createElement('div');
-                div.className = 'bg-white/5 border border-white/5 rounded-xl p-3 hover:bg-white/10 transition-colors animate-in fade-in slide-in-from-bottom-2 duration-300';
+            // Setup do formulário para modo online
+            muralForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                if (!auth.currentUser) return;
                 
-                const safeName = msg.name ? msg.name.replace(/</g, "&lt;").replace(/>/g, "&gt;") : 'Anônimo';
-                const safeText = msg.text ? msg.text.replace(/</g, "&lt;").replace(/>/g, "&gt;") : '';
-
-                div.innerHTML = `
-                    <div class="flex justify-between items-start mb-1">
-                        <h4 class="font-bold text-sm text-indigo-300">${safeName}</h4>
-                        <span class="text-[10px] text-gray-500">${dateString}</span>
-                    </div>
-                    <p class="text-sm text-gray-300 break-words">${safeText}</p>
-                `;
-                muralList.appendChild(div);
-            });
-        }
-
-        // Enviar Mensagem
-        muralForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            if (!auth.currentUser) return;
-
-            const nameInput = document.getElementById('mural-name');
-            const msgInput = document.getElementById('mural-message');
-            
-            const originalBtnContent = submitBtn.innerHTML;
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i data-lucide="loader" class="w-4 h-4 animate-spin"></i> Enviando...';
-            lucide.createIcons();
-
-            try {
-                const messagesCol = collection(db, 'artifacts', appId, 'public', 'data', 'messages');
-                
-                await addDoc(messagesCol, {
-                    name: nameInput.value,
-                    text: msgInput.value,
-                    date: new Date().toISOString(),
-                    userId: auth.currentUser.uid 
-                });
-
-                muralForm.reset();
-                charCount.textContent = '0';
-                charCount.classList.remove('text-red-500');
-                
-                window.showMessage('Mensagem enviada! 🚀');
-
-            } catch (error) {
-                console.error("Erro ao enviar:", error);
-                window.showMessage('Erro ao enviar mensagem. Tente novamente.');
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = originalBtnContent;
+                const nameInput = document.getElementById('mural-name');
+                const originalBtnContent = submitBtn.innerHTML;
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i data-lucide="loader" class="w-4 h-4 animate-spin"></i> Enviando...';
                 lucide.createIcons();
-            }
-        });
 
-        // Inicia a autenticação
-        initAuth();
+                try {
+                    await addDoc(messagesCol, {
+                        name: nameInput.value,
+                        text: msgInput.value,
+                        date: new Date().toISOString(),
+                        userId: auth.currentUser.uid 
+                    });
+
+                    muralForm.reset();
+                    charCount.textContent = '0';
+                    window.showMessage('Mensagem enviada! 🚀');
+
+                } catch (error) {
+                    console.error("Erro ao enviar:", error);
+                    window.showMessage('Erro. Verifique as regras do Firestore.');
+                } finally {
+                    enableButton();
+                }
+            });
+        }
+
+        function initPresenceSystem(user) {
+            let presenceCol;
+             if (MY_FIREBASE_CONFIG.apiKey) {
+                 presenceCol = collection(db, 'presence');
+            } else {
+                 presenceCol = collection(db, 'artifacts', appId, 'public', 'data', 'presence');
+            }
+            
+            const sendHeartbeat = async () => {
+                try {
+                    await setDoc(doc(presenceCol, user.uid), {
+                        lastSeen: Date.now(),
+                        userId: user.uid
+                    });
+                } catch (e) { console.error("Heartbeat error", e); }
+            };
+
+            sendHeartbeat();
+            setInterval(sendHeartbeat, 60000);
+
+            onSnapshot(presenceCol, (snapshot) => {
+                const now = Date.now();
+                const ACTIVE_THRESHOLD = 120000; 
+                let count = 0;
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    if (data.lastSeen && (now - data.lastSeen < ACTIVE_THRESHOLD)) count++;
+                });
+                onlineCountEl.textContent = count;
+                onlineCountEl.parentElement.classList.add('scale-110');
+                setTimeout(() => onlineCountEl.parentElement.classList.remove('scale-110'), 200);
+            });
+        }
 
     </script>
 
-    <!-- Scripts Globais -->
+    <!-- Scripts Globais (sem module) para funções window -->
     <script>
         const WHATSAPP_LINK = "https://chat.whatsapp.com/EIXwCOfms7J2GBy4Yz57Ku";
 
+        // Funções do Modal WhatsApp e Outras (mantidas do original)
         function openWhatsAppModal() {
             const modal = document.getElementById('whatsapp-modal');
             const content = document.getElementById('modal-content');
@@ -676,6 +752,7 @@
             setTimeout(closeWhatsAppModal, 1500);
         }
 
+        // Função tornada global para ser usada dentro do module
         window.showMessage = function(message) {
             const messageBox = document.getElementById('message-box');
             messageBox.textContent = message;
