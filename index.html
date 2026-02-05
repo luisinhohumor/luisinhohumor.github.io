@@ -348,7 +348,7 @@
             </div>
 
             <!-- MENSAGEM DE ERRO (VISÍVEL APENAS QUANDO HÁ ERRO) -->
-            <div id="error-message" class="hidden mb-4 p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-red-200 text-sm text-center">
+            <div id="error-message" class="hidden mb-4 p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-red-200 text-sm text-center font-mono">
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -679,7 +679,8 @@
                         }
                     } catch (e) {
                         console.error("Auth falhou:", e);
-                        showErrorState("Erro de Autenticação. Verifique 'Domínios Autorizados' no Firebase.");
+                        // Mostrar código técnico do erro na tela
+                        showErrorState("Erro: " + e.code + " - " + e.message);
                         activateLocalMode();
                     }
                 };
@@ -696,7 +697,7 @@
 
             } catch (error) {
                 console.error("Erro ao iniciar Firebase:", error);
-                showErrorState("Erro ao conectar ao banco de dados.");
+                showErrorState("Erro ao conectar ao banco de dados: " + error.message);
                 activateLocalMode(); 
             }
 
@@ -706,7 +707,7 @@
         }
 
         function showErrorState(msg) {
-            errorMsgEl.textContent = msg + " Ativado modo offline.";
+            errorMsgEl.textContent = msg;
             errorMsgEl.classList.remove('hidden');
         }
 
@@ -771,7 +772,7 @@
                     window.showMessage("Mensagem apagada! 🗑️");
                 } catch (e) {
                     console.error("Erro ao deletar:", e);
-                    window.showMessage("Erro ao apagar. Verifique permissões.");
+                    window.showMessage("Erro ao apagar: " + e.code);
                 }
             };
 
@@ -793,7 +794,9 @@
                 console.error("Erro no listener:", error);
                 // Se der erro de permissão aqui, avisa
                 if (error.code === 'permission-denied') {
-                    showErrorState("Erro de permissão. Verifique as Regras no Firebase.");
+                    showErrorState("Erro de permissão (permission-denied). Verifique as Regras no Firebase.");
+                } else {
+                    showErrorState("Erro de conexão: " + error.code);
                 }
             });
             
@@ -836,110 +839,12 @@
                     } else if (error.code === 'permission-denied') {
                         window.showMessage('Erro de permissão. Verifique o console do Firebase.');
                     } else {
-                        window.showMessage('Erro ao enviar. Tente novamente.');
+                        window.showMessage('Erro ao enviar: ' + error.code);
                     }
                 } finally {
                     enableButton();
                 }
             });
-        }
-    </script>
-
-    <!-- Scripts Globais -->
-    <script>
-        const WHATSAPP_LINK = "https://chat.whatsapp.com/EIXwCOfms7J2GBy4Yz57Ku";
-
-        function openWhatsAppModal() {
-            const modal = document.getElementById('whatsapp-modal');
-            const content = document.getElementById('modal-content');
-            modal.style.display = 'flex';
-            setTimeout(() => {
-                content.classList.remove('scale-95', 'opacity-0');
-                content.classList.add('scale-100', 'opacity-100');
-            }, 10);
-        }
-
-        function closeWhatsAppModal() {
-            const modal = document.getElementById('whatsapp-modal');
-            const content = document.getElementById('modal-content');
-            content.classList.remove('scale-100', 'opacity-100');
-            content.classList.add('scale-95', 'opacity-0');
-            setTimeout(() => {
-                modal.style.display = 'none';
-            }, 300);
-        }
-
-        function toggleConnessione() {
-            const menu = document.getElementById('connessione-menu');
-            menu.classList.toggle('hidden');
-        }
-
-        function copyWhatsAppLink() {
-            const el = document.createElement('textarea');
-            el.value = WHATSAPP_LINK;
-            document.body.appendChild(el);
-            el.select();
-            document.execCommand('copy');
-            document.body.removeChild(el);
-            
-            showMessage('Link copiado! Cole no navegador. 📋');
-            setTimeout(closeWhatsAppModal, 1500);
-        }
-
-        window.showMessage = function(message) {
-            const messageBox = document.getElementById('message-box');
-            messageBox.textContent = message;
-            messageBox.style.opacity = '1';
-            setTimeout(() => { messageBox.style.opacity = '0'; }, 3000);
-        }
-
-        async function shareProfile() {
-            const url = window.location.href;
-            if (navigator.share) {
-                try {
-                    await navigator.share({ title: document.title, url: url });
-                } catch (err) {}
-            } else {
-                const el = document.createElement('textarea');
-                el.value = url;
-                document.body.appendChild(el);
-                el.select();
-                document.execCommand('copy');
-                document.body.removeChild(el);
-                showMessage('Link copiado! 📋');
-            }
-        }
-
-        function toggleVideos() {
-            const gallery = document.getElementById('video-gallery');
-            const chevron = document.getElementById('chevron-icon');
-            const isOpen = gallery.style.maxHeight !== '0px' && gallery.style.maxHeight !== '';
-            
-            if (isOpen) {
-                gallery.style.maxHeight = '0px';
-                gallery.style.opacity = '0';
-                chevron.style.transform = 'rotate(0deg)';
-            } else {
-                gallery.style.maxHeight = '1000px';
-                gallery.style.opacity = '1';
-                chevron.style.transform = 'rotate(180deg)';
-            }
-        }
-
-        window.onclick = function(event) {
-            const modal = document.getElementById('whatsapp-modal');
-            if (event.target == modal) {
-                closeWhatsAppModal();
-            }
-
-            const connMenu = document.getElementById('connessione-menu');
-            const connBtn = document.getElementById('connessione-btn');
-            if (connMenu && !connMenu.classList.contains('hidden') && 
-                !connMenu.contains(event.target) && 
-                event.target !== connBtn && 
-                !connBtn.contains(event.target)) {
-                connMenu.classList.add('hidden');
-            }
         }
     </script>
 </body>
