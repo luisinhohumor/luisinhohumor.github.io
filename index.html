@@ -522,29 +522,42 @@
             // =========================
             // MODO ONLINE (Firebase)
             // =========================
-            console.log("Iniciando Modo Online (Firebase)...");
+            console.log("Iniciando Modo Online (Firebase v2.0)...");
             
             try {
                 app = initializeApp(firebaseConfig);
                 auth = getAuth(app);
                 db = getFirestore(app);
 
+                // --- PROTEÇÃO CONTRA TRAVAMENTO ---
+                // Se demorar mais de 5s para autenticar, força o modo offline
+                const connectionTimeout = setTimeout(() => {
+                    console.warn("Tempo de conexão esgotado. Forçando modo offline.");
+                    activateLocalMode();
+                }, 5000); 
+
                 // Autenticação
                 const initAuth = async () => {
-                    // Se a config for "sua" (customizada), use login anônimo direto
-                    if (MY_FIREBASE_CONFIG.apiKey) {
-                         await signInAnonymously(auth);
-                    } 
-                    // Se for a config do ambiente de teste (editor), use o token customizado se existir
-                    else if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                        await signInWithCustomToken(auth, __initial_auth_token);
-                    } else {
-                        await signInAnonymously(auth);
+                    try {
+                        if (MY_FIREBASE_CONFIG.apiKey) {
+                             await signInAnonymously(auth);
+                        } else if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                            await signInWithCustomToken(auth, __initial_auth_token);
+                        } else {
+                            await signInAnonymously(auth);
+                        }
+                    } catch (e) {
+                        console.error("Auth falhou:", e);
+                        // Se der erro explícito, força offline imediatamente
+                        clearTimeout(connectionTimeout);
+                        activateLocalMode();
                     }
                 };
                 initAuth();
 
                 onAuthStateChanged(auth, (user) => {
+                    // Se entrou aqui, conectou com sucesso!
+                    clearTimeout(connectionTimeout); 
                     if (user) {
                         enableButton();
                         setupMessagesListener(user);
@@ -577,7 +590,10 @@
             renderLocalMessages();
 
             // Override do Submit para Local
-            muralForm.addEventListener('submit', handleLocalSubmit);
+            // Remove listener anterior para evitar duplicação (embora aqui seja a primeira vez)
+            // Mas precisamos garantir que o formulário use SOMENTE o handler local
+            // O jeito mais seguro é clonar o elemento ou setar um flag, mas aqui vamos assumir que o listener online não foi ativado
+            muralForm.onsubmit = handleLocalSubmit; 
         }
 
         // >>>> Lógica Local (LocalStorage)
@@ -648,18 +664,27 @@
                 if (!auth.currentUser) return;
                 
                 const nameInput = document.getElementById('mural-name');
+                const msgInput = document.getElementById('mural-message'); 
                 const originalBtnContent = submitBtn.innerHTML;
                 submitBtn.disabled = true;
                 submitBtn.innerHTML = '<i data-lucide="loader" class="w-4 h-4 animate-spin"></i> Enviando...';
                 lucide.createIcons();
 
                 try {
-                    await addDoc(messagesCol, {
-                        name: nameInput.value,
-                        text: msgInput.value,
-                        date: new Date().toISOString(),
-                        userId: auth.currentUser.uid 
-                    });
+                    // Timeout de 10 segundos para não ficar girando para sempre
+                    const timeoutPromise = new Promise((_, reject) => 
+                        setTimeout(() => reject(new Error("Timeout")), 10000)
+                    );
+
+                    await Promise.race([
+                        addDoc(messagesCol, {
+                            name: nameInput.value,
+                            text: msgInput.value,
+                            date: new Date().toISOString(),
+                            userId: auth.currentUser.uid 
+                        }),
+                        timeoutPromise
+                    ]);
 
                     muralForm.reset();
                     charCount.textContent = '0';
@@ -667,7 +692,13 @@
 
                 } catch (error) {
                     console.error("Erro ao enviar:", error);
-                    window.showMessage('Erro. Verifique as regras do Firestore.');
+                    if (error.message === "Timeout") {
+                        window.showMessage('Demorou muito. Verifique sua conexão.');
+                    } else if (error.code === 'permission-denied') {
+                        window.showMessage('Erro de permissão. Verifique o console do Firebase.');
+                    } else {
+                        window.showMessage('Erro ao enviar. Tente novamente.');
+                    }
                 } finally {
                     enableButton();
                 }
