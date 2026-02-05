@@ -340,22 +340,12 @@
                         <i data-lucide="message-square" class="w-6 h-6"></i>
                     </div>
                     <div>
-                        <h2 class="text-2xl font-display font-bold text-white">Mural de Recados</h2>
+                        <!-- ADICIONADO: Gatilho de Admin no clique do título -->
+                        <h2 id="mural-title" class="text-2xl font-display font-bold text-white cursor-pointer select-none" title="Clique 5x para modo admin">Mural de Recados</h2>
                         <p class="text-xs text-gray-400">Deixa teu recado aqui pra mim!</p>
                     </div>
                 </div>
-
-                <!-- Contador Online -->
-                <div class="flex items-center gap-3">
-                    <span id="local-mode-badge" class="hidden text-[10px] font-bold bg-yellow-500/20 text-yellow-200 px-2 py-1 rounded border border-yellow-500/30">
-                        OFFLINE
-                    </span>
-                    <div class="flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-full border border-white/5 w-fit">
-                        <i data-lucide="users" class="w-3 h-3 text-indigo-400"></i>
-                        <span id="online-count" class="text-xs font-bold text-indigo-100 font-mono">1</span>
-                        <span class="text-[10px] text-gray-500 uppercase tracking-wider hidden sm:inline">Online</span>
-                    </div>
-                </div>
+                <!-- Removido Contador Online Visualmente -->
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -499,7 +489,8 @@
         // 1. Importações do Firebase
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        // IMPORTADO deleteDoc para apagar mensagens
+        import { getFirestore, collection, addDoc, deleteDoc, onSnapshot, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // ==================================================================
         // 🔧 SUA CONFIGURAÇÃO DO FIREBASE (PREENCHIDA!)
@@ -529,15 +520,16 @@
         const charCount = document.getElementById('char-count');
         const msgInput = document.getElementById('mural-message');
         const nameInput = document.getElementById('mural-name');
-        const onlineCountEl = document.getElementById('online-count');
-        const localModeBadge = document.getElementById('local-mode-badge');
         const colorPicker = document.getElementById('color-picker');
         const emojiGrid = document.getElementById('emoji-grid');
         const emojiContainer = document.getElementById('emoji-picker-container');
+        const muralTitle = document.getElementById('mural-title');
 
         // Estado Global
         let app, auth, db;
-        let currentColor = '#818cf8'; // Cor padrão inicial
+        let currentColor = '#818cf8'; 
+        let isAdmin = false; // Controle de Admin
+        let clickCount = 0;  // Contador para senha secreta
 
         // Configuração de Lista Estendida de Emojis
         const emojis = [
@@ -554,6 +546,27 @@
 
         // --- INICIALIZAÇÃO DE UI ---
         
+        // Ativar Modo Admin (5 cliques no título)
+        muralTitle.addEventListener('click', () => {
+            clickCount++;
+            if(clickCount === 5) {
+                const pass = prompt("Digite a senha de administrador:");
+                if(pass === "luisinho123") {
+                    isAdmin = true;
+                    // Recarrega as mensagens para mostrar os botões de apagar
+                    if (auth && auth.currentUser) {
+                        setupMessagesListener(auth.currentUser); 
+                    } else {
+                        renderLocalMessages();
+                    }
+                    window.showMessage("Modo Admin Ativado! 🗑️");
+                } else {
+                    window.showMessage("Senha incorreta.");
+                }
+                clickCount = 0;
+            }
+        });
+
         // Popular Grid de Emojis
         emojis.forEach(emoji => {
             const btn = document.createElement('button');
@@ -562,8 +575,8 @@
             btn.className = "emoji-btn";
             btn.onclick = () => {
                 msgInput.value += emoji;
-                msgInput.dispatchEvent(new Event('input')); // Atualiza contador
-                toggleEmojiPicker(); // Fecha após escolher
+                msgInput.dispatchEvent(new Event('input')); 
+                toggleEmojiPicker(); 
                 msgInput.focus();
             };
             emojiGrid.appendChild(btn);
@@ -572,16 +585,13 @@
         // Monitorar mudança de cor
         colorPicker.addEventListener('input', (e) => {
             currentColor = e.target.value;
-            // Muda a cor do input de nome para preview
             nameInput.style.color = currentColor;
         });
 
-        // Tornar função global para o botão HTML
         window.toggleEmojiPicker = function() {
             emojiContainer.classList.toggle('hidden');
         }
 
-        // Fechar emoji picker se clicar fora
         document.addEventListener('click', (e) => {
             if (!emojiContainer.contains(e.target) && !e.target.closest('button[onclick="toggleEmojiPicker()"]')) {
                 emojiContainer.classList.add('hidden');
@@ -598,7 +608,7 @@
             lucide.createIcons();
         }
 
-        function renderMessageItem(msg) {
+        function renderMessageItem(msg, deleteCallback = null) {
             let dateString = '';
             try {
                 const dateObj = new Date(msg.date);
@@ -606,21 +616,45 @@
             } catch(e) { dateString = 'Data desconhecida'; }
 
             const div = document.createElement('div');
-            div.className = 'bg-white/5 border border-white/5 rounded-xl p-3 hover:bg-white/10 transition-colors animate-in fade-in slide-in-from-bottom-2 duration-300';
+            div.className = 'bg-white/5 border border-white/5 rounded-xl p-3 hover:bg-white/10 transition-colors animate-in fade-in slide-in-from-bottom-2 duration-300 relative group';
             
             const safeName = msg.name ? msg.name.replace(/</g, "&lt;").replace(/>/g, "&gt;") : 'Anônimo';
             const safeText = msg.text ? msg.text.replace(/</g, "&lt;").replace(/>/g, "&gt;") : '';
-            // Usa cor hexadecimal salva ou padrão se não existir
             const nameColorStyle = msg.color ? `color: ${msg.color}` : 'color: #818cf8'; 
 
+            // Botão de Delete (Só aparece se for Admin)
+            let deleteBtnHTML = '';
+            if (isAdmin) {
+                deleteBtnHTML = `
+                    <button class="delete-btn absolute top-2 right-2 text-red-500 hover:text-red-400 bg-black/50 p-1.5 rounded-lg hover:bg-black/80 transition-all opacity-0 group-hover:opacity-100" title="Apagar Mensagem">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    </button>
+                `;
+            }
+
             div.innerHTML = `
-                <div class="flex justify-between items-start mb-1">
+                <div class="flex justify-between items-start mb-1 pr-6">
                     <h4 class="font-bold text-sm" style="${nameColorStyle}">${safeName}</h4>
                     <span class="text-[10px] text-gray-500">${dateString}</span>
                 </div>
                 <p class="text-sm text-gray-300 break-words">${safeText}</p>
+                ${deleteBtnHTML}
             `;
+
+            // Lógica de clique para deletar
+            if (isAdmin && deleteCallback) {
+                const btn = div.querySelector('.delete-btn');
+                if(btn) {
+                    btn.addEventListener('click', () => {
+                        if(confirm("Tem certeza que deseja apagar esta mensagem?")) {
+                            deleteCallback(msg.id);
+                        }
+                    });
+                }
+            }
+
             muralList.appendChild(div);
+            lucide.createIcons(); // Atualiza ícones novos
         }
 
         // Contador de Caracteres
@@ -647,13 +681,11 @@
                 auth = getAuth(app);
                 db = getFirestore(app);
 
-                // --- PROTEÇÃO CONTRA TRAVAMENTO ---
                 const connectionTimeout = setTimeout(() => {
                     console.warn("Tempo de conexão esgotado. Forçando modo offline.");
                     activateLocalMode();
-                }, 5000); 
+                }, 10000); // Aumentei para 10s
 
-                // Autenticação
                 const initAuth = async () => {
                     try {
                         if (MY_FIREBASE_CONFIG.apiKey) {
@@ -676,7 +708,6 @@
                     if (user) {
                         enableButton();
                         setupMessagesListener(user);
-                        initPresenceSystem(user);
                     }
                 });
 
@@ -693,11 +724,6 @@
         // --- FUNÇÕES ESPECÍFICAS DOS MODOS ---
 
         function activateLocalMode() {
-            // UI Updates - Removido badge visualmente, mas lógica mantém
-            // localModeBadge.classList.remove('hidden'); 
-            onlineCountEl.parentElement.classList.add('opacity-80'); 
-            onlineCountEl.textContent = '1'; // Sempre mostra 1
-            
             enableButton();
             renderLocalMessages();
             muralForm.onsubmit = handleLocalSubmit; 
@@ -709,11 +735,19 @@
         function renderLocalMessages() {
             muralList.innerHTML = '';
             let messages = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [
-                { name: "Sistema", text: "Bem-vindo ao mural! As mensagens aparecem aqui.", date: new Date().toISOString(), color: '#10b981' }
+                { id: 'sys', name: "Sistema", text: "Bem-vindo ao mural! As mensagens aparecem aqui.", date: new Date().toISOString(), color: '#10b981' }
             ];
             
             messages.sort((a, b) => new Date(b.date) - new Date(a.date));
-            messages.forEach(renderMessageItem);
+            
+            // Função de deletar local
+            const localDelete = (id) => {
+                messages = messages.filter(m => m.id !== id);
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
+                renderLocalMessages();
+            };
+
+            messages.forEach(msg => renderMessageItem(msg, localDelete));
         }
 
         function handleLocalSubmit(e) {
@@ -722,6 +756,7 @@
             const msgVal = document.getElementById('mural-message').value;
             
             const newMessage = {
+                id: Date.now().toString(), // ID único local
                 name: nameVal,
                 text: msgVal,
                 date: new Date().toISOString(),
@@ -734,7 +769,7 @@
             
             muralForm.reset();
             charCount.textContent = '0';
-            nameInput.style.color = ''; // Reseta cor do input
+            nameInput.style.color = ''; 
             renderLocalMessages();
             window.showMessage('Mensagem salva localmente! 💾');
         }
@@ -749,6 +784,19 @@
                  messagesCol = collection(db, 'artifacts', appId, 'public', 'data', 'messages');
             }
 
+            // Função de Delete Online
+            const onlineDelete = async (id) => {
+                try {
+                    // Determina qual documento deletar
+                    const docRef = doc(messagesCol, id); 
+                    await deleteDoc(docRef);
+                    window.showMessage("Mensagem apagada! 🗑️");
+                } catch (e) {
+                    console.error("Erro ao deletar:", e);
+                    window.showMessage("Erro ao apagar. Verifique permissões.");
+                }
+            };
+
             onSnapshot(messagesCol, (snapshot) => {
                 const messages = [];
                 snapshot.forEach((doc) => {
@@ -761,7 +809,7 @@
                 if (messages.length === 0) {
                     muralList.innerHTML = '<div class="text-center py-8 text-gray-500 text-sm italic">Seja o primeiro a comentar!</div>';
                 } else {
-                    messages.forEach(renderMessageItem);
+                    messages.forEach(msg => renderMessageItem(msg, onlineDelete));
                 }
             }, (error) => {
                 console.error("Erro no listener:", error);
@@ -796,7 +844,7 @@
 
                     muralForm.reset();
                     charCount.textContent = '0';
-                    nameInput.style.color = ''; // Reseta visual
+                    nameInput.style.color = ''; 
                     window.showMessage('Mensagem enviada! 🚀');
 
                 } catch (error) {
@@ -811,40 +859,6 @@
                 } finally {
                     enableButton();
                 }
-            });
-        }
-
-        function initPresenceSystem(user) {
-            let presenceCol;
-             if (MY_FIREBASE_CONFIG.apiKey) {
-                 presenceCol = collection(db, 'presence');
-            } else {
-                 presenceCol = collection(db, 'artifacts', appId, 'public', 'data', 'presence');
-            }
-            
-            const sendHeartbeat = async () => {
-                try {
-                    await setDoc(doc(presenceCol, user.uid), {
-                        lastSeen: Date.now(),
-                        userId: user.uid
-                    });
-                } catch (e) { console.error("Heartbeat error", e); }
-            };
-
-            sendHeartbeat();
-            setInterval(sendHeartbeat, 60000);
-
-            onSnapshot(presenceCol, (snapshot) => {
-                const now = Date.now();
-                const ACTIVE_THRESHOLD = 120000; 
-                let count = 0;
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    if (data.lastSeen && (now - data.lastSeen < ACTIVE_THRESHOLD)) count++;
-                });
-                onlineCountEl.textContent = count;
-                onlineCountEl.parentElement.classList.add('scale-110');
-                setTimeout(() => onlineCountEl.parentElement.classList.remove('scale-110'), 200);
             });
         }
 
