@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Luisinho - Site Oficial</title>
     
+    <!-- Frameworks e Fontes -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -43,7 +44,12 @@
             color: white;
             min-height: 100vh;
             overflow-x: hidden;
-            padding-top: 100px; 
+            /* Altura compensada para as duas linhas de navegação no telemóvel */
+            padding-top: 140px; 
+        }
+
+        @media (min-width: 768px) {
+            body { padding-top: 100px; }
         }
 
         .bento-card {
@@ -52,6 +58,11 @@
             border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 24px;
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .bento-card:hover {
+            border-color: rgba(223, 255, 0, 0.3);
+            background: rgba(255, 255, 255, 0.05);
         }
 
         .social-ball-mini {
@@ -63,6 +74,11 @@
             transition: all 0.3s;
             color: white;
         }
+
+        .social-tiktok:hover { background: #fe2c55; }
+        .social-instagram:hover { background: #E1306C; }
+        .social-youtube:hover { background: #FF0000; }
+        .social-facebook:hover { background: #1877F2; }
 
         .main-navigation {
             position: fixed;
@@ -153,12 +169,12 @@
         .status-offline { background-color: #ef4444; box-shadow: 0 0 8px #ef4444; }
     </style>
 
-    <!-- SCRIPT DE INTERFACE (FUNCIONALIDADE IMEDIATA) -->
+    <!-- FUNÇÕES GLOBAIS DE INTERFACE -->
     <script>
         window.scrollToId = function(id) {
             const el = document.getElementById(id);
             if(el) {
-                const headerHeight = 110;
+                const headerHeight = window.innerWidth < 768 ? 145 : 110;
                 const rect = el.getBoundingClientRect();
                 const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
                 window.scrollTo({ top: rect.top + scrollTop - headerHeight, behavior: "smooth" });
@@ -209,6 +225,28 @@
                 picker.style.display = isHidden ? 'block' : 'none';
             }
         };
+
+        window.shareSite = async function() {
+            if (navigator.share) {
+                try {
+                    await navigator.share({
+                        title: 'Luisinho - Site Oficial',
+                        text: 'Dá uma olhada no site oficial do Luisinho!',
+                        url: window.location.href
+                    });
+                } catch (err) {
+                    // Partilha cancelada ou erro
+                }
+            } else {
+                const el = document.createElement('textarea');
+                el.value = window.location.href;
+                document.body.appendChild(el);
+                el.select();
+                document.execCommand('copy');
+                document.body.removeChild(el);
+                window.showToast("LINK COPIADO PARA PARTILHAR!");
+            }
+        };
     </script>
 </head>
 <body class="antialiased p-3 sm:p-8 text-white">
@@ -238,7 +276,7 @@
             <p class="text-gray-300 text-[10px] mb-4">Se o link falhar, copie e cole no navegador.</p>
             <div class="flex flex-col gap-3">
                 <a href="https://chat.whatsapp.com/EIXwCOfms7J2GBy4Yz57Ku" target="_blank" class="bg-green-600 text-white py-4 rounded-xl font-black uppercase text-xs">Entrar no Grupo</a>
-                <button onclick="window.copyZapLink()" class="bg-white/5 py-4 rounded-xl font-bold uppercase text-xs border border-white/10">Copiar Link</button>
+                <button onclick="window.copyZapLink()" class="bg-white/5 py-4 rounded-xl font-bold uppercase text-xs border border-white/10 text-white">Copiar Link</button>
                 <button onclick="window.closeModal('whatsapp-modal')" class="text-gray-500 font-bold uppercase text-[10px] mt-2">Fechar</button>
             </div>
         </div>
@@ -246,39 +284,56 @@
 
     <!-- NAVEGAÇÃO SUPERIOR -->
     <header class="main-navigation">
-        <div class="flex justify-center w-full px-4">
-            <div class="flex gap-2 bg-black/60 backdrop-blur-lg p-1.5 rounded-full border border-white/10 overflow-x-auto no-scrollbar max-w-full items-center">
-                <button onclick="window.openModal('whatsapp-modal')" class="bg-green-500/10 px-4 py-2.5 rounded-full text-[9px] font-black text-green-400 uppercase border border-green-500/20 whitespace-nowrap">Zap</button>
-                <div class="w-px h-4 bg-white/10 mx-1"></div>
-                <button onclick="window.scrollToId('sobre')" class="text-[9px] font-black text-white px-3 py-2.5 rounded-full uppercase tracking-widest whitespace-nowrap">Sobre</button>
-                <button onclick="window.scrollToId('livepix')" class="text-[9px] font-black text-white px-3 py-2.5 rounded-full uppercase tracking-widest whitespace-nowrap">LivePix</button>
-                <button onclick="window.scrollToId('cancelados')" class="text-[9px] font-black text-white px-3 py-2.5 rounded-full uppercase tracking-widest whitespace-nowrap">Vídeos</button>
-                <button onclick="window.scrollToId('game')" class="text-[9px] font-black text-white px-3 py-2.5 rounded-full uppercase tracking-widest whitespace-nowrap">Game</button>
-                <button onclick="window.scrollToId('mural')" class="text-[9px] font-black text-white px-3 py-2.5 rounded-full uppercase tracking-widest whitespace-nowrap">Mural</button>
-                <button onclick="window.scrollToId('contato')" class="text-[9px] font-black text-white px-3 py-2.5 rounded-full uppercase tracking-widest whitespace-nowrap">Contato</button>
-                <div class="w-px h-4 bg-white/10 mx-1"></div>
-                <button onclick="window.openModal('connessione-modal')" class="bg-blue-500/10 px-4 py-2.5 rounded-full text-[9px] font-black text-blue-400 uppercase border border-blue-500/20 whitespace-nowrap">Connessione</button>
+        <div class="flex flex-col items-center justify-center w-full px-4 gap-3">
+            
+            <!-- Linha 1: Zap e Connessione (Visível no Mobile) -->
+            <div class="flex gap-2 items-center">
+                <button onclick="window.openModal('whatsapp-modal')" class="bg-green-500/10 px-6 py-2.5 rounded-full text-[10px] font-black text-green-400 uppercase border border-green-500/20 whitespace-nowrap flex items-center gap-2">
+                    <i class="fab fa-whatsapp"></i> Grupo Zap
+                </button>
+                <button onclick="window.openModal('connessione-modal')" class="bg-blue-500/10 px-6 py-2.5 rounded-full text-[10px] font-black text-blue-400 uppercase border border-blue-500/20 whitespace-nowrap flex items-center gap-2">
+                    Connessione <i data-lucide="external-link" class="w-3 h-3"></i>
+                </button>
+            </div>
+
+            <!-- Linha 2: Seções do Menu -->
+            <div class="flex gap-1.5 bg-black/40 backdrop-blur-lg p-1 rounded-full border border-white/10 overflow-x-auto no-scrollbar max-w-full items-center">
+                <button onclick="window.scrollToId('sobre')" class="text-[9px] font-black text-white px-4 py-2 rounded-full uppercase tracking-widest whitespace-nowrap hover:text-acid">Sobre</button>
+                <button onclick="window.scrollToId('livepix')" class="text-[9px] font-black text-white px-4 py-2 rounded-full uppercase tracking-widest whitespace-nowrap hover:text-acid">LivePix</button>
+                <button onclick="window.scrollToId('cancelados')" class="text-[9px] font-black text-white px-4 py-2 rounded-full uppercase tracking-widest whitespace-nowrap hover:text-acid">Vídeos</button>
+                <button onclick="window.scrollToId('game')" class="text-[9px] font-black text-white px-4 py-2 rounded-full uppercase tracking-widest whitespace-nowrap hover:text-acid">Game</button>
+                <button onclick="window.scrollToId('mural')" class="text-[9px] font-black text-white px-4 py-2 rounded-full uppercase tracking-widest whitespace-nowrap hover:text-acid">Mural</button>
+                <button onclick="window.scrollToId('contato')" class="text-[9px] font-black text-white px-4 py-2 rounded-full uppercase tracking-widest whitespace-nowrap hover:text-acid">Contato</button>
             </div>
         </div>
     </header>
 
     <div class="max-w-4xl mx-auto space-y-6">
         
-        <!-- HEADER -->
+        <!-- BANNER PRINCIPAL -->
         <header class="bento-card relative overflow-hidden min-h-[400px] sm:min-h-[500px] flex items-end p-6 md:p-12 md:pb-16 mt-4">
             <img src="https://i.postimg.cc/4NqM5f6w/1209-(2)(1).gif" class="absolute inset-0 w-full h-full object-cover opacity-30" alt="Luisinho">
             <div class="absolute inset-0 bg-gradient-to-t from-dark via-dark/10 to-transparent"></div>
-            <div class="relative z-10 flex flex-col md:flex-row items-end justify-between w-full gap-8">
-                <div class="flex flex-col text-left max-w-lg">
+            
+            <div class="relative z-10 flex flex-col md:flex-row items-end justify-between w-full gap-8 text-left">
+                <div class="flex flex-col max-w-lg text-white">
                     <span class="bg-acid text-black text-[9px] font-black px-2 py-0.5 rounded-full uppercase mb-2 self-start italic">Canal Oficial</span>
-                    <h1 class="font-display font-black text-5xl sm:text-7xl text-white tracking-tighter uppercase italic leading-[0.8] mb-4">Luisinho</h1>
+                    <h1 class="font-display font-black text-5xl sm:text-7xl text-white tracking-tighter uppercase italic leading-[0.8] mb-4 text-white">Luisinho</h1>
                     <p class="text-gray-300 text-[11px] sm:text-xs font-bold uppercase italic border-l-2 border-acid/40 pl-4">Humor ácido, resenha doida e o caos que você ama.</p>
                 </div>
-                <div class="flex flex-row md:flex-col gap-3 bg-black/40 backdrop-blur-md p-2.5 rounded-2xl border border-white/10">
-                    <a href="https://www.tiktok.com/@luisinhohumorbackup" target="_blank" class="social-ball-mini social-tiktok"><i class="fa-brands fa-tiktok text-sm"></i></a>
-                    <a href="https://instagram.com/luisinhohumor" target="_blank" class="social-ball-mini social-instagram"><i class="fa-brands fa-instagram text-sm"></i></a>
-                    <a href="https://www.youtube.com/@canceladosnarede" target="_blank" class="social-ball-mini social-youtube"><i class="fa-brands fa-youtube text-sm"></i></a>
-                    <a href="https://www.facebook.com/luis.marquesfilho?locale=pt_BR" target="_blank" class="social-ball-mini social-facebook"><i class="fa-brands fa-facebook-f text-sm"></i></a>
+
+                <!-- Redes Sociais + Botão de Compartilhar -->
+                <div class="flex flex-row md:flex-col gap-3 items-center">
+                    <div class="flex flex-row md:flex-col gap-3 bg-black/40 backdrop-blur-md p-2.5 rounded-2xl border border-white/10 shadow-2xl">
+                        <a href="https://www.tiktok.com/@luisinhohumorbackup" target="_blank" class="social-ball-mini social-tiktok" title="TikTok"><i class="fa-brands fa-tiktok text-sm"></i></a>
+                        <a href="https://instagram.com/luisinhohumor" target="_blank" class="social-ball-mini social-instagram" title="Instagram"><i class="fa-brands fa-instagram text-sm"></i></a>
+                        <a href="https://www.youtube.com/@canceladosnarede" target="_blank" class="social-ball-mini social-youtube" title="YouTube"><i class="fa-brands fa-youtube text-sm"></i></a>
+                        <a href="https://www.facebook.com/luis.marquesfilho?locale=pt_BR" target="_blank" class="social-ball-mini social-facebook" title="Facebook"><i class="fa-brands fa-facebook-f text-sm"></i></a>
+                    </div>
+                    <!-- Botão de Compartilhar Pequeno -->
+                    <button onclick="window.shareSite()" class="w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:bg-white/10 transition-all" title="Compartilhar Site">
+                        <i data-lucide="share-2" class="w-4 h-4"></i>
+                    </button>
                 </div>
             </div>
         </header>
@@ -289,7 +344,7 @@
                 <h2 class="font-display font-black text-2xl sm:text-3xl uppercase italic tracking-tighter mb-6 text-white leading-tight">
                     LUISINHO | <span class="text-acid">O Caos Criativo em Sintonia</span>
                 </h2>
-                <div class="text-gray-300 text-sm sm:text-base leading-relaxed space-y-4 font-medium italic">
+                <div class="text-gray-300 text-sm sm:text-base leading-relaxed space-y-4 font-medium italic text-justify">
                     <p>Humor ácido, personagens fora da curva e a dose certa de loucura. Das ondas do rádio ao streaming ao vivo, transformo o entretenimento em uma experiência visceral. Se é estranho, é original. Se é intenso, é Luisinho.</p>
                     <p class="text-white font-bold border-l-2 border-acid pl-4">Explore meus mundos no YouTube, Instagram e nas lives onde as regras são feitas para serem quebradas.</p>
                 </div>
@@ -297,19 +352,19 @@
             <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-acid/5 rounded-full blur-3xl"></div>
         </section>
 
-        <!-- PIX -->
+        <!-- LIVE PIX -->
         <a href="https://livepix.gg/luisinhohumor" target="_blank" id="livepix" class="btn-pix-container block px-6 py-6 relative overflow-hidden group">
             <div class="relative z-10 text-left">
-                <div class="flex items-center gap-2 mb-2"><div class="w-6 h-6 bg-white/20 rounded flex items-center justify-center"><i data-lucide="zap" class="fill-white w-3 h-3"></i></div><span class="text-[10px] font-black uppercase opacity-90">Apoiar Canal</span></div>
-                <h2 class="font-display font-black text-2xl sm:text-3xl text-white tracking-tight uppercase italic">Mande um PIX</h2>
-                <p class="text-white text-[10px] italic opacity-80">Mensagem aparece ao vivo na tela!</p>
+                <div class="flex items-center gap-2 mb-2"><div class="w-6 h-6 bg-white/20 rounded flex items-center justify-center text-white text-white"><i data-lucide="zap" class="fill-white w-3 h-3"></i></div><span class="text-[10px] font-black uppercase opacity-90">Apoiar Canal</span></div>
+                <h2 class="font-display font-black text-2xl sm:text-3xl text-white tracking-tight uppercase italic text-white">Mande um PIX</h2>
+                <p class="text-white text-[10px] italic opacity-80 text-white">Sua mensagem aparece ao vivo na tela!</p>
             </div>
-            <div class="absolute -right-2 -bottom-4 opacity-15 rotate-12 transition-transform group-hover:scale-110"><i data-lucide="gift" class="w-24 h-24 text-white"></i></div>
+            <div class="absolute -right-2 -bottom-4 opacity-15 rotate-12 transition-transform group-hover:scale-110"><i data-lucide="gift" class="w-24 h-24 text-white text-white"></i></div>
         </a>
 
-        <!-- CANCELADOS -->
+        <!-- CANCELADOS (VÍDEOS) -->
         <section id="cancelados" class="space-y-4 text-left">
-            <h2 class="px-2 font-display font-black text-xl uppercase italic text-white tracking-tighter">Cancelados 🚫</h2>
+            <h2 class="px-2 font-display font-black text-xl uppercase italic text-white tracking-tighter text-white">Cancelados 🚫</h2>
             <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
                 <a href="https://youtu.be/H0HkVfSIgo4" target="_blank" class="bento-card overflow-hidden group aspect-video relative">
                     <img src="https://img.youtube.com/vi/H0HkVfSIgo4/hqdefault.jpg" class="video-cover absolute inset-0 w-full h-full object-cover opacity-60">
@@ -338,8 +393,8 @@
         <section id="game">
             <a href="jogo.html" class="bento-card p-8 flex flex-col sm:flex-row items-center justify-between gap-6 border-indigo-500/20 relative overflow-hidden group">
                 <div class="z-10 text-center sm:text-left">
-                    <h2 class="font-display font-black text-3xl uppercase italic text-white mb-4">Luisinho Game</h2>
-                    <div class="bg-acid text-black font-black px-10 py-4 rounded-xl uppercase text-xs animate-play">Jogar Agora</div>
+                    <h2 class="font-display font-black text-3xl uppercase italic text-white mb-4 text-white">Luisinho Game</h2>
+                    <div class="bg-acid text-black font-black px-10 py-4 rounded-xl uppercase text-xs animate-play text-black">Jogar Agora</div>
                 </div>
                 <div class="text-8xl opacity-20 z-0">🤣</div>
                 <div class="absolute inset-0 bg-indigo-600/5"></div>
@@ -350,17 +405,17 @@
         <section id="mural" class="bento-card p-6 md:p-8 relative">
             <div class="flex items-center justify-between mb-8 text-left">
                 <div>
-                    <h2 class="font-display font-black text-2xl uppercase italic text-white">Mural</h2>
-                    <p class="text-gray-500 text-[10px] font-bold uppercase italic">Deixa a tua resenha!</p>
+                    <h2 class="font-display font-black text-2xl uppercase italic text-white text-white">Mural</h2>
+                    <p class="text-gray-500 text-[10px] font-bold uppercase italic text-gray-500 text-gray-500">Deixa a tua resenha!</p>
                 </div>
                 <div class="flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-full border border-white/5">
-                    <div id="status-dot" class="status-light status-offline"></div>
-                    <span id="status-text" class="text-[9px] font-black text-gray-400 uppercase italic">A ligar...</span>
+                    <div id="status-dot" class="status-light status-offline text-gray-500"></div>
+                    <span id="status-text" class="text-[9px] font-black text-gray-400 uppercase italic text-gray-400">A ligar...</span>
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 text-left">
-                <div class="relative">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 text-left text-white">
+                <div class="relative text-white">
                     <form id="mural-form" onsubmit="return false;" class="space-y-4">
                         <div class="flex gap-2">
                             <div class="flex-1">
@@ -372,20 +427,20 @@
                             </div>
                         </div>
                         <div class="relative">
-                            <textarea id="mural-message" required maxlength="140" placeholder="Mensagem..." rows="3" class="w-full bg-black/40 border border-white/10 rounded-xl p-4 text-xs text-white outline-none focus:border-acid resize-none"></textarea>
-                            <div id="emoji-picker" class="emoji-picker-container">
-                                <div class="flex justify-between items-center mb-3 text-gray-400"><span class="text-[10px] font-black uppercase">Emojis</span><button type="button" onclick="window.toggleEmojiPicker()"><i data-lucide="x" class="w-4 h-4"></i></button></div>
-                                <div class="emoji-grid" id="emoji-grid"></div>
+                            <textarea id="mural-message" required maxlength="140" placeholder="Mensagem..." rows="3" class="w-full bg-black/40 border border-white/10 rounded-xl p-4 text-xs text-white outline-none focus:border-acid resize-none text-white"></textarea>
+                            <div id="emoji-picker" class="emoji-picker-container text-white">
+                                <div class="flex justify-between items-center mb-3 text-gray-400 text-gray-400"><span class="text-[10px] font-black uppercase text-gray-400">Emojis</span><button type="button" onclick="window.toggleEmojiPicker()" class="text-gray-400"><i data-lucide="x" class="w-4 h-4"></i></button></div>
+                                <div class="emoji-grid text-white" id="emoji-grid"></div>
                             </div>
                         </div>
-                        <div class="flex justify-between items-center">
+                        <div class="flex justify-between items-center text-white">
                             <button type="button" onclick="window.toggleEmojiPicker()" class="text-gray-500 hover:text-acid flex items-center gap-2 text-[10px] uppercase font-black bg-white/5 px-4 py-2 rounded-lg border border-white/10"><i data-lucide="smile" class="w-4 h-4"></i> Emojis</button>
-                            <span class="text-[9px] text-gray-600 font-mono"><span id="char-count">0</span>/140</span>
+                            <span class="text-[9px] text-gray-600 font-mono text-gray-600"><span id="char-count" class="text-gray-600">0</span>/140</span>
                         </div>
-                        <button type="button" id="submit-btn" disabled class="w-full bg-white/10 text-gray-600 font-black py-4 rounded-xl uppercase text-xs animate-play">Ligar...</button>
+                        <button type="button" id="submit-btn" disabled class="w-full bg-white/10 text-gray-600 font-black py-4 rounded-xl uppercase text-xs animate-play text-black">Ligar...</button>
                     </form>
                 </div>
-                <div id="mural-list" class="space-y-4 max-h-[450px] overflow-y-auto custom-scrollbar pr-2 italic">
+                <div id="mural-list" class="space-y-4 max-h-[450px] overflow-y-auto custom-scrollbar pr-2 italic text-left text-white">
                     <div class="text-center py-10 text-gray-600 text-[11px] italic">A carregar mensagens...</div>
                 </div>
             </div>
@@ -394,37 +449,40 @@
         <!-- CONTATO -->
         <section id="contato" class="bento-card p-10 sm:p-16 relative overflow-hidden text-center border-acid/10">
             <div class="relative z-10 max-w-2xl mx-auto space-y-8">
-                <h2 class="font-display font-black text-4xl sm:text-5xl uppercase italic tracking-tighter text-white leading-tight">Vamos tirar um projeto do papel?</h2>
-                <p class="text-gray-400 text-sm sm:text-base italic font-medium">Seja para parcerias, eventos ou comercial, estou pronto para o desafio.</p>
-                <a href="contato.html" class="inline-block bg-acid text-black font-display font-black text-lg px-12 py-5 rounded-2xl uppercase italic tracking-tighter hover:scale-105 shadow-2xl shadow-acid/10">Fale Comigo</a>
+                <h2 class="font-display font-black text-4xl sm:text-5xl uppercase italic tracking-tighter text-white leading-tight">
+                    Vamos tirar um projeto do papel?
+                </h2>
+                <p class="text-gray-400 text-sm sm:text-base italic font-medium text-gray-400">Seja para parcerias, eventos ou comercial, estou pronto para o desafio.</p>
+                <a href="contato.html" class="inline-block bg-acid text-black font-display font-black text-lg px-12 py-5 rounded-2xl uppercase italic tracking-tighter hover:scale-105 shadow-2xl shadow-acid/10 text-black">Fale Comigo</a>
             </div>
             <div class="absolute -right-20 -bottom-20 w-80 h-80 bg-acid/5 rounded-full blur-3xl"></div>
         </section>
 
         <!-- RODAPÉ -->
         <footer class="text-center py-12 space-y-4 border-t border-white/5">
-            <h2 class="font-display font-black text-lg text-white tracking-tighter uppercase italic leading-tight">"A resenha nunca morre."</h2>
-            <p class="text-[7px] font-black uppercase tracking-[0.4em] text-gray-700">© 2026 Luisinho | Oficial</p>
-            <div class="flex flex-col items-center gap-1 mt-6 opacity-50">
-                <span class="text-[6px] font-black text-gray-500 uppercase tracking-widest italic">Design & Development</span>
+            <h2 class="font-display font-black text-lg text-white tracking-tighter uppercase italic leading-tight text-white">"A resenha nunca morre."</h2>
+            <p class="text-[7px] font-black uppercase tracking-[0.4em] text-gray-700 text-gray-700">© 2026 Luisinho | Oficial</p>
+            <div class="flex flex-col items-center gap-1 mt-6 opacity-40">
+                <span class="text-[6px] font-black text-gray-500 uppercase tracking-widest italic text-gray-500">Design & Development</span>
                 <div class="flex items-center gap-2">
-                    <span class="text-[8px] font-black text-white uppercase italic tracking-tighter">Frida Criativa</span>
+                    <span class="text-[8px] font-black text-white uppercase italic tracking-tighter text-white">Frida Criativa</span>
                     <img src="https://i.postimg.cc/cJ2q3BT6/e4e23a95-3b15-4020-b12f-a9429f7b1f1b.png" class="w-4 h-4 object-contain opacity-80" alt="FC">
                 </div>
             </div>
-            <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-acid text-black px-6 py-2.5 rounded-full font-black text-[10px] uppercase italic tracking-widest opacity-0 transition-all pointer-events-none z-[250]">Pronto!</div>
+            <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-acid text-black px-6 py-2.5 rounded-full font-black text-[10px] uppercase italic tracking-widest opacity-0 transition-all pointer-events-none z-[250] text-black">Pronto!</div>
         </footer>
     </div>
 
+    <!-- FIREBASE LOGIC -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getFirestore, collection, addDoc, doc, onSnapshot, query, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
-        // CONFIGURAÇÃO SEGURA PARA GITHUB E PREVIEW
+        // Configuração segura
         let config = {};
-        try { config = JSON.parse(__firebase_config); } catch(e) { config = {}; }
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'luisinho-v8';
+        try { config = JSON.parse(__firebase_config); } catch(e) {}
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'luisinho-v10-final';
         
         const app = initializeApp(config);
         const db = getFirestore(app);
@@ -436,12 +494,12 @@
         const submitBtn = document.getElementById('submit-btn');
         const charCounter = document.getElementById('char-count');
 
-        // Emojis
+        // Grelha de Emojis (Cores Naturais)
         const emojis = ['😂', '❤️', '🔥', '👏', '🚀', '💀', '😭', '😎', '💯', '🤣', '🫡', '🤯', '😱', '💪', '🎮', '⚽', '🇧🇷', '🤘', '💩', '✨', '💎', '😜', '🤌', '🤝', '⚡'];
         const emojiGrid = document.getElementById('emoji-grid');
         emojis.forEach(e => {
             const btn = document.createElement('button');
-            btn.type = "button"; btn.className = "emoji-btn-item text-white"; btn.innerText = e;
+            btn.type = "button"; btn.className = "emoji-btn-item"; btn.innerText = e;
             btn.onclick = (ev) => { 
                 ev.preventDefault(); msgInput.value += e; msgInput.focus();
                 if(charCounter) charCounter.innerText = msgInput.value.length;
@@ -449,7 +507,7 @@
             emojiGrid.appendChild(btn);
         });
 
-        // AUTENTICAÇÃO OBRIGATÓRIA (REGRA 3)
+        // Firebase Sync
         const init = async () => {
             try {
                 await signInAnonymously(auth);
@@ -458,28 +516,27 @@
                         document.getElementById('status-dot').className = "status-light status-online";
                         document.getElementById('status-text').innerText = "Ligado";
                         submitBtn.disabled = false; submitBtn.innerText = "Publicar";
-                        submitBtn.className = "w-full bg-acid text-black font-black py-4 rounded-xl uppercase text-xs animate-play";
+                        submitBtn.className = "w-full bg-acid text-black font-black py-4 rounded-xl uppercase text-xs animate-play text-black";
 
-                        // REGRA 1: CAMINHO ABSOLUTO
                         const messagesColl = collection(db, 'artifacts', appId, 'public', 'data', 'messages');
                         onSnapshot(query(messagesColl), (snap) => {
                             muralList.innerHTML = "";
                             const docs = []; snap.forEach(d => docs.push({id: d.id, ...d.data()}));
                             docs.sort((a,b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
-                            if(docs.length === 0) muralList.innerHTML = `<div class="text-center py-10 text-gray-600 text-[10px] italic italic">Sem recados ainda.</div>`;
+                            if(docs.length === 0) muralList.innerHTML = `<div class="text-center py-10 text-gray-600 text-[10px] italic">Sem recados ainda.</div>`;
                             docs.forEach(data => {
                                 const div = document.createElement('div');
-                                div.className = "bg-white/5 p-4 rounded-2xl border border-white/5 mb-4 animate-in fade-in slide-in-from-bottom-2 duration-300";
+                                div.className = "bg-white/5 p-4 rounded-2xl border border-white/5 mb-4 animate-in fade-in slide-in-from-bottom-2 duration-300 text-left";
                                 div.innerHTML = `<div class="text-[9px] font-black uppercase mb-1 tracking-widest italic" style="color:${data.color || '#DFFF00'}">${data.name || 'Anónimo'}</div><div class="text-[11px] text-gray-300 leading-relaxed break-words italic">${data.message}</div>`;
                                 muralList.appendChild(div);
                             });
                         });
                     }
                 });
-            } catch (err) { submitBtn.innerText = "Erro ao Ligar"; }
+            } catch (err) { submitBtn.innerText = "Erro de Ligação"; }
         };
 
-        // ENVIAR MENSAGEM (PROTOCOLADO)
+        // Envio Manual
         submitBtn.onclick = async () => {
             if (!auth.currentUser) { window.showToast("LIGANDO..."); return; }
             const name = nameInput.value.trim();
@@ -487,7 +544,7 @@
             const color = document.getElementById('color-picker').value; 
             if(!name || !message) { window.showToast("PREENCHA TUDO"); return; }
 
-            submitBtn.disabled = true; submitBtn.innerText = "A enviar...";
+            submitBtn.disabled = true; submitBtn.innerText = "Enviando...";
             try {
                 const messagesColl = collection(db, 'artifacts', appId, 'public', 'data', 'messages');
                 await addDoc(messagesColl, { name, message, color, timestamp: serverTimestamp() });
@@ -496,7 +553,7 @@
                 if(charCounter) charCounter.innerText = "0";
                 window.showToast("ENVIADO COM SUCESSO!");
                 document.getElementById('emoji-picker').style.display = 'none';
-            } catch(err) { window.showToast("ERRO DE PERMISSÃO"); }
+            } catch(err) { window.showToast("ERRO"); }
             finally { submitBtn.disabled = false; submitBtn.innerText = "Publicar"; }
         };
 
