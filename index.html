@@ -293,6 +293,7 @@
             <div class="flex gap-1.5 bg-black/40 backdrop-blur-lg p-1 rounded-full border border-white/10 overflow-x-auto no-scrollbar max-w-full items-center">
                 <button onclick="window.scrollToId('sobre')" class="text-[9px] font-black text-white px-4 py-2 rounded-full uppercase tracking-widest whitespace-nowrap hover:text-acid">Sobre</button>
                 <button onclick="window.scrollToId('livepix')" class="text-[9px] font-black text-white px-4 py-2 rounded-full uppercase tracking-widest whitespace-nowrap hover:text-acid">LivePix</button>
+                <button onclick="window.scrollToId('moedas')" class="text-[9px] font-black text-white px-4 py-2 rounded-full uppercase tracking-widest whitespace-nowrap hover:text-acid">Moedas</button>
                 <button onclick="window.scrollToId('cancelados')" class="text-[9px] font-black text-white px-4 py-2 rounded-full uppercase tracking-widest whitespace-nowrap hover:text-acid">Vídeos</button>
                 <button onclick="window.scrollToId('game')" class="text-[9px] font-black text-white px-4 py-2 rounded-full uppercase tracking-widest whitespace-nowrap hover:text-acid">Game</button>
                 <button onclick="window.scrollToId('mural')" class="text-[9px] font-black text-white px-4 py-2 rounded-full uppercase tracking-widest whitespace-nowrap hover:text-acid">Mural</button>
@@ -336,22 +337,48 @@
                     LUISINHO | <span class="text-acid">O Caos Criativo em Sintonia</span>
                 </h2>
                 <div class="text-gray-300 text-sm sm:text-base leading-relaxed space-y-4 font-medium italic text-justify">
-                    <p>Humor ácido, personagens fora da curva e a dose certa de loucura. Das ondas do rádio ao streaming ao vivo, transformo o entretenimento em uma experiência visceral. Se é estranho, é original. Se é intenso, é Luisinho.</p>
+                    <p>Humor ácido, personagens fora da curva e a dose certa de loucura. Das ondas do rádio ao streaming ao vivo, transformo o entretenimento em uma experiênca visceral. Se é estranho, é original. Se é intenso, é Luisinho.</p>
                     <p class="text-white font-bold border-l-2 border-acid pl-4">Explore meus mundos no YouTube, Instagram e nas lives onde as regras são feitas para serem quebradas.</p>
                 </div>
             </div>
             <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-acid/5 rounded-full blur-3xl"></div>
         </section>
 
-        <!-- LIVE PIX -->
-        <a href="https://livepix.gg/luisinhohumor" target="_blank" id="livepix" class="btn-pix-container block px-6 py-6 relative overflow-hidden group">
-            <div class="relative z-10 text-left">
-                <div class="flex items-center gap-2 mb-2"><div class="w-6 h-6 bg-white/20 rounded flex items-center justify-center text-white"><i data-lucide="zap" class="fill-white w-3 h-3"></i></div><span class="text-[10px] font-black uppercase opacity-90">Apoiar Canal</span></div>
-                <h2 class="font-display font-black text-2xl sm:text-3xl text-white tracking-tight uppercase italic text-white text-white">Mande um PIX</h2>
-                <p class="text-white text-[10px] italic opacity-80 text-white">Sua mensagem aparece ao vivo na tela!</p>
-            </div>
-            <div class="absolute -right-2 -bottom-4 opacity-15 rotate-12 transition-transform group-hover:scale-110 text-white"><i data-lucide="gift" class="w-24 h-24 text-white"></i></div>
-        </a>
+        <!-- LIVE PIX & TIKTOK COINS -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <a href="https://livepix.gg/luisinhohumor" target="_blank" id="livepix" class="btn-pix-container block px-6 py-6 relative overflow-hidden group">
+                <div class="relative z-10 text-left">
+                    <div class="flex items-center gap-2 mb-2">
+                        <div class="w-6 h-6 bg-white/20 rounded flex items-center justify-center text-white">
+                            <i data-lucide="zap" class="fill-white w-3 h-3"></i>
+                        </div>
+                        <span class="text-[10px] font-black uppercase opacity-90">Apoiar Canal</span>
+                    </div>
+                    <h2 class="font-display font-black text-2xl sm:text-3xl text-white tracking-tight uppercase italic text-white">Mande um PIX</h2>
+                    <p class="text-white text-[10px] italic opacity-80">Sua mensagem aparece ao vivo na tela!</p>
+                </div>
+                <div class="absolute -right-2 -bottom-4 opacity-15 rotate-12 transition-transform group-hover:scale-110 text-white">
+                    <i data-lucide="gift" class="w-24 h-24"></i>
+                </div>
+            </a>
+
+            <!-- NOVO: TIKTOK COINS -->
+            <a id="moedas" href="https://www.tiktok.com/coin?rc=CVMSEFNT" target="_blank" class="bento-card block px-6 py-6 relative overflow-hidden group border-tiktok/20 bg-tiktok/5">
+                <div class="relative z-10 text-left">
+                    <div class="flex items-center gap-2 mb-2">
+                        <div class="w-6 h-6 bg-tiktok/20 rounded flex items-center justify-center text-tiktok">
+                            <i class="fa-solid fa-coins text-[10px]"></i>
+                        </div>
+                        <span class="text-[10px] font-black uppercase text-tiktok/90">TikTok Oficial</span>
+                    </div>
+                    <h2 class="font-display font-black text-2xl sm:text-3xl text-white tracking-tight uppercase italic">Comprar Moedas</h2>
+                    <p class="text-gray-400 text-[10px] italic">Recarregue moedas diretamente no site oficial.</p>
+                </div>
+                <div class="absolute -right-2 -bottom-4 opacity-10 rotate-12 transition-transform group-hover:scale-110 text-tiktok">
+                    <i class="fa-solid fa-coins text-8xl"></i>
+                </div>
+            </a>
+        </div>
 
         <!-- CANCELADOS -->
         <section id="cancelados" class="space-y-4 text-left">
@@ -397,7 +424,7 @@
             <div class="flex items-center justify-between mb-8 text-left">
                 <div>
                     <h2 class="font-display font-black text-2xl uppercase italic text-white text-white">Mural</h2>
-                    <p class="text-gray-500 text-[10px] font-bold uppercase italic text-gray-500">Deixa a tua resenha!</p>
+                    <p class="text-gray-500 text-[10px] font-bold uppercase italic">Deixa a tua resenha!</p>
                 </div>
                 <div class="flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-full border border-white/5">
                     <div id="status-dot" class="status-light status-offline"></div>
@@ -420,7 +447,7 @@
                         <div class="relative group">
                             <textarea id="mural-message" required maxlength="140" placeholder="Mensagem..." rows="3" class="w-full bg-black/40 border border-white/10 rounded-xl p-4 pr-12 text-xs text-white outline-none focus:border-acid resize-none"></textarea>
                             
-                            <!-- Botão de Emoji (Novo Lugar e Ícone) -->
+                            <!-- Botão de Emoji -->
                             <button type="button" onclick="window.toggleEmojiPicker()" class="absolute top-3 right-3 text-xl hover:scale-110 transition-transform">
                                 😊
                             </button>
@@ -435,9 +462,9 @@
                             </div>
                         </div>
                         <div class="flex justify-end items-center px-1">
-                            <span class="text-[9px] text-gray-600 font-mono text-gray-600"><span id="char-count">0</span>/140</span>
+                            <span class="text-[9px] text-gray-600 font-mono"><span id="char-count">0</span>/140</span>
                         </div>
-                        <button type="button" id="submit-btn" disabled class="w-full bg-white/10 text-gray-600 font-black py-4 rounded-xl uppercase text-xs animate-play text-black">Ligar...</button>
+                        <button type="button" id="submit-btn" disabled class="w-full bg-white/10 text-gray-600 font-black py-4 rounded-xl uppercase text-xs animate-play">Ligar...</button>
                     </form>
                 </div>
                 <div id="mural-list" class="space-y-4 max-h-[450px] overflow-y-auto custom-scrollbar pr-2 italic text-left text-white">
@@ -452,7 +479,7 @@
                 <h2 class="font-display font-black text-4xl sm:text-5xl uppercase italic tracking-tighter text-white leading-tight">
                     Vamos tirar um projeto do papel?
                 </h2>
-                <p class="text-gray-400 text-sm sm:text-base italic font-medium text-gray-400">Seja para parcerias, eventos ou comercial, estou pronto para o desafio.</p>
+                <p class="text-gray-400 text-sm sm:text-base italic font-medium">Seja para parcerias, eventos ou comercial, estou pronto para o desafio.</p>
                 <a href="contato.html" class="inline-block bg-acid text-black font-display font-black text-lg px-12 py-5 rounded-2xl uppercase italic tracking-tighter hover:scale-105 shadow-2xl shadow-acid/10 text-black">Fale Comigo</a>
             </div>
             <div class="absolute -right-20 -bottom-20 w-80 h-80 bg-acid/5 rounded-full blur-3xl text-white"></div>
@@ -461,29 +488,33 @@
         <!-- RODAPÉ -->
         <footer class="text-center py-12 space-y-4 border-t border-white/5">
             <h2 class="font-display font-black text-lg text-white tracking-tighter uppercase italic leading-tight text-white">"A resenha nunca morre."</h2>
-            <p class="text-[7px] font-black uppercase tracking-[0.4em] text-gray-700 text-gray-700">© 2026 Luisinho | Oficial</p>
+            <p class="text-[7px] font-black uppercase tracking-[0.4em] text-gray-700">© 2026 Luisinho | Oficial</p>
             <div class="flex flex-col items-center gap-1 mt-6 opacity-40">
-                <span class="text-[6px] font-black text-gray-500 uppercase tracking-widest italic text-gray-500">Design & Development</span>
+                <span class="text-[6px] font-black text-gray-500 uppercase tracking-widest italic">Design & Development</span>
                 <div class="flex items-center gap-2">
-                    <span class="text-[8px] font-black text-white uppercase italic tracking-tighter text-white">Frida Criativa</span>
+                    <span class="text-[8px] font-black text-white uppercase italic tracking-tighter">Frida Criativa</span>
                     <img src="https://i.postimg.cc/cJ2q3BT6/e4e23a95-3b15-4020-b12f-a9429f7b1f1b.png" class="w-4 h-4 object-contain opacity-80" alt="FC">
                 </div>
             </div>
-            <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-acid text-black px-6 py-2.5 rounded-full font-black text-[10px] uppercase italic tracking-widest opacity-0 transition-all pointer-events-none z-[250] text-black">Pronto!</div>
+            <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-acid text-black px-6 py-2.5 rounded-full font-black text-[10px] uppercase italic tracking-widest opacity-0 transition-all pointer-events-none z-[250]">Pronto!</div>
         </footer>
     </div>
 
     <!-- FIREBASE LOGIC -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, doc, onSnapshot, query, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
-        let config = {};
-        try { config = JSON.parse(__firebase_config); } catch(e) {}
+        // Configuração segura
+        let firebaseConfig = {};
+        try { firebaseConfig = JSON.parse(__firebase_config); } catch(e) {
+            console.error("Firebase config missing");
+        }
+        
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'luisinho-v10-final';
         
-        const app = initializeApp(config);
+        const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
 
@@ -493,7 +524,7 @@
         const submitBtn = document.getElementById('submit-btn');
         const charCounter = document.getElementById('char-count');
 
-        // Grelha de Emojis (Cores Naturais)
+        // Grelha de Emojis
         const emojis = ['😂', '❤️', '🔥', '👏', '🚀', '💀', '😭', '😎', '💯', '🤣', '🫡', '🤯', '😱', '💪', '🎮', '⚽', '🇧🇷', '🤘', '💩', '✨', '💎', '😜', '🤌', '🤝', '⚡'];
         const emojiGrid = document.getElementById('emoji-grid');
         emojis.forEach(e => {
@@ -506,57 +537,111 @@
             emojiGrid.appendChild(btn);
         });
 
-        // Firebase Sync
+        // Firebase Sync & Auth
         const init = async () => {
             try {
-                await signInAnonymously(auth);
+                // Tenta autenticar primeiro
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+
                 onAuthStateChanged(auth, (user) => {
                     if(user) {
                         document.getElementById('status-dot').className = "status-light status-online";
                         document.getElementById('status-text').innerText = "Ligado";
-                        submitBtn.disabled = false; submitBtn.innerText = "Publicar";
-                        submitBtn.className = "w-full bg-acid text-black font-black py-4 rounded-xl uppercase text-xs animate-play text-black";
+                        submitBtn.disabled = false; 
+                        submitBtn.innerText = "Publicar";
+                        submitBtn.className = "w-full bg-acid text-black font-black py-4 rounded-xl uppercase text-xs animate-play";
 
+                        // Listener de Mensagens (Caminho seguindo a Regra 1)
                         const messagesColl = collection(db, 'artifacts', appId, 'public', 'data', 'messages');
-                        onSnapshot(query(messagesColl), (snap) => {
+                        
+                        onSnapshot(messagesColl, (snap) => {
                             muralList.innerHTML = "";
-                            const docs = []; snap.forEach(d => docs.push({id: d.id, ...d.data()}));
-                            docs.sort((a,b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
-                            if(docs.length === 0) muralList.innerHTML = `<div class="text-center py-10 text-gray-600 text-[10px] italic">Sem recados.</div>`;
+                            const docs = []; 
+                            snap.forEach(d => docs.push({id: d.id, ...d.data()}));
+                            
+                            // Ordena em memória (Regra 2)
+                            docs.sort((a,b) => {
+                                const timeA = a.timestamp?.seconds || 0;
+                                const timeB = b.timestamp?.seconds || 0;
+                                return timeB - timeA;
+                            });
+
+                            if(docs.length === 0) {
+                                muralList.innerHTML = `<div class="text-center py-10 text-gray-600 text-[10px] italic">Sem recados.</div>`;
+                            }
+
                             docs.forEach(data => {
                                 const div = document.createElement('div');
-                                div.className = "bg-white/5 p-4 rounded-2xl border border-white/5 mb-4 animate-in fade-in slide-in-from-bottom-2 duration-300 text-left";
-                                div.innerHTML = `<div class="text-[9px] font-black uppercase mb-1 tracking-widest italic" style="color:${data.color || '#DFFF00'}">${data.name || 'Anónimo'}</div><div class="text-[11px] text-gray-300 leading-relaxed break-words italic">${data.message}</div>`;
+                                div.className = "bg-white/5 p-4 rounded-2xl border border-white/5 mb-4 text-left";
+                                div.innerHTML = `
+                                    <div class="text-[9px] font-black uppercase mb-1 tracking-widest italic" style="color:${data.color || '#DFFF00'}">${data.name || 'Anónimo'}</div>
+                                    <div class="text-[11px] text-gray-300 leading-relaxed break-words italic">${data.message}</div>
+                                `;
                                 muralList.appendChild(div);
                             });
+                        }, (error) => {
+                            console.error("Erro no Mural:", error);
+                            muralList.innerHTML = `<div class="text-center py-10 text-red-500/50 text-[10px] italic">Erro ao carregar mensagens.</div>`;
                         });
                     }
                 });
-            } catch (err) { submitBtn.innerText = "Erro de Ligação"; }
+            } catch (err) { 
+                console.error(err);
+                submitBtn.innerText = "Erro de Ligação"; 
+            }
         };
 
-        // Envio Manual
+        // Envio de Recado
         submitBtn.onclick = async () => {
-            if (!auth.currentUser) { window.showToast("LIGANDO..."); return; }
+            if (!auth.currentUser) { 
+                window.showToast("Aguarde a conexão..."); 
+                return; 
+            }
+            
             const name = nameInput.value.trim();
             const message = msgInput.value.trim();
             const color = document.getElementById('color-picker').value; 
-            if(!name || !message) { window.showToast("PREENCHA TUDO"); return; }
+            
+            if(!name || !message) { 
+                window.showToast("Preencha tudo!"); 
+                return; 
+            }
 
-            submitBtn.disabled = true; submitBtn.innerText = "Enviando...";
+            submitBtn.disabled = true; 
+            submitBtn.innerText = "Enviando...";
+
             try {
                 const messagesColl = collection(db, 'artifacts', appId, 'public', 'data', 'messages');
-                await addDoc(messagesColl, { name, message, color, timestamp: serverTimestamp() });
-                msgInput.value = ""; nameInput.value = ""; 
+                await addDoc(messagesColl, { 
+                    name, 
+                    message, 
+                    color, 
+                    userId: auth.currentUser.uid,
+                    timestamp: serverTimestamp() 
+                });
+
+                msgInput.value = ""; 
+                nameInput.value = ""; 
                 window.updateColorPreview('#DFFF00'); 
                 if(charCounter) charCounter.innerText = "0";
                 window.showToast("ENVIADO COM SUCESSO!");
                 document.getElementById('emoji-picker').style.display = 'none';
-            } catch(err) { window.showToast("ERRO"); }
-            finally { submitBtn.disabled = false; submitBtn.innerText = "Publicar"; }
+            } catch(err) { 
+                console.error(err);
+                window.showToast("Erro ao enviar"); 
+            } finally { 
+                submitBtn.disabled = false; 
+                submitBtn.innerText = "Publicar"; 
+            }
         };
 
         msgInput.oninput = () => { if(charCounter) charCounter.innerText = msgInput.value.length; };
+        
+        // Inicializa ícones e app
         lucide.createIcons();
         init();
     </script>
