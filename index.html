@@ -510,9 +510,9 @@
         import { getFirestore, collection, addDoc, onSnapshot, query, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
-        // Configuração
+        // Configuração Padrão do Ambiente
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : { apiKey: "" };
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'luisinho-v10-final';
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'luisinho-site-v2';
         
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
@@ -524,7 +524,7 @@
         const submitBtn = document.getElementById('submit-btn');
         const charCounter = document.getElementById('char-count');
 
-        // Grelha de Emojis - CORRIGIDA
+        // Grelha de Emojis - Correção para inserção garantida
         const emojis = ['😂', '❤️', '🔥', '👏', '🚀', '💀', '😭', '😎', '💯', '🤣', '🫡', '🤯', '😱', '💪', '🎮', '⚽', '🇧🇷', '🤘', '💩', '✨', '💎', '😜', '🤌', '🤝', '⚡'];
         const emojiGrid = document.getElementById('emoji-grid');
         emojis.forEach(e => {
@@ -532,39 +532,52 @@
             btn.type = "button"; 
             btn.className = "emoji-btn-item"; 
             btn.innerText = e;
-            btn.onclick = (ev) => { 
-                ev.preventDefault(); 
-                msgInput.value += e; 
+            btn.addEventListener('click', (ev) => {
+                ev.preventDefault();
+                ev.stopPropagation();
+                // Insere onde o cursor está ou no final
+                const start = msgInput.selectionStart;
+                const end = msgInput.selectionEnd;
+                const text = msgInput.value;
+                msgInput.value = text.substring(0, start) + e + text.substring(end);
                 msgInput.focus();
+                // Move o cursor para depois do emoji
+                msgInput.selectionStart = msgInput.selectionEnd = start + e.length;
                 if(charCounter) charCounter.innerText = msgInput.value.length;
-            };
+            });
             emojiGrid.appendChild(btn);
         });
 
-        // Firebase Sync & Auth
+        // Firebase Sync & Auth - Seguindo os padrões de segurança da plataforma
         const init = async () => {
             try {
+                // Tenta autenticar primeiro para liberar as permissões
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                     await signInWithCustomToken(auth, __initial_auth_token);
                 } else {
                     await signInAnonymously(auth);
                 }
 
+                // Monitora o estado da autenticação
                 onAuthStateChanged(auth, (user) => {
                     if(user) {
+                        // Interface conectada
                         document.getElementById('status-dot').className = "status-light status-online";
                         document.getElementById('status-text').innerText = "Ligado";
                         submitBtn.disabled = false; 
                         submitBtn.innerText = "Publicar";
                         submitBtn.className = "w-full bg-acid text-black font-black py-4 rounded-xl uppercase text-xs animate-play";
 
+                        // Caminho obrigatório conforme as regras do servidor
                         const messagesColl = collection(db, 'artifacts', appId, 'public', 'data', 'messages');
                         
+                        // Busca em tempo real (Sincronização na nuvem)
                         onSnapshot(messagesColl, (snap) => {
                             muralList.innerHTML = "";
                             const docs = []; 
                             snap.forEach(d => docs.push({id: d.id, ...d.data()}));
                             
+                            // Ordenação manual para evitar necessidade de índices complexos no Firebase
                             docs.sort((a,b) => {
                                 const timeA = a.timestamp?.seconds || 0;
                                 const timeB = b.timestamp?.seconds || 0;
@@ -572,34 +585,34 @@
                             });
 
                             if(docs.length === 0) {
-                                muralList.innerHTML = `<div class="text-center py-10 text-gray-600 text-[10px] italic">Sem recados.</div>`;
+                                muralList.innerHTML = `<div class="text-center py-10 text-gray-600 text-[10px] italic">Sem recados ainda. Seja o primeiro!</div>`;
                             }
 
                             docs.forEach(data => {
                                 const div = document.createElement('div');
-                                div.className = "bg-white/5 p-4 rounded-2xl border border-white/5 mb-4 text-left";
+                                div.className = "bg-white/5 p-4 rounded-2xl border border-white/5 mb-4 text-left animate-in fade-in duration-500";
                                 div.innerHTML = `
-                                    <div class="text-[9px] font-black uppercase mb-1 tracking-widest italic" style="color:${data.color || '#DFFF00'}">${data.name || 'Anónimo'}</div>
+                                    <div class="text-[9px] font-black uppercase mb-1 tracking-widest italic" style="color:${data.color || '#DFFF00'}">${data.name || 'Anônimo'}</div>
                                     <div class="text-[11px] text-gray-300 leading-relaxed break-words italic">${data.message}</div>
                                 `;
                                 muralList.appendChild(div);
                             });
                         }, (error) => {
                             console.error("Erro no Mural:", error);
-                            muralList.innerHTML = `<div class="text-center py-10 text-red-500/50 text-[10px] italic">Erro ao carregar mensagens.</div>`;
+                            muralList.innerHTML = `<div class="text-center py-10 text-red-500/50 text-[10px] italic">Erro na nuvem. Verifique a conexão.</div>`;
                         });
                     }
                 });
             } catch (err) { 
-                console.error(err);
+                console.error("Erro de Inicialização:", err);
                 submitBtn.innerText = "Erro de Ligação"; 
             }
         };
 
-        // Envio de Recado
+        // Envio de Recado para a Nuvem
         submitBtn.onclick = async () => {
             if (!auth.currentUser) { 
-                window.showToast("Aguarde a conexão..."); 
+                window.showToast("A ligar à nuvem..."); 
                 return; 
             }
             
@@ -608,12 +621,12 @@
             const color = document.getElementById('color-picker').value; 
             
             if(!name || !message) { 
-                window.showToast("Preencha tudo!"); 
+                window.showToast("Preencha o Nick e a Mensagem!"); 
                 return; 
             }
 
             submitBtn.disabled = true; 
-            submitBtn.innerText = "Enviando...";
+            submitBtn.innerText = "A Enviar...";
 
             try {
                 const messagesColl = collection(db, 'artifacts', appId, 'public', 'data', 'messages');
@@ -625,15 +638,16 @@
                     timestamp: serverTimestamp() 
                 });
 
+                // Limpa campos após sucesso
                 msgInput.value = ""; 
                 nameInput.value = ""; 
                 window.updateColorPreview('#DFFF00'); 
                 if(charCounter) charCounter.innerText = "0";
-                window.showToast("ENVIADO COM SUCESSO!");
+                window.showToast("MENSAGEM SALVA NA NUVEM!");
                 document.getElementById('emoji-picker').style.display = 'none';
             } catch(err) { 
-                console.error(err);
-                window.showToast("Erro ao enviar"); 
+                console.error("Erro ao Salvar:", err);
+                window.showToast("Erro ao enviar para a nuvem"); 
             } finally { 
                 submitBtn.disabled = false; 
                 submitBtn.innerText = "Publicar"; 
